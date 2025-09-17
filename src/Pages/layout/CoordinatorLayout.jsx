@@ -1,6 +1,6 @@
 import React from 'react';
-import { NavLink, useNavigate, Outlet } from 'react-router-dom'; // Import useNavigate for redirection
-import { User, LayoutDashboard, GraduationCap, BookOpen, Building, FileText , Presentation, LogOut } from 'lucide-react'; // Import LogOut icon
+import { NavLink, useNavigate, Outlet } from 'react-router-dom'; 
+import { User, LayoutDashboard, GraduationCap, BookOpen, Building, FileText , Presentation, LogOut } from 'lucide-react'; 
 
 
 const CoordinatorLayout = () => {
@@ -9,9 +9,8 @@ const CoordinatorLayout = () => {
   const navItems = [
     { name: 'Dashboard', path: 'dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Advisers', path: 'adviser', icon: <Presentation size={20} /> },
-    { name: 'Interns', path: 'interns', icon: <GraduationCap size={20} /> },
-    { name: 'Programs', path: 'programs', icon: <BookOpen size={20} /> },
     { name: 'Companies', path: 'companies', icon: <Building size={20} /> },
+    { name: 'Interns', path: 'interns', icon: <GraduationCap size={20} /> },
     { name: 'Reports', path: 'reports', icon: <FileText size={20} /> },
   
   ];

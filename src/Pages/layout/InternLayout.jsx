@@ -1,6 +1,6 @@
 import React from 'react';
-import { NavLink, useNavigate, Outlet } from 'react-router-dom'; // Import useNavigate for redirection
-import { User, Home, LogOut } from 'lucide-react'; // Import LogOut icon
+import { NavLink, useNavigate, Outlet } from 'react-router-dom'; 
+import { User, Home,NotebookText,FileText,CheckSquare, LogOut } from 'lucide-react';
 
 const InternNav = () => {
   const navigate = useNavigate(); // Initialize useNavigate hook
@@ -8,6 +8,9 @@ const InternNav = () => {
  
   const navItems = [
     { name: 'Home', path: 'home', icon: <Home size={20} /> },
+    { name: 'Documents', path: 'documents', icon: <FileText size={20} /> },
+    { name: 'Journal', path: 'journal', icon: <NotebookText size={20} /> },
+    { name: 'Evaluation', path: 'evaluation', icon: <CheckSquare size={20} /> },
     
   ];
 

@@ -8,7 +8,7 @@ const AdviserLayout = () => {
   // Define the navigation items for the adviser
   const navItems = [
     { name: 'Dashboard', path: 'dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Interns Status', path: 'interns', icon: <GraduationCap size={20} /> },
+    { name: 'Interns', path: 'interns', icon: <GraduationCap size={20} /> },
     { name: 'Add Intern', path: 'addintern', icon: <Plus size={20} /> },
     { name: 'Companies', path: 'companies', icon: <Building size={20} /> },
     { name: 'Reports', path: 'reports', icon: <FileText size={20} /> },

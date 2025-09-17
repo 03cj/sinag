@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatDistanceStrict, differenceInDays, isBefore } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 import AddNewCompany from './AddNewCompany'; 
 import UpdateMoa from './UpdateMOA';
 
@@ -171,10 +172,10 @@ const handleConfirmDelete = () => {
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-red-800">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider ">
               Actions
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-lg">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider ">
                 No.
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
@@ -196,8 +197,8 @@ const handleConfirmDelete = () => {
                 MOA Validity
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tr-lg">
-                MOA
-              </th>
+              MOA
+            </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -229,13 +230,15 @@ companies.map((company, index) => (
   <tr key={company.no || index}>
     {/* Delete button column */}
     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-      <button
-        onClick={() => handleDeleteClick(company)}
-        className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-md text-xs"
-      >
-        Delete
-      </button>
+     <button
+  onClick={() => handleDeleteClick(company)}
+  className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 p-1 rounded-md"
+  aria-label={`Delete ${company.name}`}
+>
+  <Trash2 size={16} />
+</button>
     </td>
+    
  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{company.name}</td>
     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{company.email}</td>

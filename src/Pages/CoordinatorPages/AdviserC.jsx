@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Trash2, Search } from 'lucide-react';
 import AddAdviser from './AddAdviser'; 
 
 const AdviserC = () => {
@@ -6,6 +7,11 @@ const AdviserC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddAdviserForm, setShowAddAdviserForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
 
   useEffect(() => {
     const fetchAdvisers = async () => {
@@ -13,6 +19,11 @@ const AdviserC = () => {
       setError(null);
 
       try {
+        // 👇 PART TO REPLACE FOR DATABASE CONNECTION:
+ // Replace the entire mock data and setTimeout with a real API call.
+ // For example:
+// const response = await fetch('/api/advisers'); 
+// MOCK DATA FOR DEMO PURPOSES
         const response = await new Promise(resolve =>
           setTimeout(() => {
             const mockAdvisers = [
@@ -38,38 +49,79 @@ const AdviserC = () => {
       }
     };
 
-    fetchAdvisers();
-  }, []);
+    // The empty dependency array ensures this effect runs only once on mount
+    fetchAdvisers(); 
+  }, []); 
 
-  const handleAddNewAdviser = () => {
-    setShowAddAdviserForm(true);
+  const handleAddNewAdviser = (newAdviser) => {
+    // 👇 PART TO REPLACE FOR DATABASE CONNECTION:
+     // Instead of just adding to local state, you would make a POST request to your API here.
+    // For example: await fetch('/api/advisers', { method: 'POST', body: JSON.stringify(newAdviser) });
+    // After a successful response, then update the local state.
+    setAdvisers(prev => [...prev, newAdviser]);
+    setShowAddAdviserForm(false);
   };
 
   const handleRemoveAdviser = (id) => {
     const isConfirmed = window.confirm(`Are you sure you want to remove adviser with ID: ${id}?`);
     if (isConfirmed) {
+      // 👇 PART TO REPLACE FOR DATABASE CONNECTION:
+      // Here, you would make a DELETE request to your API.
+     // For example: await fetch(`/api/advisers/${id}`, { method: 'DELETE' });
+     // Then, if the request is successful, update the local state.
       setAdvisers(prev => prev.filter(adviser => adviser.id !== id));
+      // 👇 PART TO REMOVE FOR DATABASE CONNECTION:
+      // This alert is for the simulated action and should be removed.
       alert(`Adviser ${id} removed (simulated).`);
     }
   };
 
-  return (
-    <div className="p-5 md:p-8 bg-gray-100 min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Programs Advisers</h1>
-        <p className="text-gray-600 text-sm">List of Program Advisers</p>
-      </div>
+  // 1. Filter the advisers list based on the search term
+  const filteredAdvisers = advisers.filter(adviser =>
+    adviser.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    adviser.firstname.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
+  return (
+    <>
+      <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 sm:gap-0">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Programs Advisers</h1>
+            <p className="text-gray-600 text-sm">List of Program Advisers</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 justify-end w-full sm:w-auto">
+            <button
+              onClick={() => setShowAddAdviserForm(true)}
+              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            >
+              Add new Adviser
+            </button>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search Adviser name"
+                className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm w-full"
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-red-800">
             <tr>
-              {['ID no.', 'Lastname', 'Firstname', 'MI.', 'Program', 'Email', 'REMOVE'].map((title, idx) => (
+              {['ID no.', 'Lastname', 'Firstname', 'MI.', 'Email', 'Program', 'Interns', 'REMOVE'].map((title, idx) => (
                 <th
                   key={idx}
                   scope="col"
                   className={`px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider ${
-                    idx === 0 ? 'rounded-tl-lg' : idx === 6 ? 'text-center rounded-tr-lg' : ''
+                    idx === 0 ? 'rounded-tl-lg' : idx === 7 ? 'text-center rounded-tr-lg' : ''
                   }`}
                 >
                   {title}
@@ -80,43 +132,33 @@ const AdviserC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">Loading advisers...</td>
+                <td colSpan="8" className="px-6 py-4 text-center text-gray-500">Loading advisers...</td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan="7" className="px-6 py-4 text-center text-red-500">{error}</td>
+                <td colSpan="8" className="px-6 py-4 text-center text-red-500">{error}</td>
               </tr>
-            ) : advisers.length === 0 ? (
+            ) : filteredAdvisers.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">No advisers found.</td>
+                <td colSpan="8" className="px-6 py-4 text-center text-gray-500">No advisers found.</td>
               </tr>
             ) : (
-              advisers.map(adviser => (
+              filteredAdvisers.map(adviser => (
                 <tr key={adviser.id}>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.id}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.lastname}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.firstname}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.mi}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.program}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.email}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.program}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.interns}</td>
                   <td className="px-6 py-4 text-center text-sm font-medium">
                     <button
                       onClick={() => handleRemoveAdviser(adviser.id)}
                       className="text-red-600 hover:text-red-900 transition-colors duration-200"
                       aria-label={`Remove adviser ${adviser.firstname} ${adviser.lastname}`}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mx-auto"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm4 11a1 1 0 100-2H9a1 1 0 100 2h2z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>
@@ -125,31 +167,19 @@ const AdviserC = () => {
           </tbody>
         </table>
       </div>
-
-      <div className="mt-8 flex justify-end">
-        <button
-          onClick={handleAddNewAdviser}
-          className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-        >
-          Add new Adviser
-        </button>
-      </div>
-
       {/* Add Adviser Modal */}
       {showAddAdviserForm && (
-        <div className="fixed inset-0 bg-red-900  bg-opacity-50 flex items-center justify-center z-50">
-          
-            <AddAdviser
-              onAddSuccess={(newAdviser) => {
-                setAdvisers(prev => [...prev, newAdviser]);
-                setShowAddAdviserForm(false);
-              }}
-              onCancel={() => setShowAddAdviserForm(false)}
-            />
-          
+        <div className="fixed inset-0 bg-red-900 bg-opacity-50 flex items-center justify-center z-50">
+          <AddAdviser
+            onAddSuccess={(newAdviser) => {
+              setAdvisers(prev => [...prev, newAdviser]);
+              setShowAddAdviserForm(false);
+            }}
+            onCancel={() => setShowAddAdviserForm(false)}
+          />
         </div>
       )}
-    </div>
+    </>
   );
 };
 
