@@ -8,21 +8,16 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const DashboardC = () => {
-    // 1. STATE FOR STORING KPI DATA
     const [kpiData, setKpiData] = useState({
         activeInterns: 'Loading...',
         activePrograms: 'Loading...',
         partnerCompanies: 'Loading...',
     });
 
-    // NEW STATE: For chart data
-    const [programChartData, setProgramChartData] = useState(null); // For "Number of Interns Per Programs"
-    const [companyChartData, setCompanyChartData] = useState(null); // For "Number of Interns Per Company"
-
-    // NEW STATE: To keep track of the currently selected program filter
-    const [selectedProgram, setSelectedProgram] = useState('All'); // Default to 'All'
-
-    // Programs filter options (BSIE replaces IND. ENG.)
+   
+    const [programChartData, setProgramChartData] = useState(null); 
+    const [companyChartData, setCompanyChartData] = useState(null); 
+    const [selectedProgram, setSelectedProgram] = useState('All'); 
     const programsFilter = ['All', 'BSBA', 'BSIT', 'BSENT', 'BEED', 'BSIE'];
 
     // 2. useEffect HOOK FOR DATA FETCHING
@@ -258,7 +253,6 @@ const DashboardC = () => {
 
     return (
         <div className="p-5 md:p-8 bg-gray-100 min-h-screen">
-            {/* Breadcrumbs */}
             <div className="text-gray-600 text-sm mb-5 flex items-center">
                 <span className="w-2 h-2 bg-cyan-500 rounded-full mr-2"></span> Dashboard &gt;
                 <span className="ml-1 font-semibold">{selectedProgram === 'All' ? '' : selectedProgram}</span>

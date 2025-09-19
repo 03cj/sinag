@@ -5,7 +5,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
     lastname: '',
     firstname: '',
     mi: '',
-    id: '', // Changed from idNumber to id to match AdviserC
+    id: '', 
     program: '',
     email: '',
     initialPassword: ''
@@ -49,7 +49,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8">
+    <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900">
       <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">Add New Adviser</h2>
       <p className="text-gray-600 text-center mb-4 mt-2 italic">
         Fill in the details below to add a new adviser to the system. All fields marked with an asterisk (<span className="text-red-500">*</span>) are required.

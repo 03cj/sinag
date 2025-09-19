@@ -21,8 +21,9 @@ const Endorsement = ({ intern, onGenerateLetter, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-red-900 bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl"> 
+        
+         <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50 ">  
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl border border-red-900"> 
                 <h2 className="text-xl font-bold text-gray-800 mb-1">Generate Endorsement Letter for {intern.firstname} {intern.lastname}</h2>
                 <p className="text-sm text-gray-600 mb-4 mt-0.5 italic">
                     Please fill in the company and contact details to generate the endorsement letter.

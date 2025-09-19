@@ -294,10 +294,10 @@ companies.map((company, index) => (
         </table>
 
         {showDeleteConfirm && companyToDelete && (
-  <div className="fixed inset-0 bg-red-900 bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-      <h2 className="text-lg font-bold text-gray-800 mb-4">Delete Company</h2>
-      <p className="text-gray-600 mb-6">
+  <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50"> 
+    <div className="bg-red-900 rounded-lg shadow-lg p-6 w-80">
+      <h2 className="text-lg font-bold text-yellow-500 mb-4">Delete Company</h2>
+      <p className="text-white mb-6">
         Are you sure you want to delete{" "}
         <span className="font-semibold">{companyToDelete.name}</span>?
       </p>
@@ -310,7 +310,7 @@ companies.map((company, index) => (
         </button>
         <button
           onClick={handleConfirmDelete}
-          className="px-4 py-2 bg-red-800 hover:bg-red-700 text-white rounded-md"
+          className="px-4 py-2 bg-yellow-500 hover:bg-red-200 text-black rounded-md"
         >
           Delete
         </button>
@@ -322,10 +322,10 @@ companies.map((company, index) => (
 
 {/* Confirmation Modal */}
 {showUpdateConfirm && selectedCompany && (
-  <div className="fixed inset-0 bg-red-900 bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-      <h2 className="text-lg font-bold text-gray-800 mb-4">Update MOA</h2>
-      <p className="text-gray-600 mb-6">
+  <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50"> 
+    <div className="bg-red-900 rounded-lg shadow-lg p-6 w-80">
+      <h2 className="text-lg font-bold text-yellow-500 mb-4">Update MOA</h2>
+      <p className="text-white mb-6">
         Do you want to update MOA for{" "}
         <span className="font-semibold">{selectedCompany.name}</span>?
       </p>
@@ -341,7 +341,7 @@ companies.map((company, index) => (
             setShowUpdateConfirm(false); 
             setShowUpdateForm(true);    
           }}
-          className="px-4 py-2 bg-red-800 hover:bg-red-700 text-white rounded-md"
+          className="px-4 py-2 bg-yellow-500 hover:bg-red-200 text-black rounded-md"
         >
           Yes
         </button>
@@ -352,7 +352,7 @@ companies.map((company, index) => (
 
 {/* Update MOA Modal */}
 {showUpdateForm && selectedCompany && (
-  <div className="fixed inset-0 bg-red-900 bg-opacity-50 flex items-center justify-center z-50">
+ <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50"> 
     <UpdateMoa
       company={selectedCompany}
       onCancel={() => setShowUpdateForm(false)}
@@ -365,12 +365,10 @@ companies.map((company, index) => (
     />
   </div>
 )}
-
-
       </div>
       {/* Add New Company Modal */}
       {showAddNewCompanyForm && (
-        <div className="fixed inset-0 bg-red-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50">  
           <AddNewCompany
             onAddSuccess={(newCompany) => {
               setCompanies((prev) => [...prev, newCompany]);

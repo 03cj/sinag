@@ -8,6 +8,14 @@ const AdviserC = () => {
   const [error, setError] = useState(null);
   const [showAddAdviserForm, setShowAddAdviserForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [adviserToDelete, setAdviserToDelete] = useState(null);
+
+const handleDeleteClick = (adviser) => {
+    setAdviserToDelete(adviser); // Set the adviser to be deleted
+    setShowDeleteConfirm(true); // Show the confirmation modal
+  };
+
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -54,27 +62,19 @@ const AdviserC = () => {
   }, []); 
 
   const handleAddNewAdviser = (newAdviser) => {
-    // 👇 PART TO REPLACE FOR DATABASE CONNECTION:
-     // Instead of just adding to local state, you would make a POST request to your API here.
-    // For example: await fetch('/api/advisers', { method: 'POST', body: JSON.stringify(newAdviser) });
-    // After a successful response, then update the local state.
-    setAdvisers(prev => [...prev, newAdviser]);
+     setAdvisers(prev => [...prev, newAdviser]);
     setShowAddAdviserForm(false);
-  };
+    };
 
-  const handleRemoveAdviser = (id) => {
-    const isConfirmed = window.confirm(`Are you sure you want to remove adviser with ID: ${id}?`);
-    if (isConfirmed) {
-      // 👇 PART TO REPLACE FOR DATABASE CONNECTION:
-      // Here, you would make a DELETE request to your API.
-     // For example: await fetch(`/api/advisers/${id}`, { method: 'DELETE' });
-     // Then, if the request is successful, update the local state.
-      setAdvisers(prev => prev.filter(adviser => adviser.id !== id));
-      // 👇 PART TO REMOVE FOR DATABASE CONNECTION:
-      // This alert is for the simulated action and should be removed.
-      alert(`Adviser ${id} removed (simulated).`);
-    }
-  };
+const handleConfirmDelete = () => {
+  if (adviserToDelete) {
+    // Corrected: Filter the main 'advisers' array
+    setAdvisers(prevAdvisers => prevAdvisers.filter(adviser => adviser.id !== adviserToDelete.id));
+    console.log(`Adviser ${adviserToDelete.id} removed (simulated).`);
+    setShowDeleteConfirm(false);
+    setAdviserToDelete(null); // Reset the state
+  }
+};
 
   // 1. Filter the advisers list based on the search term
   const filteredAdvisers = advisers.filter(adviser =>
@@ -154,7 +154,7 @@ const AdviserC = () => {
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.interns}</td>
                   <td className="px-6 py-4 text-center text-sm font-medium">
                     <button
-                      onClick={() => handleRemoveAdviser(adviser.id)}
+                      onClick={() => handleDeleteClick(adviser)}
                       className="text-red-600 hover:text-red-900 transition-colors duration-200"
                       aria-label={`Remove adviser ${adviser.firstname} ${adviser.lastname}`}
                     >
@@ -167,9 +167,37 @@ const AdviserC = () => {
           </tbody>
         </table>
       </div>
+
+             {showDeleteConfirm && adviserToDelete && (
+  <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50"> 
+    <div className="bg-red-900 rounded-lg shadow-lg p-6 w-80">
+      <h2 className="text-lg font-bold text-yellow-500 mb-4">Remove Adviser</h2>
+      <p className="text-white mb-6">
+        Are you sure you want to delete{" "}
+        <span className="font-semibold">{adviserToDelete.firstname}{" "}{adviserToDelete.lastname}</span>?
+      </p>
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={() => setShowDeleteConfirm(false)}
+          className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleConfirmDelete}
+          className="px-4 py-2 bg-yellow-500 hover:bg-red-200 text-black rounded-md"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
       {/* Add Adviser Modal */}
       {showAddAdviserForm && (
-        <div className="fixed inset-0 bg-red-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50">  
           <AddAdviser
             onAddSuccess={(newAdviser) => {
               setAdvisers(prev => [...prev, newAdviser]);

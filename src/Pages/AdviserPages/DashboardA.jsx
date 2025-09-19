@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Endorsement from './Endorsement'; // <--- Add this import statement
+import Endorsement from './Endorsement'; 
+import AddIntern from './AddIntern'; 
 
-// StatusDropdown Component (remains the same)
+
 const StatusDropdown = ({ intern, onStatusChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showRemarkInput, setShowRemarkInput] = useState(false);
@@ -170,6 +171,7 @@ const DashboardA = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [internForEndorsement, setInternForEndorsement] = useState(null);
+    const [showAddInternForm, setShowAddInternForm] = useState(false);
 
     const handleStatusChange = (studentNo, newStatus, remark = null) => {
         console.log(`Attempting to set status for Student No: ${studentNo} to: ${newStatus}, Remark: ${remark}`);
@@ -207,6 +209,13 @@ const DashboardA = () => {
     const handleDocumentClick = (docType, studentNo) => {
         console.log(`Viewing ${docType} for Student No: ${studentNo}`);
         alert(`Opening ${docType} document for ${studentNo}.`);
+    };
+
+    const handleAddNewIntern = (newIntern) => {
+        console.log('Adding new intern:', newIntern);
+        setInterns(prevInterns =>[...prevInterns, newIntern]);
+        setShowAddInternForm(false);
+        alert(`Intern ${newIntern.firstname} ${newIntern.lastname} has been added. `);
     };
 
     useEffect(() => {
@@ -284,6 +293,15 @@ const DashboardA = () => {
                         <h1 className="text-2xl font-bold text-gray-800">Intern Documents</h1>
                         <p className="text-gray-600 text-sm">Review intern submission documents</p>
                     </div>
+
+            <div className ="flex items-center gap-4">
+            <button
+              onClick={() => setShowAddInternForm(true)}
+              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            >
+              Add Intern
+            </button>
+                    
                     {/* Search Input */}
                     <div className="relative w-full sm:w-64">
                         <input
@@ -301,6 +319,7 @@ const DashboardA = () => {
                     </div>
                 </div>
             </div>
+        </div>
 
             {/* Interns Documents Table Container */}
             <div className="bg-white rounded-lg shadow-md border border-gray-300">
@@ -429,6 +448,14 @@ const DashboardA = () => {
                     onGenerateLetter={handleGenerateEndorsementLetter}
                     onClose={handleCloseEndorsementForm}
                 />
+            )}
+            {showAddInternForm && (
+            <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50">                
+            <AddIntern
+                onAddSucess={handleAddNewIntern}
+                onCancel={() => setShowAddInternForm(false)}
+                />
+                </div>
             )}
         </div>
     );
