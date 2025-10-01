@@ -1,49 +1,63 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import SignUp from '../Components/SignUp';
 
 const LogIn = () => {
   const navigate = useNavigate();
   const { role } = useParams();
   const [showPassword, setShowPassword] = useState(false);
-{/*}
-  const allowedRoles = ['coordinator', 'adviser', 'intern', 'supervisor'];
-
-  if (!allowedRoles.includes) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl text-red-600 font-semibold">Invalid user role.</p>
-      </div>
-    );
-}
-    */}
-  
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  function saveToken(token) {
+    try {
+      const g = typeof globalThis !== 'undefined' ? globalThis : null;
+      if (g && g.localStorage) g.localStorage.setItem('token', token);
+    } catch (e) {
+      console.warn('Could not save token to localStorage', e);
+    }
+  }
+  const capitalize = role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'User';
 
   const handleLogin = (e) => {
     e.preventDefault();
-    localStorage.setItem('isLoggedIn', 'true');
-    setMessage(`${capitalize(role)} logged in successfully!`);
-{/*
-    if (role === 'intern') {
-      navigate('/intern/home');
-    } else {
-      navigate(`/${role}/dashboard`);
-    }*/}
+    setLoading(true);
+    setError('');
+    const form = e.target;
+    const email = form.querySelector('input[type="email"]').value;
+    const password = form.querySelector('input[type="password"]').value;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const body = (await (res.headers.get('content-type') || '').includes('application/json'))
+          ? await res.json()
+          : {};
+        if (!res.ok) throw new Error(body.message || `Login failed (${res.status})`);
+        saveToken(body.token);
+        setMessage(`${capitalize(role)} logged in successfully!`);
+      } catch (err) {
+        console.error('Login error:', err);
+        setError(err.message || 'Login failed (network error)');
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
   const handleForgotPassword = () => {
     navigate(`/forgot-password`);
   };
 
-  const capitalize = (str) =>
-    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
       <div className="bg-white p-20 rounded-xl shadow-xl w-full max-w-md mb-20">
-        <h1 className="text-2xl font-bold text-red-900 mb-6 text-center">
-          {capitalize} Login your Account
-        </h1>
+        <h1 className="text-2xl font-bold text-red-900 mb-6 text-center">{capitalize} Login your Account</h1>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -74,21 +88,19 @@ const LogIn = () => {
             type="submit"
             className="w-full bg-red-900 text-white py-2 rounded-md hover:bg-red-700 transition-colors"
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
         <div className="mt-4 text-center">
-          <button
-            onClick={handleForgotPassword}
-            className="text-sm text-red-900 font-semibold hover:underline mb-2"
-          >
+          <button onClick={handleForgotPassword} className="text-sm text-red-900 font-semibold hover:underline mb-2">
             Forgot Password?
           </button>
 
           <p className="text-sm text-gray-600">
             Don't have an account?{' '}
             <button
-              onClick={() => navigate(`/signup`)}
+              onClick={() => navigate(`/pup-sinag/sign-up`)}
               className="text-red-900 font-semibold hover:underline"
             >
               Sign Up
