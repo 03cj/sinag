@@ -19,36 +19,59 @@ const LogIn = () => {
   }
   const capitalize = role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'User';
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    const form = e.target;
-    const email = form.querySelector('input[type="email"]').value;
-    const password = form.querySelector('input[type="password"]').value;
+const handleLogin = (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+  const form = e.target;
+  const email = form.querySelector('input[type="email"]').value;
+  const password = form.querySelector('input[type="password"]').value;
 
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          mode: 'cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const body = (await (res.headers.get('content-type') || '').includes('application/json'))
-          ? await res.json()
-          : {};
-        if (!res.ok) throw new Error(body.message || `Login failed (${res.status})`);
-        saveToken(body.token);
-        setMessage(`${capitalize(role)} logged in successfully!`);
-      } catch (err) {
-        console.error('Login error:', err);
-        setError(err.message || 'Login failed (network error)');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  };
+  (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const body = (await (res.headers.get('content-type') || '').includes('application/json'))
+        ? await res.json()
+        : {};
+
+      if (!res.ok) throw new Error(body.message || `Login failed (${res.status})`);
+
+      // ✅ Save token and show success
+      saveToken(body.token);
+      setMessage(`${body.user.role} logged in successfully!`);
+
+      // ✅ Redirect based on user role
+        if (body.user && body.user.role) {
+          const userRole = body.user.role.toLowerCase();
+
+          if (userRole === 'coordinator') {
+            navigate('/pup-sinag/coordinator');
+          } else if (userRole === 'student') {
+            navigate('/pup-sinag/student');
+          } else if (userRole === 'intern') {
+            navigate('/pup-sinag/intern');
+          } else if (userRole === 'adviser') {
+            navigate('/pup-sinag/adviser');
+          } else {
+            console.warn('Unknown role:', body.user.role);
+            navigate('/pup-sinag');
+          }
+        }
+
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed (network error)');
+    } finally {
+      setLoading(false);
+    }
+  })();
+};
 
   const handleForgotPassword = () => {
     navigate(`/forgot-password`);

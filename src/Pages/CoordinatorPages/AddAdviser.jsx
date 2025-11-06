@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const AddAdviser = ({ onAddSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -22,31 +22,69 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Changed formData.idNumber to formData.id for validation
-    if (!formData.lastname || !formData.firstname || !formData.id || !formData.program || !formData.email || !formData.initialPassword) {
-      setError('Please fill out all required fields.');
-      return;
-    }
+  if (
+    !formData.lastname ||
+    !formData.firstname ||
+    !formData.id ||
+    !formData.program ||
+    !formData.email ||
+    !formData.initialPassword
+  ) {
+    setError('Please fill out all required fields.');
+    return;
+  }
 
-    setSubmitting(true);
-    setError('');
+  setSubmitting(true);
+  setError('');
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+  try {
+    const token = localStorage.getItem('token'); // coordinator token
 
-      // Pass the formData directly, which now has 'id'
-      onAddSuccess(formData);
+    const response = await fetch('http://localhost:5000/api/auth/addAdviser', {
+      method: 'POST',
+      headers: {  
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        firstName: formData.firstname,
+        lastName: formData.lastname,
+        employeeId: formData.id,
+        department: formData.program,
+        email: formData.email,
+        password: formData.initialPassword,
+      }),
+    });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add adviser');
+      }
+
+      const newAdviser = await response.json(); // ✅ Get the adviser data from backend
+      onAddSuccess && onAddSuccess(newAdviser);  // ✅ Pass it to parent
       alert('Adviser added successfully!');
-    } catch (err) {
-      console.error('Add adviser error:', err);
-      setError('Failed to add adviser. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+
+    setFormData({
+      lastname: '',
+      firstname: '',
+      mi: '',
+      id: '',
+      program: '',
+      email: '',
+      initialPassword: '',
+    });
+  } catch (err) {
+    console.error('Add adviser error:', err);
+    setError(err.message || 'Failed to add adviser. Please try again.');
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900">

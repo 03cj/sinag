@@ -10,7 +10,10 @@ const User = sequelize.define(
     lastName: { type: DataTypes.STRING(100), allowNull: false },
     email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
     passwordHash: { type: DataTypes.STRING(255), allowNull: false },
-    role: { type: DataTypes.STRING(50), allowNull: false, defaultValue: 'intern' },
+    role: { type: DataTypes.STRING(50), allowNull: false, defaultValue: 'Coordinator' },
+    contactNumber: { type: DataTypes.STRING(20), allowNull: true },
+    department: { type: DataTypes.STRING(100), allowNull: true },
+    employeeId: { type: DataTypes.STRING(50), allowNull: true },
   },
   {
     tableName: 'users',

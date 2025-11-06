@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const ProfileA = () => {
   // State to hold coordinator's profile data
@@ -22,49 +22,49 @@ const ProfileA = () => {
   const [successMessage, setSuccessMessage] = useState(null);
 
   // Effect to fetch coordinator profile data on component mount
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      setLoading(true);
-      setError(null);
-      setSuccessMessage(null);
+useEffect(() => {
+  const fetchProfileData = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
 
-      try {
-        // TODO: Database Connection Point 1: Replace this simulated data fetch
-        // with an actual API call to retrieve the coordinator's profile data.
-        // Example: const response = await fetch('/api/coordinator/profile');
-        // if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-        // const data = await response.json();
-        // setProfileData({
-        //   fullName: data.fullName,
-        //   email: data.email,
-        //   contactNumber: data.contactNumber,
-        //   department: data.department,
-        //   employeeId: data.employeeId,
-        //   profilePicture: data.profilePicture || 'https://placehold.co/150x150/ef4444/ffffff?text=C',
-        // });
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5000/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        // --- START OF SIMULATED DATA ---
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-        setProfileData({
-          fullName: 'John Doe',
-          email: 'john.doe@example.com',
-          contactNumber: '09123456789',
-          department: 'Internship Office',
-          employeeId: 'COORD-001',
-          profilePicture: 'https://placehold.co/150x150/ef4444/ffffff?text=JD',
-        });
-        // --- END OF SIMULATED DATA ---
-
-      } catch (err) {
-        console.error("Failed to fetch profile data:", err);
-        setError("Failed to load profile data. Please try again.");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
 
-    fetchProfileData();
-  }, []); // Empty dependency array means it runs once on mount
+      const data = await response.json();
+      console.log("Profile fetch response:", data); // <-- log it
+      const user = data.user;
+
+      setProfileData({
+        fullName: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        contactNumber: user.contactNumber || "",
+        department: user.department || "",
+        employeeId: user.employeeId || "",
+        profilePicture:
+          user.profilePicture ||
+          "https://placehold.co/150x150/ef4444/ffffff?text=C",
+      });
+    } catch (err) {
+      console.error("Failed to fetch profile data:", err);
+      setError("Failed to load profile data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProfileData();
+}, []);
+
 
   // Handler for updating profile details
   const handleProfileChange = (e) => {
@@ -77,31 +77,49 @@ const ProfileA = () => {
 
   // Handler for saving profile changes
   const handleSaveProfile = async () => {
-    setLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-    try {
-      // TODO: Database Connection Point 2: Replace this with an actual API call
-      // to update the coordinator's profile in the database.
-      // Example: const response = await fetch('/api/coordinator/profile', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(profileData),
-      // });
-      // if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+  // Show loading spinner and reset messages
+  setLoading(true);
+  setError(null);
+  setSuccessMessage(null);
 
-      // Simulate API success
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setSuccessMessage('Profile updated successfully!');
-      console.log('Profile saved:', profileData);
+  try {
+    // Get the JWT token of the currently logged-in user
+    // (usually stored in localStorage after login)
+    const token = localStorage.getItem("token");
 
-    } catch (err) {
-      console.error("Failed to save profile:", err);
-      setError("Failed to save profile. Please try again.");
-    } finally {
-      setLoading(false);
+    // Send a PUT request to your backend to update the user’s profile info
+    const response = await fetch("http://localhost:3000/api/auth/update-profile", {
+      method: "PUT", // PUT = update existing data
+      headers: {
+        "Content-Type": "application/json", // Tell backend we're sending JSON
+        Authorization: `Bearer ${token}`, // Include token for authentication
+      },
+      body: JSON.stringify({
+        // The actual profile data you want to update
+        contactNumber: profileData.contactNumber,
+        department: profileData.department,
+        employeeId: profileData.employeeId,
+      }),
+    });
+
+    // If backend responds with error code (e.g., 400 or 500)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+
+    // Everything went well
+    setSuccessMessage("Profile updated successfully!");
+
+  } catch (err) {
+    // Handles any errors (like connection issues or server problems)
+    console.error("Failed to save profile:", err);
+    setError("Failed to save profile. Please try again.");
+  } finally {
+    // Always turn off loading spinner when done
+    setLoading(false);
+  }
+};
+
 
   // Handler for changing password
   const handleChangePassword = async () => {

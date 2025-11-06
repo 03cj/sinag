@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Trash2, Search } from 'lucide-react';
-import AddAdviser from './AddAdviser'; 
+import { Search, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import AddAdviser from './AddAdviser';
 
 const AdviserC = () => {
   const [advisers, setAdvisers] = useState([]);
@@ -26,35 +26,24 @@ const handleDeleteClick = (adviser) => {
       setLoading(true);
       setError(null);
 
-      try {
-        // 👇 PART TO REPLACE FOR DATABASE CONNECTION:
- // Replace the entire mock data and setTimeout with a real API call.
- // For example:
-// const response = await fetch('/api/advisers'); 
-// MOCK DATA FOR DEMO PURPOSES
-        const response = await new Promise(resolve =>
-          setTimeout(() => {
-            const mockAdvisers = [
-              { id: '111', lastname: 'Dela Cruz', firstname: 'Juan', mi: 'S.', program: 'BSIT', email: 'juan.delacruz@gmail.com' },
-              { id: '112', lastname: 'Reyes', firstname: 'Maria', mi: 'L.', program: 'BSBA', email: 'maria.reyes@gmail.com' },
-              { id: '113', lastname: 'Santos', firstname: 'Pedro', mi: 'A.', program: 'BSENT', email: 'pedro.santos@gmail.com' },
-              { id: '114', lastname: 'Cruz', firstname: 'Ana', mi: 'M.', program: 'BEED', email: 'ana.cruz@gmail.com' },
-              { id: '115', lastname: 'Garcia', firstname: 'Jose', mi: 'P.', program: 'IND. ENG.', email: 'jose.garcia@gmail.com' },
-            ];
-            resolve({ ok: true, json: () => Promise.resolve(mockAdvisers) });
-          }, 1000)
-        );
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/advisers', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // if you use auth middleware
+        },
+      });
 
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-        const data = await response.json();
-        setAdvisers(data);
-      } catch (err) {
-        console.error("Failed to fetch advisers:", err);
-        setError("Failed to load advisers. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
+      const data = await response.json();
+      setAdvisers(data);
+    } catch (err) {
+      console.error("Failed to fetch advisers:", err);
+      setError("Failed to load advisers. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+
     };
 
     // The empty dependency array ensures this effect runs only once on mount
@@ -77,10 +66,14 @@ const handleConfirmDelete = () => {
 };
 
   // 1. Filter the advisers list based on the search term
-  const filteredAdvisers = advisers.filter(adviser =>
-    adviser.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    adviser.firstname.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    const filteredAdvisers = advisers.filter(adviser => {
+    const first = adviser.firstName?.toLowerCase() || adviser.firstname?.toLowerCase() || "";
+    const last = adviser.lastName?.toLowerCase() || adviser.lastname?.toLowerCase() || "";
+    const search = searchTerm.toLowerCase();
+
+    return first.includes(search) || last.includes(search);
+  });
+
 
   return (
     <>
