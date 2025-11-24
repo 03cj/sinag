@@ -8,6 +8,7 @@ const LogIn = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   function saveToken(token) {
     try {
@@ -19,34 +20,34 @@ const LogIn = () => {
   }
   const capitalize = role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'User';
 
-const handleLogin = (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
-  const form = e.target;
-  const email = form.querySelector('input[type="email"]').value;
-  const password = form.querySelector('input[type="password"]').value;
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    const form = e.target;
+    const email = form.querySelector('input[type="email"]').value;
+    const password = form.querySelector('input[type="password"]').value;
 
-  (async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
 
-      const body = (await (res.headers.get('content-type') || '').includes('application/json'))
-        ? await res.json()
-        : {};
+        const body = (await (res.headers.get('content-type') || '').includes('application/json'))
+          ? await res.json()
+          : {};
 
-      if (!res.ok) throw new Error(body.message || `Login failed (${res.status})`);
+        if (!res.ok) throw new Error(body.message || `Login failed (${res.status})`);
 
-      // ✅ Save token and show success
-      saveToken(body.token);
-      setMessage(`${body.user.role} logged in successfully!`);
+        // ✅ Save token and show success
+        saveToken(body.token);
+        setMessage(`${body.user.role} logged in successfully!`);
 
-      // ✅ Redirect based on user role
+        // ✅ Redirect based on user role
         if (body.user && body.user.role) {
           const userRole = body.user.role.toLowerCase();
 
@@ -63,15 +64,14 @@ const handleLogin = (e) => {
             navigate('/pup-sinag');
           }
         }
-
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Login failed (network error)');
-    } finally {
-      setLoading(false);
-    }
-  })();
-};
+      } catch (err) {
+        console.error('Login error:', err);
+        setError(err.message || 'Login failed (network error)');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  };
 
   const handleForgotPassword = () => {
     navigate(`/forgot-password`);

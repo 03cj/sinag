@@ -2,15 +2,14 @@ import { useEffect, useState } from 'react';
 
 const ProfileC = () => {
   // State to hold coordinator's profile data
-const [profileData, setProfileData] = useState({
-  fullName: '',
-  email: '',
-  contactNumber: '',
-  department: '',
-  employeeId: '',
-  profilePicture: 'https://placehold.co/150x150/ef4444/ffffff?text=C',
-});
-
+  const [profileData, setProfileData] = useState({
+    fullName: '',
+    email: '',
+    contactNumber: '',
+    department: '',
+    employeeId: '',
+    profilePicture: 'https://placehold.co/150x150/ef4444/ffffff?text=C',
+  });
 
   // State for password fields (separate from profile data as they are not usually displayed)
   const [currentPassword, setCurrentPassword] = useState('');
@@ -23,38 +22,38 @@ const [profileData, setProfileData] = useState({
   const [successMessage, setSuccessMessage] = useState(null);
 
   const handleProfileChange = (e) => {
-  const { name, value } = e.target;
-  setProfileData((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
+    const { name, value } = e.target;
+    setProfileData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   // Effect to fetch coordinator profile data on component mount
-useEffect(() => {
-  const fetchProfileData = async () => {
-    setLoading(true);
-    setError(null);
-    setSuccessMessage(null);
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setLoading(true);
+      setError(null);
+      setSuccessMessage(null);
 
-    try {
-      // Get token if your API requires authentication
-      const token = localStorage.getItem("token");
+      try {
+        // Get token if your API requires authentication
+        const token = localStorage.getItem('token');
 
-      // Fetch coordinator profile
-      const response = await fetch("http://localhost:5000/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        // Fetch coordinator profile
+        const response = await fetch('http://localhost:5000/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-      const data = await response.json();
+        const data = await response.json();
 
-      const user = data.user; // Assuming your backend returns { user: { ... } }
+        const user = data.user; // Assuming your backend returns { user: { ... } }
 
-      // Update state with real backend data
+        // Update state with real backend data
         setProfileData({
           fullName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '',
           email: user.email || '',
@@ -63,54 +62,50 @@ useEffect(() => {
           employeeId: user.employeeId || '',
           profilePicture: user.profilePicture || 'https://placehold.co/150x150/ef4444/ffffff?text=C',
         });
+      } catch (err) {
+        console.error('Failed to fetch profile data:', err);
+        setError('Failed to load profile data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchProfileData();
+  }, []);
 
+  // Handler for updating profile details
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'PUT', // update existing data
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          contactNumber: profileData.contactNumber,
+          department: profileData.department,
+          employeeId: profileData.employeeId,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      setSuccessMessage('Profile updated successfully!');
+      console.log('Profile updated:', profileData);
     } catch (err) {
-      console.error("Failed to fetch profile data:", err);
-      setError("Failed to load profile data. Please try again.");
+      console.error('Failed to save profile:', err);
+      setError('Failed to save profile. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-
-  fetchProfileData();
-}, []);
-
-  // Handler for updating profile details
-const handleSaveProfile = async () => {
-  setLoading(true);
-  setError(null);
-  setSuccessMessage(null);
-
-  try {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch("http://localhost:5000/api/auth/profile", {
-      method: "PUT", // update existing data
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        contactNumber: profileData.contactNumber,
-        department: profileData.department,
-        employeeId: profileData.employeeId,
-      }),
-    });
-
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-    setSuccessMessage("Profile updated successfully!");
-    console.log("Profile updated:", profileData);
-
-  } catch (err) {
-    console.error("Failed to save profile:", err);
-    setError("Failed to save profile. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
 
   // Handler for changing password
   const handleChangePassword = async () => {
@@ -119,53 +114,49 @@ const handleSaveProfile = async () => {
     setSuccessMessage(null);
 
     if (newPassword !== confirmNewPassword) {
-      setError("New password and confirm password do not match.");
+      setError('New password and confirm password do not match.');
       setLoading(false);
       return;
     }
-    if (!newPassword || newPassword.length < 6) { // Basic validation
-      setError("New password must be at least 6 characters long.");
+
+    if (!newPassword || newPassword.length < 6) {
+      setError('New password must be at least 6 characters long.');
       setLoading(false);
       return;
     }
 
     try {
-      // TODO: Database Connection Point 3: Replace this with an actual API call
-      // to change the coordinator's password. This would typically involve sending
-      // currentPassword, newPassword, and confirmNewPassword to your backend.
-      // Example: const response = await fetch('/api/coordinator/change-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ currentPassword, newPassword }),
-      // });
-      // if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
 
-      // Simulate API success
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `Failed: ${response.status}`);
+      }
+
       setSuccessMessage('Password changed successfully!');
-      console.log('Password changed.');
-      // Clear password fields on success
+      console.log('✅ Password changed successfully');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
-
     } catch (err) {
-      console.error("Failed to change password:", err);
-      setError("Failed to change password. Please check your current password and try again.");
+      console.error('❌ Failed to change password:', err);
+      setError(err.message || 'Failed to change password. Please check your current password and try again.');
     } finally {
       setLoading(false);
     }
   };
-
-
-if (loading) {
-  return (
-    <div className="p-5 md:p-8 bg-gray-100 min-h-screen flex items-center justify-center">
-      <p className="text-gray-600">Loading coordinator profile...</p>
-    </div>
-  );
-}
-
 
   return (
     <div className="p-5 md:p-8 bg-gray-100 min-h-screen">
@@ -182,7 +173,10 @@ if (loading) {
         </div>
       )}
       {successMessage && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div
+          className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
           <strong className="font-bold">Success!</strong>
           <span className="block sm:inline"> {successMessage}</span>
         </div>
@@ -200,7 +194,7 @@ if (loading) {
             {/* You might add an upload button here later */}
             <button
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-1 px-3 rounded-md transition-colors duration-200"
-              onClick={() => alert("Upload profile picture functionality goes here!")}
+              onClick={() => alert('Upload profile picture functionality goes here!')}
             >
               Upload Photo
             </button>
@@ -208,7 +202,9 @@ if (loading) {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
               <input
                 type="text"
                 id="fullName"
@@ -220,7 +216,9 @@ if (loading) {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email (Primary Contact)</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email (Primary Contact)
+              </label>
               <input
                 type="email"
                 id="email"
@@ -232,7 +230,9 @@ if (loading) {
               />
             </div>
             <div>
-              <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700">Contact Number</label>
+              <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700">
+                Contact Number
+              </label>
               <input
                 type="text"
                 id="contactNumber"
@@ -244,7 +244,9 @@ if (loading) {
               />
             </div>
             <div>
-              <label htmlFor="department" className="block text-sm font-medium text-gray-700">Department/Office</label>
+              <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+                Department/Office
+              </label>
               <input
                 type="text"
                 id="department"
@@ -256,7 +258,9 @@ if (loading) {
               />
             </div>
             <div>
-              <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700">Employee ID</label>
+              <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700">
+                Employee ID
+              </label>
               <input
                 type="text"
                 id="employeeId"
@@ -285,7 +289,9 @@ if (loading) {
         <h3 className="text-lg font-medium text-gray-700 mb-4">Change Password</h3>
         <div className="space-y-4 max-w-md">
           <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">Current Password</label>
+            <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
+              Current Password
+            </label>
             <input
               type="password"
               id="currentPassword"
@@ -297,7 +303,9 @@ if (loading) {
             />
           </div>
           <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">New Password</label>
+            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+              New Password
+            </label>
             <input
               type="password"
               id="newPassword"
@@ -309,7 +317,9 @@ if (loading) {
             />
           </div>
           <div>
-            <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+            <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700">
+              Confirm New Password
+            </label>
             <input
               type="password"
               id="confirmNewPassword"

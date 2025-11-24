@@ -1,6 +1,8 @@
 /* eslint-env node */
 const authService = require('../services/authService');
 const userService = require('../services/userService');
+const bcrypt = require('bcrypt');
+const User = require('../models/user');
 
 async function addAdviser(req, res, next) {
   try {
@@ -97,7 +99,6 @@ async function updateProfile(req, res, next) {
   }
 }
 
-// 🆕 ADD THIS FUNCTION HERE
 async function getAdvisers(req, res, next) {
   try {
     const advisers = await userService.getAdvisers();
@@ -108,7 +109,50 @@ async function getAdvisers(req, res, next) {
   }
 }
 
-// ✅ Export all controllers
+async function changePassword(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    console.log('🔍 Change password request received');
+    console.log('User ID from token:', userId);
+    console.log('Body:', req.body);
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new passwords are required' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      console.log('❌ User not found');
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('Found user:', user.email);
+    console.log('Stored hash:', user.passwordHash);
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    console.log('Password match:', isMatch);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    console.log('New hash will be:', hashedPassword);
+
+    await user.update({ passwordHash: hashedPassword });
+
+    console.log('✅ Password updated successfully in DB');
+
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Error changing password:', err);
+    next(err);
+  }
+}
+
+// ... export at the bottom
 module.exports = {
   signup,
   login,
@@ -116,4 +160,5 @@ module.exports = {
   updateProfile,
   addAdviser,
   getAdvisers,
+  changePassword,
 };
