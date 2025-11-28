@@ -152,6 +152,40 @@ async function changePassword(req, res, next) {
   }
 }
 
+async function addIntern(req, res, next) {
+  try {
+    const { firstName, lastName, email, password, program, studentId } = req.body;
+
+    if (!firstName || !lastName || !email || !password || !program || !studentId) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const result = await authService.addIntern({
+      firstName,
+      lastName,
+      email,
+      password,
+      program,
+      studentId,
+    });
+
+    res.status(201).json({
+      message: 'Intern account created successfully',
+      user: {
+        id: result.user.id,
+        firstName: result.user.firstName,
+        lastName: result.user.lastName,
+        email: result.user.email,
+        studentId: result.user.studentId,
+        department: result.user.department,
+        role: 'Intern',
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // ... export at the bottom
 module.exports = {
   signup,
@@ -161,4 +195,5 @@ module.exports = {
   addAdviser,
   getAdvisers,
   changePassword,
+  addIntern,
 };

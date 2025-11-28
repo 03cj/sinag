@@ -14,6 +14,7 @@ const User = sequelize.define(
     contactNumber: { type: DataTypes.STRING(20), allowNull: true },
     department: { type: DataTypes.STRING(100), allowNull: true },
     employeeId: { type: DataTypes.STRING(50), allowNull: true },
+    studentId: { type: DataTypes.STRING(50), allowNull: true },
   },
   {
     tableName: 'users',

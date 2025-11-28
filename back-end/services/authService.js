@@ -47,6 +47,29 @@ async function addAdviser({ firstName, lastName, email, password, department, em
 }
 
 /**
+ * Adviser adds an Intern account
+ */
+async function addIntern({ firstName, lastName, email, password, program, studentId }) {
+  const existing = await userService.findByEmail(email);
+  if (existing) throw new Error('User already exists');
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const user = await userService.createUser({
+    firstName,
+    lastName,
+    email,
+    passwordHash,
+    role: 'Intern',
+    department: program,   // store program in department
+    studentId,
+  });
+
+  return { message: 'Intern created successfully', user };
+}
+
+
+/**
  * Login existing user
  */
 async function login({ email, password }) {
@@ -76,4 +99,4 @@ async function login({ email, password }) {
   };
 }
 
-module.exports = { signup, login, addAdviser };
+module.exports = { signup, login, addAdviser, addIntern };

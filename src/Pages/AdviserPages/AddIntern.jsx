@@ -23,30 +23,51 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // Changed formData.idNumber to formData.id for validation
-    if (!formData.lastname || !formData.firstname || !formData.id || !formData.program || !formData.email || !formData.initialPassword) {
-      setError('Please fill out all required fields.');
-      return;
+  if (!formData.lastname || !formData.firstname || !formData.id || !formData.program || !formData.email || !formData.initialPassword) {
+    setError('Please fill out all required fields.');
+    return;
+  }
+
+  setSubmitting(true);
+  setError('');
+
+  try {
+    const token = localStorage.getItem('token'); // coordinator token
+    const response = await fetch('http://localhost:5000/api/auth/addIntern', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        firstName: formData.firstname,
+        lastName: formData.lastname,
+        studentId: formData.id,
+        program: formData.program,
+        email: formData.email,
+        password: formData.initialPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add intern');
     }
 
-    setSubmitting(true);
-    setError('');
+    const newIntern = await response.json();
+    onAddSuccess && onAddSuccess(newIntern);
+    alert('Intern added successfully!');
+    setFormData({ lastname: '', firstname: '', mi: '', id: '', program: '', email: '', initialPassword: '' });
+  } catch (err) {
+    console.error('Add intern error:', err);
+    setError(err.message || 'Failed to add intern. Please try again.');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Pass the formData directly, which now has 'id'
-      onAddSuccess(formData);
-      alert('Adviser added successfully!');
-    } catch (err) {
-      console.error('Add Intern error:', err);
-      setError('Failed to add intern. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900 ">

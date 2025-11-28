@@ -5,7 +5,7 @@ async function findByEmail(email) {
   return User.findOne({ where: { email: String(email).toLowerCase() } });
 }
 
-async function createUser({ firstName, lastName, email, passwordHash, role, department, employeeId }) {
+async function createUser({ firstName, lastName, email, passwordHash, role, department, employeeId, studentId }) {
   return User.create({
     firstName,
     lastName,
@@ -14,8 +14,10 @@ async function createUser({ firstName, lastName, email, passwordHash, role, depa
     role,
     department,
     employeeId,
+    studentId,
   });
 }
+
 
 // 🔧 NEW FUNCTION: update user profile
 async function updateUser(id, data) {
@@ -39,5 +41,6 @@ async function getAdvisers() {
     attributes: ['id', 'firstName', 'lastName', 'email', 'department', 'employeeId'],
   });
 }
+
 
 module.exports = { findByEmail, createUser, updateUser, getAdvisers };
