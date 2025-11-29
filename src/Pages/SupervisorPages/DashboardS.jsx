@@ -1,4 +1,6 @@
+import { ClipboardList, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // <--- 1. Imported useNavigate
 
 // Placeholder data for the list of active interns assigned to this company
 const initialCompanyInterns = [
@@ -11,11 +13,38 @@ const initialCompanyInterns = [
   { studNo: '116', lastName: 'Tan', firstName: 'Michael', mi: 'J.', email: 'michael@email.com' },
 ];
 
+// Custom Modal Component to replace window.alert()
+const SimpleModal = ({ isVisible, title, message, onClose }) => {
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-100 border-t-4 border-red-700">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-red-800">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-red-600 transition">
+            <X size={24} />
+          </button>
+        </div>
+        <p className="text-gray-700 mb-6">{message}</p>
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-red-800 text-white font-semibold rounded-lg hover:bg-red-900 transition shadow"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CompanyDashboard = () => {
-  // --- State based on the Company Dashboard view ---
-  const [companyName, setCompanyName] = useState('Acme Innovations Inc.');
-  const [activeInterns, setActiveInterns] = useState(initialCompanyInterns);
-  const [moaDetails, setMoaDetails] = useState({
+  const navigate = useNavigate(); // <--- 2. Initialized useNavigate
+  const [companyName] = useState('Acme Innovations Inc.');
+  const [activeInterns] = useState(initialCompanyInterns);
+  const [moaDetails] = useState({
     expiration: 'December 31, 2025',
     status: 'Active',
     moaFile: 'acme_innovations_moa.pdf',
@@ -24,6 +53,23 @@ const CompanyDashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // State for controlling the custom modal (Still used for MOA actions)
+  const [modal, setModal] = useState({
+    isVisible: false,
+    title: '',
+    message: '',
+  });
+
+  // Function to display messages via the custom modal
+  const showMessage = (title, message) => {
+    setModal({ isVisible: true, title, message });
+  };
+
+  // Function to close the modal
+  const closeModal = () => {
+    setModal({ isVisible: false, title: '', message: '' });
+  };
 
   // useEffect Hook: Used for fetching initial data
   useEffect(() => {
@@ -44,19 +90,23 @@ const CompanyDashboard = () => {
     fetchData();
   }, []);
 
-  // --- Action Handlers for MOA Buttons (FIXED: Using window.alert) ---
+  // --- Action Handlers (UPDATED to use custom modal) ---
   const handleViewMoa = () => {
     if (moaDetails.isMoaUploaded) {
-      window.alert(`Viewing MOA: ${moaDetails.moaFile}`);
-      // In a real app: window.open(`/api/moa/${moaDetails.moaFile}`, '_blank');
+      showMessage('MOA Document View', `Simulating viewing MOA: ${moaDetails.moaFile}`);
     } else {
-      window.alert('No MOA has been uploaded yet.');
+      showMessage('MOA Document View', 'No MOA has been uploaded yet.');
     }
   };
 
   const handleUploadMoa = () => {
-    window.alert('Simulating MOA upload dialog...');
-    // In a real app, this would trigger a file input or a modal for upload
+    showMessage('MOA Upload', 'Simulating MOA upload dialog...');
+  };
+
+  // --- Action Handler for Evaluation Icon (UPDATED to use navigate) ---
+  const handleViewEvaluation = (intern) => {
+    // Navigate to the correct full path: /pup-sinag/supervisor/evaluation/117
+    navigate(`/pup-sinag/supervisor/evaluation/${intern.studNo}`);
   };
 
   // --- Loading and Error States ---
@@ -78,14 +128,13 @@ const CompanyDashboard = () => {
 
   return (
     <div className="min-h-screen bg-red-50 p-4 sm:p-6 lg:p-8">
-      {' '}
-      {/* Light red/pink background */}
+      {/* 1. Custom Modal for alerts */}
+      <SimpleModal isVisible={modal.isVisible} title={modal.title} message={modal.message} onClose={closeModal} />
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* 1. "Hello Company name!" Banner */}
-        <div className="bg-red-800 text-white p-6 rounded-lg shadow-xl" style={{ fontSize: '30px' }}>
-          <h2 className="text-4xl font-extrabold italic" style={{ color: 'yellow' }}>
-            Hello {companyName}!
-          </h2>
+        <div className="bg-red-800 text-white p-6 rounded-lg shadow-xl">
+          <h2 className="text-4xl font-extrabold italic text-yellow-400">Hello {companyName}!</h2>
         </div>
 
         {/* Main Content: Two Columns */}
@@ -132,7 +181,7 @@ const CompanyDashboard = () => {
           {/* Right Column: Interns Table */}
           <div className="flex-1 bg-white rounded-lg shadow-xl overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              {/* Table Header (Red) */}
+              {/* Table Header (Red) - EVALUATION HEADER */}
               <thead className="bg-red-800 text-white">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">STUD. NO.</th>
@@ -140,9 +189,10 @@ const CompanyDashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">FIRSTNAME</th>
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">MI.</th>
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">EMAIL</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider">EVALUATION</th>
                 </tr>
               </thead>
-              {/* Table Body (White) */}
+              {/* Table Body (White) - EVALUATION ICON */}
               <tbody className="bg-white divide-y divide-gray-200">
                 {activeInterns.map((intern) => (
                   <tr key={intern.studNo} className="hover:bg-red-50 transition-colors">
@@ -152,6 +202,16 @@ const CompanyDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{intern.mi}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:underline">
                       <a href={`mailto:${intern.email}`}>{intern.email}</a>
+                    </td>
+                    {/* COLUMN DATA WITH ClipboardList ICON */}
+                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                      <button
+                        onClick={() => handleViewEvaluation(intern)} // Triggers navigation
+                        className="text-red-600 hover:text-red-900 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 rounded"
+                        title={`View evaluation for ${intern.firstName} ${intern.lastName}`}
+                      >
+                        <ClipboardList className="h-6 w-6 mx-auto" /> {/* ClipboardList Icon from lucide-react */}
+                      </button>
                     </td>
                   </tr>
                 ))}

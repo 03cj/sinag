@@ -79,8 +79,12 @@ export default function App() {
 
           {/* Supervisor Routes */}
           <Route path="supervisor" element={<SupervisorLayout />}>
+            <Route index element={<DashboardS />} />
             <Route path="dashboard" element={<DashboardS />} />
-            <Route path="evaluation" element={<EvaluationS />} />
+
+            {/* THIS LINE MUST BE PRESENT AND CORRECT */}
+            <Route path="evaluation/:studNo" element={<EvaluationS />} />
+
             <Route path="profile" element={<ProfileS />} />
           </Route>
         </Route>
