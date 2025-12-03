@@ -2,63 +2,83 @@ import React, { useState } from 'react';
 
 const AddNewCompany = ({ onAddSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
-    NameofCompanies: '',
-    Email: '',
-    Supervisor: '',
-    Address: '', 
-    NatureofBusiness: '',
-    MOAStart: '',
-    MOAEnd: '', 
-    MOAFile: null,
-   
+    name: "",
+    email: "",
+    supervisorName: "",
+    address: "",
+    natureOfBusiness: "",
+    moaStart: "",
+    moaEnd: "",
+    moaFile: null,
+    initialPassword: ""
   });
 
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+
   const handleChange = (e) => {
-    const {name, value, files} = e.target;
-      if (name === "MOAFile") {
-        setFormData(prev => ({
-          ...prev,
-          [name]: files[0]
-        }));
-      }else {
-        setFormData(prev =>({
-          ...prev,
-          [name]: value
-        }));
-      }
-    };
- 
+    const { name, value, files } = e.target;
+    if (name === "moaFile") {
+      setFormData(prev => ({ ...prev, [name]: files[0] }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
 
-    // Changed formData.idNumber to formData.id for validation
-    if (!formData.NameofCompanies || !formData.Email || !formData.Supervisor || !formData.Address || !formData.NatureofBusiness || !formData.MOAStart || !formData.MOAEnd || !formData.MOAFile) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.supervisorName ||
+      !formData.address ||
+      !formData.natureOfBusiness ||
+      !formData.moaStart ||
+      !formData.moaEnd ||
+      !formData.moaFile ||
+      !formData.initialPassword
+    ) {
       setError('Please fill out all required fields.');
       return;
     }
 
     setSubmitting(true);
-    setError('');
 
     try {
-const formDataToSend = new FormData();
-Object.keys(formData).forEach(key => {
-  formDataToSend.append(key, formData[key]);
-});
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const token = localStorage.getItem('token');
 
-      // Pass the formData directly, which now has 'id'
-      onAddSuccess(formData);
+      const response = await fetch('http://localhost:5000/api/auth/addCompany', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formDataToSend,
+      });
+
+      if (!response.ok) throw new Error('Failed to add company');
+
+      const result = await response.json();
+      onAddSuccess(result.company);
       alert('New Company added successfully!');
+      setFormData({
+        name: "",
+        email: "",
+        supervisorName: "",
+        address: "",
+        natureOfBusiness: "",
+        moaStart: "",
+        moaEnd: "",
+        moaFile: null,
+        initialPassword: ""
+      });
     } catch (err) {
-      console.error('Add new company error:', err);
-      setError('Failed to add new company. Please try again.');
+      console.error(err);
+      setError(err.message || 'Failed to add new company. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -80,144 +100,169 @@ Object.keys(formData).forEach(key => {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="NameofCompanies" className="block text-sm font-medium text-black mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-black mb-1">
               Name of Company <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="NameofCompanies"
-              name="NameofCompanies"
-              value={formData.NameofCompanies}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
+
           <div>
-            <label htmlFor="Email" className="block text-sm font-medium text-black mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-black mb-1">
               Email <span className="text-red-500">*</span>
             </label>
             <input
-              type="text"
-              id="Email"
-              name="Email"
-              value={formData.Email}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
+
           <div>
-            <label htmlFor="Supervisor" className="block text-sm font-medium text-black mb-1">
-              Supervisor<span className ="text-red-500">*</span>
-              </label>
+            <label htmlFor="supervisorName" className="block text-sm font-medium text-black mb-1">
+              Supervisor <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
-              id="Supervisor"
-              name="Supervisor"
-              value={formData.Supervisor}
+              id="supervisorName"
+              name="supervisorName"
+              value={formData.supervisorName}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="Address" className="block text-sm font-medium text-black mb-1">
-             Address <span className="text-red-500">*</span>
+            <label htmlFor="address" className="block text-sm font-medium text-black mb-1">
+              Address <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="Address" 
-              name="Address" 
-              value={formData.Address}
+              id="address"
+              name="address"
+              value={formData.address}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
+
           <div>
-            <label htmlFor="NatureofBusiness" className="block text-sm font-medium text-black mb-1">
+            <label htmlFor="natureOfBusiness" className="block text-sm font-medium text-black mb-1">
               Nature of Business <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="NatureofBusiness"
-              name="NatureofBusiness"
-              value={formData.NatureofBusiness}
+              id="natureOfBusiness"
+              name="natureOfBusiness"
+              value={formData.natureOfBusiness}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="MOAStart" className="block text-sm font-medium text-black mb-1">
-              MOA Start <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              id="MOAStart"
-              name="MOAStart"
-              value={formData.MOAStart}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
-              aria-required="true"
-            />
-          </div>
+            <div>
+              <label htmlFor="moaStart" className="block text-sm font-medium text-black mb-1">
+                MOA Start <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="moaStart"
+                name="moaStart"
+                value={formData.moaStart}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                required
+              />
+            </div>
 
             <div>
-            <label htmlFor="MOAEnd" className="block text-sm font-medium text-black mb-1">
-              MOA End <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              id="MOAEnd"
-              name="MOAEnd"
-              value={formData.MOAEnd}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
-              aria-required="true"
-            />
-          </div>
+              <label htmlFor="moaEnd" className="block text-sm font-medium text-black mb-1">
+                MOA End <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="moaEnd"
+                name="moaEnd"
+                value={formData.moaEnd}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                required
+              />
+            </div>
           </div>
 
           <div>
-  <label
-    htmlFor="MOAFile"
-    className="bg-white-500 text-black font-bold py-2 px-6 rounded-md shadow-lg border border-red-900 cursor-pointer hover:bg-red-200 transition-colors duration-200 inline-block text-sm"
-  >
-    <span className="flex items-center">
-      Upload MOA (PDF)
-      <span className="ml-1 text-red-300">*</span>
-    </span>
-  </label>
-  <input
-    type="file"
-    id="MOAFile"
-    name="MOAFile"
-    accept="application/pdf"
-    onChange={handleChange}
-    required
-    aria-required="true"
-    className="hidden" 
-  />
-  {formData.MOAFile && (
-    <p className="mt-2 text-sm text-green-600">
-      Selected: {formData.MOAFile.name}
-    </p>
-  )}
-</div>
+            <label
+              htmlFor="moaFile"
+              className="bg-white-500 text-black font-bold py-2 px-6 rounded-md shadow-lg border border-red-900 cursor-pointer hover:bg-red-200 transition-colors duration-200 inline-block text-sm"
+            >
+              <span className="flex items-center">
+                Upload MOA (PDF) <span className="ml-1 text-red-300">*</span>
+              </span>
+            </label>
+            <input
+              type="file"
+              id="moaFile"
+              name="moaFile"
+              accept="application/pdf"
+              onChange={handleChange}
+              className="hidden"
+            />
+            {formData.moaFile && (
+              <p className="mt-2 text-sm text-green-600">Selected: {formData.moaFile.name}</p>
+            )}
+          </div>
         </div>
+
+{/* Initial Password */}
+<div className="mt-4">
+  <label htmlFor="initialPassword" className="block text-sm font-medium text-black mb-1">
+    Initial Password <span className="text-red-500">*</span>
+  </label>
+
+  <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      id="initialPassword"
+      name="initialPassword"
+      value={formData.initialPassword}
+      onChange={handleChange}  
+      className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+      required
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute inset-y-0 right-3 text-sm text-gray-600"
+    >
+      {showPassword ? "Hide" : "Show"}
+    </button>
+  </div>
+
+  <p className="text-xs text-gray-500 mt-1 italic">
+    This password will be used by the company on first login.
+  </p>
+</div>
+
+        
 
         <div className="flex justify-end space-x-3 pt-4">
           <button
@@ -233,17 +278,7 @@ Object.keys(formData).forEach(key => {
             className={`px-5 py-2 rounded-md text-white bg-red-700 hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out ${submitting ? 'opacity-60 cursor-not-allowed' : ''}`}
             disabled={submitting}
           >
-            {submitting ? (
-              <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Adding...
-              </span>
-            ) : (
-              'Add New Company'
-            )}
+            {submitting ? 'Adding...' : 'Add New Company'}
           </button>
         </div>
       </form>

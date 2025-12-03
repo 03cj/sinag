@@ -48,22 +48,21 @@ const LogIn = () => {
         setMessage(`${body.user.role} logged in successfully!`);
 
         // ✅ Redirect based on user role
-        if (body.user && body.user.role) {
-          const userRole = body.user.role.toLowerCase();
+        if (body.user) {
+  const { role, type } = body.user;
 
-          if (userRole === 'coordinator') {
-            navigate('/pup-sinag/coordinator');
-          } else if (userRole === 'student') {
-            navigate('/pup-sinag/student');
-          } else if (userRole === 'intern') {
-            navigate('/pup-sinag/intern');
-          } else if (userRole === 'adviser') {
-            navigate('/pup-sinag/adviser');
-          } else {
-            console.warn('Unknown role:', body.user.role);
-            navigate('/pup-sinag');
-          }
-        }
+  if (type === 'company' || role === 'Company') {
+    navigate('/pup-sinag/supervisor'); // Companies go to supervisor pages
+  } else {
+    const userRole = role.toLowerCase();
+    if (userRole === 'coordinator') navigate('/pup-sinag/coordinator');
+    else if (userRole === 'student') navigate('/pup-sinag/student');
+    else if (userRole === 'intern') navigate('/pup-sinag/intern');
+    else if (userRole === 'adviser') navigate('/pup-sinag/adviser');
+    else navigate('/pup-sinag');
+  }
+}
+
       } catch (err) {
         console.error('Login error:', err);
         setError(err.message || 'Login failed (network error)');
