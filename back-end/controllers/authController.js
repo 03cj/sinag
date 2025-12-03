@@ -3,6 +3,7 @@ const authService = require('../services/authService');
 const userService = require('../services/userService');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
+const Company = require('../models/company');
 
 async function addAdviser(req, res, next) {
   try {
@@ -186,6 +187,50 @@ async function addIntern(req, res, next) {
   }
 }
 
+//company 
+async function addCompany(req, res, next) {
+  try {
+    const { 
+      name, 
+      email, 
+      supervisorName, 
+      address, 
+      natureOfBusiness, 
+      moaStart, 
+      moaEnd,
+      initialPassword
+    } = req.body;
+    const moaFile = req.file ? req.file.filename : null; // multer stores file info in req.file
+
+    // Only required fields validation (exclude MOA file)
+    if (!name || !email || !supervisorName || !address || !natureOfBusiness || !moaStart || !moaEnd || !initialPassword) {
+      return res.status(400).json({ message: 'All required fields except MOA file must be filled.' });
+    }
+
+ const result = await authService.addCompany({
+      name,
+      email,
+      supervisorName,
+      address,
+      natureOfBusiness,
+      moaStart,
+      moaEnd,
+      moaFile,
+      password: initialPassword
+    });
+
+    res.status(201).json({
+      message: result.message,
+      company: result.company
+    });
+  } catch (err) {
+    console.error('Error adding company:', err);
+    next(err);
+  }
+}
+
+
+
 // ... export at the bottom
 module.exports = {
   signup,
@@ -196,4 +241,5 @@ module.exports = {
   getAdvisers,
   changePassword,
   addIntern,
+  addCompany,
 };

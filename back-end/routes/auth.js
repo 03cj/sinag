@@ -4,6 +4,11 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
 
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // store uploaded MOA PDFs
+
+
+
 //test route
 console.log('✅ Auth routes loaded');
 router.get('/test', (req, res) => {
@@ -18,5 +23,8 @@ router.post('/login', authController.login);
 router.get('/me', authMiddleware, authController.me);
 router.put('/profile', authMiddleware, authController.updateProfile);
 router.put('/change-password', authMiddleware, authController.changePassword);
+
+router.post('/addCompany', upload.single('moaFile'), authController.addCompany);
+
 
 module.exports = router;

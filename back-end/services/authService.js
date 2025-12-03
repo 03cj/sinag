@@ -1,6 +1,7 @@
 /* eslint-env node */
 const bcrypt = require('bcryptjs');
 const userService = require('./userService');
+const companyService = require('./companyService');
 const jwtUtil = require('../utils/jwt');
 
 /**
@@ -68,35 +69,76 @@ async function addIntern({ firstName, lastName, email, password, program, studen
   return { message: 'Intern created successfully', user };
 }
 
-
 /**
- * Login existing user
+ * Add a new company (with password hashing)
  */
-async function login({ email, password }) {
-  const user = await userService.findByEmail(email);
-  if (!user) {
-    const err = new Error('Invalid credentials');
-    err.status = 401;
-    throw err;
-  }
+async function addCompany({ 
+  name, 
+  email, 
+  address, 
+  natureOfBusiness, 
+  supervisorName, 
+  moaStart, 
+  moaEnd, 
+  moaFile,
+  password
+}) {
+  // 🔒 hash password
+  const passwordHash = await bcrypt.hash(password, 10);
 
-  const match = await bcrypt.compare(password, user.passwordHash);
-  if (!match) {
-    const err = new Error('Invalid credentials');
-    err.status = 401;
-    throw err;
-  }
+  const company = await companyService.createCompany({
+    name,
+    email,
+    address,
+    natureOfBusiness,
+    supervisorName,
+    moaStart,
+    moaEnd,
+    moaFile,
+    password: passwordHash, // store hashed password
+  });
 
-  const token = jwtUtil.sign({ id: user.id, email: user.email, role: user.role });
-  return {
-    message: 'Logged in',
-    token,
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    },
-  };
+  return { message: 'Company created successfully', company };
 }
 
-module.exports = { signup, login, addAdviser, addIntern };
+async function login({ email, password }) {
+  console.log('Login attempt:', email); // <-- ADD HERE
+
+  // 1️⃣ Check users table
+  const user = await userService.findByEmail(email);
+  console.log('User found:', user ? user.email : 'none'); // <-- ADD HERE
+
+  if (user) {
+    const match = await bcrypt.compare(password, user.passwordHash);
+    if (!match) throw new Error('Invalid credentials');
+
+    const token = jwtUtil.sign({ id: user.id, email: user.email, role: user.role, type: 'user' });
+    return {
+      message: 'Logged in',
+      token,
+      user: { id: user.id, email: user.email, role: user.role, type: 'user' },
+    };
+  }
+
+  // 2️⃣ Check companies table
+  const company = await companyService.getCompanyByEmail(email);
+  console.log('Company found:', company ? company.email : 'none');
+
+  if (company) {
+    const match = await bcrypt.compare(password, company.password); // hashed password
+    if (!match) throw new Error('Invalid credentials');
+
+    const token = jwtUtil.sign({ id: company.id, email: company.email, role: 'Company', type: 'company' });
+    return {
+      message: 'Logged in',
+      token,
+      user: { id: company.id, email: company.email, role: 'Company', type: 'company' },
+    };
+  }
+
+  // 3️⃣ Not found
+  throw new Error('Invalid credentials');
+}
+
+
+module.exports = { signup, login, addAdviser, addIntern, addCompany };
