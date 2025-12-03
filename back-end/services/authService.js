@@ -17,15 +17,20 @@ async function signup({ firstName, lastName, email, password }) {
     lastName,
     email,
     passwordHash,
-    role: 'Coordinator' // Force coordinator role
+    role: 'Coordinator',
   });
 
-  const token = jwtUtil.sign({ id: user.id, email: user.email, role: user.role });
+  const token = jwtUtil.sign({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  });
+
   return { message: 'User created', token };
 }
 
 /**
- * Coordinator adds an Adviser account
+ * Coordinator adds Adviser
  */
 async function addAdviser({ firstName, lastName, email, password, department, employeeId }) {
   const existing = await userService.findByEmail(email);
@@ -40,14 +45,14 @@ async function addAdviser({ firstName, lastName, email, password, department, em
     passwordHash,
     department,
     employeeId,
-    role: 'Adviser' // Fixed adviser role
+    role: 'Adviser',
   });
 
   return { message: 'Adviser created successfully', user };
 }
 
 /**
- * Adviser adds an Intern account
+ * Adviser adds Intern
  */
 async function addIntern({ firstName, lastName, email, password, program, studentId }) {
   const existing = await userService.findByEmail(email);
@@ -61,19 +66,19 @@ async function addIntern({ firstName, lastName, email, password, program, studen
     email,
     passwordHash,
     role: 'Intern',
-    department: program,   // store program in department
+    department: program,
     studentId,
   });
 
   return { message: 'Intern created successfully', user };
 }
 
-
 /**
  * Login existing user
  */
 async function login({ email, password }) {
   const user = await userService.findByEmail(email);
+
   if (!user) {
     const err = new Error('Invalid credentials');
     err.status = 401;
@@ -87,15 +92,31 @@ async function login({ email, password }) {
     throw err;
   }
 
-  const token = jwtUtil.sign({ id: user.id, email: user.email, role: user.role });
+  // JWT with user info
+  const token = jwtUtil.sign({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    department: user.department,
+  });
+
+  // Return a clean, safe object — NOT a model instance
+  const cleanUser = {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    department: user.department,
+    employeeId: user.employeeId || null,
+    studentId: user.studentId || null,
+    contactNumber: user.contactNumber || null,
+  };
+
   return {
     message: 'Logged in',
     token,
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    },
+    user: cleanUser,
   };
 }
 

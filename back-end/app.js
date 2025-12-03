@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser'); // <--- 1. NEW IMPORT
 
 const sequelize = require('./config/db');
 const authRoutes = require('./routes/auth');
@@ -17,10 +18,16 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    // 2. CORS FIX: Must specify the frontend origin and set credentials to true
+    // The browser console showed the frontend is at http://localhost:5173
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: true, // MUST be true when the frontend uses credentials: 'include'
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
   }),
 );
 app.use(express.json());
+app.use(cookieParser()); // <--- 3. NEW MIDDLEWARE ADDED
 app.use(morgan(process.env.LOG_LEVEL === 'debug' ? 'dev' : 'tiny'));
 
 // Mount routes

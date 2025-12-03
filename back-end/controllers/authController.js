@@ -4,9 +4,28 @@ const userService = require('../services/userService');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 
+/**
+ * Helper to safely convert any user (model instance or plain object)
+ */
+function safeUserObject(user) {
+  if (!user) return user;
+
+  // Sequelize instance → convert to plain object
+  if (typeof user.get === 'function') {
+    return user.get({ plain: true });
+  }
+
+  // Mongoose document → convert to JSON
+  if (typeof user.toJSON === 'function') {
+    return user.toJSON();
+  }
+
+  // Already a normal object
+  return user;
+}
+
 async function addAdviser(req, res, next) {
   try {
-    // Only coordinators or admins can create advisers
     const creatorRole = req.user.role;
     if (creatorRole !== 'Coordinator' && creatorRole !== 'Admin') {
       return res.status(403).json({ message: 'Unauthorized to create adviser accounts' });
@@ -18,7 +37,6 @@ async function addAdviser(req, res, next) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Use the renamed service function
     const result = await authService.addAdviser({
       firstName,
       lastName,
@@ -28,15 +46,17 @@ async function addAdviser(req, res, next) {
       employeeId,
     });
 
+    const user = safeUserObject(result.user);
+
     res.status(201).json({
       message: 'Adviser account created successfully',
       user: {
-        id: result.user.id,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName,
-        email: result.user.email,
-        department: result.user.department,
-        employeeId: result.user.employeeId,
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        department: user.department,
+        employeeId: user.employeeId,
         role: 'Adviser',
       },
     });
@@ -56,8 +76,20 @@ async function signup(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    const result = await authService.login(req.body);
-    res.json(result);
+    const { user, token } = await authService.login(req.body);
+
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      sameSite: 'Lax',
+    });
+
+    const userObj = safeUserObject(user);
+
+    delete userObj.passwordHash;
+
+    res.status(200).json({ message: 'Login successful', user: userObj });
   } catch (err) {
     next(err);
   }
@@ -67,8 +99,10 @@ async function me(req, res, next) {
   try {
     const user = await userService.findByEmail(req.user.email);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    const userObj = user.toJSON();
+
+    const userObj = safeUserObject(user);
     delete userObj.passwordHash;
+
     res.json({ user: userObj });
   } catch (err) {
     next(err);
@@ -90,7 +124,7 @@ async function updateProfile(req, res, next) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userObj = updatedUser.toJSON();
+    const userObj = safeUserObject(updatedUser);
     delete userObj.passwordHash;
 
     res.json({ message: 'Profile updated successfully', user: userObj });
@@ -114,36 +148,18 @@ async function changePassword(req, res, next) {
     const userId = req.user.id;
     const { currentPassword, newPassword } = req.body;
 
-    console.log('🔍 Change password request received');
-    console.log('User ID from token:', userId);
-    console.log('Body:', req.body);
-
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Current and new passwords are required' });
     }
 
     const user = await User.findByPk(userId);
-    if (!user) {
-      console.log('❌ User not found');
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    console.log('Found user:', user.email);
-    console.log('Stored hash:', user.passwordHash);
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
     const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
-    console.log('Password match:', isMatch);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
-    }
+    if (!isMatch) return res.status(400).json({ message: 'Current password is incorrect' });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    console.log('New hash will be:', hashedPassword);
-
     await user.update({ passwordHash: hashedPassword });
-
-    console.log('✅ Password updated successfully in DB');
 
     res.status(200).json({ message: 'Password updated successfully' });
   } catch (err) {
@@ -154,10 +170,21 @@ async function changePassword(req, res, next) {
 
 async function addIntern(req, res, next) {
   try {
-    const { firstName, lastName, email, password, program, studentId } = req.body;
+    const creatorRole = req.user.role;
 
-    if (!firstName || !lastName || !email || !password || !program || !studentId) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    if (creatorRole !== 'Adviser') {
+      return res.status(403).json({
+        message: 'Unauthorized. Only Advisers can add intern accounts.',
+      });
+    }
+
+    const adviserDepartment = req.user.department;
+    const { firstName, lastName, email, password, studentId } = req.body;
+
+    if (!firstName || !lastName || !email || !password || !studentId) {
+      return res.status(400).json({
+        message: 'Missing required fields: first name, last name, email, password, or student ID.',
+      });
     }
 
     const result = await authService.addIntern({
@@ -165,19 +192,21 @@ async function addIntern(req, res, next) {
       lastName,
       email,
       password,
-      program,
+      program: adviserDepartment,
       studentId,
     });
+
+    const user = safeUserObject(result.user);
 
     res.status(201).json({
       message: 'Intern account created successfully',
       user: {
-        id: result.user.id,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName,
-        email: result.user.email,
-        studentId: result.user.studentId,
-        department: result.user.department,
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        studentId: user.studentId,
+        department: user.department,
         role: 'Intern',
       },
     });
@@ -186,7 +215,29 @@ async function addIntern(req, res, next) {
   }
 }
 
-// ... export at the bottom
+async function getInterns(req, res, next) {
+  try {
+    const { department } = req.query;
+
+    if (!department) {
+      return res.status(400).json({ message: 'Department is required' });
+    }
+
+    const interns = await User.findAll({
+      where: {
+        role: 'Intern',
+        department: department,
+      },
+      attributes: ['id', 'firstName', 'lastName', 'email', 'studentId', 'department', 'createdAt'],
+    });
+
+    res.status(200).json(interns);
+  } catch (err) {
+    console.error('Error fetching interns:', err);
+    return res.status(500).json({ message: 'Failed to fetch interns' });
+  }
+}
+
 module.exports = {
   signup,
   login,
@@ -196,4 +247,5 @@ module.exports = {
   getAdvisers,
   changePassword,
   addIntern,
+  getInterns,
 };
