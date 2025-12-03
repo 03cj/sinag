@@ -42,5 +42,14 @@ async function getAdvisers() {
   });
 }
 
+// 🔍 Get all interns
+async function getInterns() {
+  return User.findAll({
+    where: { role: 'Intern' },
+    attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'studentId', 'program', 'company', 'supervisor', 'status'],
+  });
+}
 
-module.exports = { findByEmail, createUser, updateUser, getAdvisers };
+
+
+module.exports = { findByEmail, createUser, updateUser, getAdvisers, getInterns };

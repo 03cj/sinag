@@ -102,24 +102,31 @@ async function addCompany({
 }
 
 async function login({ email, password }) {
-  console.log('Login attempt:', email); // <-- ADD HERE
+  console.log('Login attempt:', email);
 
   // 1️⃣ Check users table
   const user = await userService.findByEmail(email);
-  console.log('User found:', user ? user.email : 'none'); // <-- ADD HERE
+  console.log('User found:', user ? user.email : 'none');
 
   if (user) {
     const match = await bcrypt.compare(password, user.passwordHash);
     if (!match) throw new Error('Invalid credentials');
 
-    const token = jwtUtil.sign({ id: user.id, email: user.email, role: user.role, type: 'user' });
+    // 👇 VITAL FIX: Include user.department in the JWT payload
+    const token = jwtUtil.sign({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      type: 'user',
+      department: user.department, // ADDED THIS LINE
+    });
+
     return {
       message: 'Logged in',
       token,
-      user: { id: user.id, email: user.email, role: user.role, type: 'user' },
+      user: { id: user.id, email: user.email, role: user.role, department: user.department, type: 'user' },
     };
   }
-
   // 2️⃣ Check companies table
   const company = await companyService.getCompanyByEmail(email);
   console.log('Company found:', company ? company.email : 'none');

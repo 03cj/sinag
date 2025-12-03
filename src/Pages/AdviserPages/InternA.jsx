@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 const InternA = () => {
-  // State to store the list of interns
   const [interns, setInterns] = useState([]);
-  // State for loading indicator
   const [loading, setLoading] = useState(true);
-  // State for error messages
   const [error, setError] = useState(null);
 
   // Filter states
@@ -13,110 +10,68 @@ const InternA = () => {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // New states for sorting
-  const [sortCriteria, setSortCriteria] = useState('lastname'); // Default sort by lastname
-  const [sortOrder, setSortOrder] = useState('asc'); // Default sort order ascending
+  // Sorting states
+  const [sortCriteria, setSortCriteria] = useState('lastname');
+  const [sortOrder, setSortOrder] = useState('asc');
 
-  // Mock options for now:
-  const companyOptions = ['All', 'AAA', 'BBB', 'CCC', 'DDD'];
-  const statusOptions = ['All', 'Endorsed', 'Pending'];
   const sortOptions = [
     { label: 'Last Name', value: 'lastname' },
     { label: 'First Name', value: 'firstname' },
     { label: 'Student ID', value: 'studNo' },
   ];
 
-  // useEffect to fetch interns data
+  const [companyOptions, setCompanyOptions] = useState(['All']);
+  const statusOptions = ['All', 'Endorsed', 'Pending'];
+
   useEffect(() => {
-    const processInternsData = async () => {
+    const fetchInterns = async () => {
       setLoading(true);
       setError(null);
-
       try {
-        const mockInterns = [
-          { studNo: '111', lastname: 'Dela Cruz', firstname: 'Juan', mi: 'S.', email: 'juan@gmail.com', program: 'BSIT', adviser: 'Mr. Dela Cruz', company: 'AAA', supervisor: 'Mrs. Cruz', status: 'Endorsed' },
-          { studNo: '113', lastname: 'Santos', firstname: 'Pedro', mi: 'A.', email: 'pedro@mail.com', program: 'BSIT', adviser: 'Mr. Dela Cruz', company: 'CCC', supervisor: 'Ms. Johnson', status: 'Endorsed' },
-          { studNo: '116', lastname: 'Tan', firstname: 'Michael', mi: 'J.', email: 'michael@email.com', program: 'BSIT', adviser: 'Mr. Dela Cruz', company: 'BBB', supervisor: 'Mr. Smith', status: 'Pending' },
-          { studNo: '105', lastname: 'Aquino', firstname: 'Maria', mi: 'L.', email: 'maria@example.com', program: 'BSCS', adviser: 'Ms. Reyes', company: 'DDD', supervisor: 'Mr. Brown', status: 'Endorsed' },
-          { studNo: '120', lastname: 'Lim', firstname: 'Kevin', mi: 'C.', email: 'kevin@test.com', program: 'BSIT', adviser: 'Mr. Garcia', company: 'AAA', supervisor: 'Ms. White', status: 'Pending' },
-        ];
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        let filteredInternsClientSide = mockInterns.filter(intern => {
-          if (selectedCompany !== 'All' && intern.company !== selectedCompany) {
-            return false;
-          }
-          if (selectedStatus !== 'All' && intern.status !== selectedStatus) {
-            return false;
-          }
-          if (searchTerm) {
-            const fullName = `${intern.firstname} ${intern.lastname}`.toLowerCase();
-            if (!fullName.includes(searchTerm.toLowerCase())) {
-              return false;
-            }
-          }
-          return true;
+        const res = await fetch('http://localhost:5000/api/auth/interns', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
         });
 
-        const sortedInterns = [...filteredInternsClientSide].sort((a, b) => {
-          let valueA = a[sortCriteria];
-          let valueB = b[sortCriteria];
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+        setInterns(data);
 
-          if (sortCriteria === 'studNo') {
-            valueA = parseInt(valueA, 10);
-            valueB = parseInt(valueB, 10);
-          } else {
-            valueA = String(valueA).toLowerCase();
-            valueB = String(valueB).toLowerCase();
-          }
-
-          if (valueA < valueB) {
-            return sortOrder === 'asc' ? -1 : 1;
-          }
-          if (valueA > valueB) {
-            return sortOrder === 'asc' ? 1 : -1;
-          }
-          return 0;
-        });
-
-        setInterns(sortedInterns);
-
+        // Optional: populate company options dynamically
+        const companies = Array.from(new Set(data.map(i => i.company))).sort();
+        setCompanyOptions(['All', ...companies]);
       } catch (err) {
-        console.error("Failed to process interns data:", err);
-        setError(err.message || "Failed to load interns. Please try again later.");
+        console.error('Failed to fetch interns:', err);
+        setError(err.message || 'Failed to load interns.');
       } finally {
         setLoading(false);
       }
     };
 
-    processInternsData();
-  }, [selectedCompany, selectedStatus, searchTerm, sortCriteria, sortOrder]);
+    fetchInterns();
+  }, []);
 
-  // Handlers for filter changes
-  const handleCompanyChange = (event) => {
-    setSelectedCompany(event.target.value);
-  };
 
-  const handleStatusChange = (event) => {
-    setSelectedStatus(event.target.value);
-  };
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  // Handlers for sort changes
-  const handleSortCriteriaChange = (event) => {
-    setSortCriteria(event.target.value);
-  };
-
-  // The handleSortOrderToggle function is no longer needed in the UI,
-  // but keeping it here for now in case you reintroduce a toggle later.
-  const handleSortOrderToggle = () => {
-    setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
-  };
+  // Apply filtering & sorting client-side
+  const processedInterns = interns
+    .filter(i => (selectedCompany !== 'All' ? i.company === selectedCompany : true))
+    .filter(i => (selectedStatus !== 'All' ? i.status === selectedStatus : true))
+    .filter(i => (searchTerm ? `${i.firstname} ${i.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) : true))
+    .sort((a, b) => {
+      let valueA = a[sortCriteria];
+      let valueB = b[sortCriteria];
+      if (sortCriteria === 'studNo') {
+        valueA = parseInt(valueA, 10);
+        valueB = parseInt(valueB, 10);
+      } else {
+        valueA = String(valueA).toLowerCase();
+        valueB = String(valueB).toLowerCase();
+      }
+      if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
+      if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   return (
     <div className="p-5 md:p-8 bg-gray-100 min-h-screen">
@@ -128,131 +83,59 @@ const InternA = () => {
             <p className="text-gray-600 text-sm">Interns record</p>
           </div>
           <div className="flex items-center space-x-3">
-            {/* Company Name Filter */}
-            <select
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-              value={selectedCompany}
-              onChange={handleCompanyChange}
-            >
-              {companyOptions.map((company) => (
-                <option key={company} value={company}>
-                  {company === 'All' ? 'Company name' : company}
-                </option>
-              ))}
+            <select value={selectedCompany} onChange={e => setSelectedCompany(e.target.value)} className="px-4 py-2 border rounded-md">
+              {companyOptions.map(c => <option key={c} value={c}>{c === 'All' ? 'Company name' : c}</option>)}
             </select>
-
-            {/* Status Filter */}
-            <select
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-              value={selectedStatus}
-              onChange={handleStatusChange}
-            >
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status === 'All' ? 'Status' : status}
-                </option>
-              ))}
+            <select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="px-4 py-2 border rounded-md">
+              {statusOptions.map(s => <option key={s} value={s}>{s === 'All' ? 'Status' : s}</option>)}
             </select>
-
-            {/* Sort By Dropdown */}
-            <select
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-              value={sortCriteria}
-              onChange={handleSortCriteriaChange}
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  Sort by {option.label}
-                </option>
-              ))}
+            <select value={sortCriteria} onChange={e => setSortCriteria(e.target.value)} className="px-4 py-2 border rounded-md">
+              {sortOptions.map(o => <option key={o.value} value={o.value}>Sort by {o.label}</option>)}
             </select>
-
-            {/* Removed the Sort Order Toggle Button */}
-            {/* If you still want to offer both ASC/DESC, you might consider:
-                1. Adding another dropdown for sortOrder (Ascending/Descending)
-                2. Reinstating the button or integrating the toggle into the table header.
-            */}
-
-            {/* Search Input */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Type interns name"
-                className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
+            <input
+              type="text"
+              placeholder="Type interns name"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-4 pr-10 py-2 border rounded-md"
+            />
           </div>
         </div>
       </div>
 
-      {/* Interns Table Container */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
+      {/* Interns Table */}
+      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
         <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-red-800">
+          <thead className="bg-red-800 text-white">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-lg">
-                Stud. no.
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Lastname
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Firstname
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                MI.
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Email
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Company
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Supervisor
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tr-lg">
-                Status
-              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Stud. no.</th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Lastname</th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Firstname</th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">MI.</th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Company</th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Supervisor</th>
+              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Status</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {loading ? (
-              <tr>
-                <td colSpan="8" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  Loading interns...
-                </td>
-              </tr>
+              <tr><td colSpan="8" className="text-center p-4 text-gray-500">Loading interns...</td></tr>
             ) : error ? (
-              <tr>
-                <td colSpan="8" className="px-6 py-4 whitespace-nowrap text-center text-red-500">
-                  {error}
-                </td>
-              </tr>
-            ) : interns.length === 0 ? (
-              <tr>
-                <td colSpan="8" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  No interns found matching your criteria.
-                </td>
-              </tr>
+              <tr><td colSpan="8" className="text-center p-4 text-red-500">{error}</td></tr>
+            ) : processedInterns.length === 0 ? (
+              <tr><td colSpan="8" className="text-center p-4 text-gray-500">No interns found.</td></tr>
             ) : (
-              interns.map((intern) => (
-                <tr key={intern.studNo}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.studNo}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.lastname}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.firstname}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.mi}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.company}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.supervisor}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.status}</td>
+              processedInterns.map(i => (
+                <tr key={i.studNo}>
+                  <td className="px-6 py-4">{i.studentId}</td>
+                  <td className="px-6 py-4">{i.lastName}</td>
+                  <td className="px-6 py-4">{i.firstName}</td>
+                  <td className="px-6 py-4">{i.mi}</td>
+                  <td className="px-6 py-4">{i.email}</td>
+                  <td className="px-6 py-4">{i.company}</td>
+                  <td className="px-6 py-4">{i.supervisor}</td>
+                  <td className="px-6 py-4">{i.status}</td>
                 </tr>
               ))
             )}

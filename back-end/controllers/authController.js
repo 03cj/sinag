@@ -4,6 +4,7 @@ const userService = require('../services/userService');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const Company = require('../models/company');
+const { get } = require('../routes/auth');
 
 async function addAdviser(req, res, next) {
   try {
@@ -153,6 +154,7 @@ async function changePassword(req, res, next) {
   }
 }
 
+// intern
 async function addIntern(req, res, next) {
   try {
     const { firstName, lastName, email, password, program, studentId } = req.body;
@@ -186,6 +188,32 @@ async function addIntern(req, res, next) {
     next(err);
   }
 }
+async function getInterns(req, res) {
+  try {
+    const interns = await User.findAll({
+      where: { role: 'Intern' },
+      attributes: [
+        'id', 'firstName', 'lastName', 'mi', 'email', 'studentId' // only real columns
+      ],
+    });
+
+    // Add optional fields here without touching the DB
+    const formattedInterns = interns.map(i => ({
+      ...i.toJSON(),
+      program: 'N/A',
+      company: 'N/A',
+      supervisor: 'N/A',
+      status: 'N/A',
+    }));
+
+    res.status(200).json(formattedInterns);
+  } catch (err) {
+    console.error('Error fetching interns:', err);
+    res.status(500).json({ message: 'Failed to fetch interns' });
+  }
+}
+
+
 
 //company 
 async function addCompany(req, res, next) {
@@ -229,6 +257,16 @@ async function addCompany(req, res, next) {
   }
 }
 
+async function getCompanies(req, res, next) {
+  try {
+    const companies = await Company.findAll(); // fetch all companies
+    res.status(200).json(companies);
+  } catch (err) {
+    console.error('Error fetching companies:', err);
+    res.status(500).json({ message: 'Failed to fetch companies' });
+  }
+}
+
 
 
 // ... export at the bottom
@@ -241,5 +279,7 @@ module.exports = {
   getAdvisers,
   changePassword,
   addIntern,
+  getInterns,
   addCompany,
+  getCompanies,
 };

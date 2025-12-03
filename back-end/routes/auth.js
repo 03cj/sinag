@@ -19,12 +19,14 @@ router.post('/signup', authController.signup); // public signup
 router.post('/addAdviser', authMiddleware, authController.addAdviser); // coordinator/admin creates adviser
 router.get('/advisers', authMiddleware, authController.getAdvisers); // get all advisers
 router.post('/addIntern', authMiddleware, authController.addIntern); // adviser creates intern
+router.get('/interns', authMiddleware, authController.getInterns); // get all interns
 router.post('/login', authController.login);
 router.get('/me', authMiddleware, authController.me);
 router.put('/profile', authMiddleware, authController.updateProfile);
 router.put('/change-password', authMiddleware, authController.changePassword);
 
 router.post('/addCompany', upload.single('moaFile'), authController.addCompany);
+router.get('/companies', authMiddleware, authController.getCompanies);
 
 
 module.exports = router;

@@ -29,7 +29,7 @@ const handleDeleteClick = (adviser) => {
     try {
       const response = await fetch('http://localhost:5000/api/auth/advisers', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // if you use auth middleware
+          Authorization: `Bearer ${localStorage.getItem('token')}`, 
         },
       });
 
@@ -139,17 +139,17 @@ const handleConfirmDelete = () => {
               filteredAdvisers.map(adviser => (
                 <tr key={adviser.id}>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.lastname}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.firstname}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.lastName}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.firstName}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.mi}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.program}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.department}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.interns}</td>
                   <td className="px-6 py-4 text-center text-sm font-medium">
                     <button
                       onClick={() => handleDeleteClick(adviser)}
                       className="text-red-600 hover:text-red-900 transition-colors duration-200"
-                      aria-label={`Remove adviser ${adviser.firstname} ${adviser.lastname}`}
+                      aria-label={`Remove adviser ${adviser.firstName} ${adviser.lastName}`}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -167,7 +167,7 @@ const handleConfirmDelete = () => {
       <h2 className="text-lg font-bold text-yellow-500 mb-4">Remove Adviser</h2>
       <p className="text-white mb-6">
         Are you sure you want to delete{" "}
-        <span className="font-semibold">{adviserToDelete.firstname}{" "}{adviserToDelete.lastname}</span>?
+        <span className="font-semibold">{adviserToDelete.firstName}{" "}{adviserToDelete.lastName}</span>?
       </p>
       <div className="flex justify-end gap-3">
         <button
