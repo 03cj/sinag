@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
 
 const InternC = () => {
-  // State to store the list of interns
   const [interns, setInterns] = useState([]);
-  // State for loading indicator
   const [loading, setLoading] = useState(true);
-  // State for error messages
   const [error, setError] = useState(null);
 
-  // Filter states
+  // Filters
   const [selectedProgram, setSelectedProgram] = useState('All');
   const [selectedCompany, setSelectedCompany] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // States for sorting
-  const [sortCriteria, setSortCriteria] = useState('lastname'); // Default sort by lastname
-  const [sortOrder, setSortOrder] = useState('asc'); // Default sort order ascending
+  // Sorting
+  const [sortCriteria, setSortCriteria] = useState('lastname');
+  const [sortOrder] = useState('asc');
 
-  // Dropdown options (simulated - ideally fetched from DB)
   const programOptions = ['All', 'BSIT', 'BSBA', 'BSENT', 'BEED', 'IND. ENG.'];
-  const companyOptions = ['All', 'AAA', 'BBB', 'CCC', 'DDD'];
   const statusOptions = ['All', 'Endorsed', 'Pending', 'Accepted'];
   const sortOptions = [
     { label: 'Last Name', value: 'lastname' },
@@ -28,341 +23,167 @@ const InternC = () => {
     { label: 'Student ID', value: 'studNo' },
   ];
 
+  const [companyOptions, setCompanyOptions] = useState(['All']);
 
-  // Simulated data fetching from a "database"
-  // This useEffect will re-run when filters or search term changes
   useEffect(() => {
     const fetchInterns = async () => {
-      setLoading(true); // Set loading to true when fetching starts
-      setError(null);   // Clear any previous errors
-
       try {
-        // TODO: Database Connection Point 2: This entire block is commented out for now.
-        // When you're ready to connect to your real backend database, uncomment this
-        // and remove the simulated data below.
+        setLoading(true);
+        setError(null);
 
-        // let apiUrl = '/api/interns'; // Your actual API endpoint for interns
+        const token = localStorage.getItem('token');
+        let apiUrl = 'http://localhost:5000/api/auth/interns'; // full backend URL
 
-        // // Construct query parameters based on current filter/search states
-        // const params = new URLSearchParams();
-        // if (selectedProgram !== 'All') {
-        //   params.append('program', selectedProgram);
-        // }
-        // if (selectedCompany !== 'All') {
-        //   params.append('company', selectedCompany);
-        // }
-        // // NEW PARAMETER for backend filter
-        // if (selectedStatus !== 'All') {
-        //   params.append('status', selectedStatus);
-        // }
-        // if (searchTerm) {
-        //   params.append('name', searchTerm);
-        // }
-        // // NEW SORTING PARAMETERS for backend sort
-        // params.append('sortBy', sortCriteria);
-        // params.append('sortOrder', sortOrder);
+        // Append filters & sorting as query params
+        const params = new URLSearchParams();
+        if (selectedProgram !== 'All') params.append('program', selectedProgram);
+        if (selectedCompany !== 'All') params.append('company', selectedCompany);
+        if (selectedStatus !== 'All') params.append('status', selectedStatus);
+        if (searchTerm) params.append('name', searchTerm);
+        params.append('sortBy', sortCriteria);
+        params.append('sortOrder', sortOrder);
 
-        // // Append parameters to the URL if they exist
-        // if (params.toString()) {
-        //   apiUrl += `?${params.toString()}`;
-        // }
+        if (params.toString()) apiUrl += `?${params.toString()}`;
 
-        // // Example: Real fetch call
-        // const response = await fetch(apiUrl);
-
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        // const data = await response.json();
-        // setInterns(data); // Update state with fetched (and backend-filtered/sorted) data
-
-        // uncomment nalang ung sa taas para sa db setup
-        // --- START OF SIMULATED DATA ---
-        // TODO: Database Connection Point 3: Remove this mock data and filtering
-        // when you uncomment and use your real backend API.
-        const mockInterns = [
-          {
-            studNo: '111', lastname: 'Dela Cruz', firstname: 'Juan', mi: 'S.', email: 'juan@gmail.com',
-            program: 'BSIT', adviser: 'Mr. Dela Cruz', company: 'AAA', supervisor: 'Mrs. Cruz', status: 'Endorsed'
+        const response = await fetch(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-          {
-            studNo: '112', lastname: 'Reyes', firstname: 'Maria', mi: 'L.', email: 'maria@example.com',
-            program: 'BSBA', adviser: 'Ms. Garcia', company: 'BBB', supervisor: 'Mr. Smith', status: 'Pending'
-          },
-          {
-            studNo: '113', lastname: 'Santos', firstname: 'Pedro', mi: 'A.', email: 'pedro@mail.com',
-            program: 'BSIT', adviser: 'Mr. Dela Cruz', company: 'CCC', supervisor: 'Ms. Johnson', status: 'Endorsed'
-          },
-          {
-            studNo: '114', lastname: 'Lim', firstname: 'Chen', mi: 'P.', email: 'chen@domain.com',
-            program: 'BEED', adviser: 'Mrs. Tan', company: 'AAA', supervisor: 'Mr. Lee', status: 'Pending'
-          },
-          {
-            studNo: '115', lastname: 'Gonzales', firstname: 'Sofia', mi: 'R.', email: 'sofia@company.org',
-            program: 'IND. ENG.', adviser: 'Mr. Ramos', company: 'DDD', supervisor: 'Dr. Kim', status: 'Endorsed'
-          },
-          {
-            studNo: '116', lastname: 'Tan', firstname: 'Michael', mi: 'J.', email: 'michael@email.com',
-            program: 'BSIT', adviser: 'Mr. Dela Cruz', company: 'BBB', supervisor: 'Mr. Smith', status: 'Endorsed'
-          },
-          {
-            studNo: '117', lastname: 'Aquino', firstname: 'Sarah', mi: 'K.', email: 'sarah@mail.net',
-            program: 'BSBA', adviser: 'Ms. Garcia', company: 'CCC', supervisor: 'Ms. Johnson', status: 'Accepted'
-          },
-        ];
-        // hanggang dito irereove kung may db na
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        // Apply client-side filtering for sample data (REMOVE THIS FOR REAL DB)
-        let filteredInterns = mockInterns.filter(intern => {
-          // Program Filter
-          if (selectedProgram !== 'All' && intern.program !== selectedProgram) {
-            return false;
-          }
-          // Company Filter
-          if (selectedCompany !== 'All' && intern.company !== selectedCompany) {
-            return false;
-          }
-          // Status Filter
-          if (selectedStatus !== 'All' && intern.status !== selectedStatus) {
-            return false;
-          }
-          // Name Search (case-insensitive and partial match)
-          if (searchTerm) {
-            const fullName = `${intern.firstname} ${intern.lastname}`.toLowerCase();
-            if (!fullName.includes(searchTerm.toLowerCase())) {
-              return false;
-            }
-          }
-          return true;
         });
 
-        // Apply client-side sorting for sample data (REMOVE THIS FOR REAL DB)
-        const sortedInterns = [...filteredInterns].sort((a, b) => {
-          let valueA = a[sortCriteria];
-          let valueB = b[sortCriteria];
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-          // Handle numeric comparison for studNo
-          if (sortCriteria === 'studNo') {
-            valueA = parseInt(valueA, 10);
-            valueB = parseInt(valueB, 10);
-          } else {
-            // For string comparisons, make them case-insensitive
-            valueA = String(valueA).toLowerCase();
-            valueB = String(valueB).toLowerCase();
-          }
+        const data = await response.json();
 
-          if (valueA < valueB) {
-            return sortOrder === 'asc' ? -1 : 1;
-          }
-          if (valueA > valueB) {
-            return sortOrder === 'asc' ? 1 : -1;
-          }
-          return 0;
-        });
-        // --- END OF SIMULATED DATA ---
+        // Normalize data & fallback values
+        const normalized = data.map((intern) => ({
+        studNo: intern.studentId || intern.id || 'N/A',
+        lastname: intern.lastName || intern.lastname || 'N/A',
+        firstname: intern.firstName || intern.firstname || 'N/A',
+        mi: intern.mi || '',
+        email: intern.email || 'N/A',
+        program: intern.department || intern.program || 'N/A', // department column is program
+        adviser: intern.Adviser ? `${intern.Adviser.firstName} ${intern.Adviser.lastName}` : 'Assign Adviser',
+        company: intern.Company?.name || 'NA',
+        supervisor: intern.Company?.supervisorName || 'NA',
+        status: intern.status || 'NA',
+      }));
 
-        setInterns(sortedInterns); // Update state with filtered and sorted sample data
 
+        setInterns(normalized);
+
+        // Populate company options dynamically
+        const companies = Array.from(new Set(normalized.map(i => i.company))).sort();
+        setCompanyOptions(['All', ...companies]);
       } catch (err) {
-        console.error("Failed to fetch interns:", err);
-        setError("Failed to load interns. Please try again later."); // Set error message
+        console.error(err);
+        setError('Unable to load intern records.');
       } finally {
-        setLoading(false); // Set loading to false once fetching is complete
+        setLoading(false);
       }
     };
 
-    fetchInterns(); // Call the fetch function
+    fetchInterns();
   }, [selectedProgram, selectedCompany, selectedStatus, searchTerm, sortCriteria, sortOrder]);
-
-  // Handler for program filter change
-  const handleProgramChange = (event) => {
-    setSelectedProgram(event.target.value);
-  };
-
-  // Handler for company filter change
-  const handleCompanyChange = (event) => {
-    setSelectedCompany(event.target.value);
-  };
-
-  // Handler for status filter change
-  const handleStatusChange = (event) => {
-    setSelectedStatus(event.target.value);
-  };
-
-  // Handler for search input change
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  // Handlers for sorting
-  const handleSortCriteriaChange = (event) => {
-    setSortCriteria(event.target.value);
-  };
-
-  // The handleSortOrderToggle function is no longer needed in the UI,
-  // but keeping it here for now in case you reintroduce a toggle later.
-  const handleSortOrderToggle = () => {
-    setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
-  };
 
   return (
     <div className="p-5 md:p-8 bg-gray-100 min-h-screen">
-      {/* Header and Filters */}
+      {/* Header & Filters */}
       <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300">
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Interns</h1>
             <p className="text-gray-600 text-sm">Interns record</p>
           </div>
+
           <div className="flex items-center space-x-3">
-            {/* Programs Filter */}
+            {/* Program Filter */}
             <select
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              className="px-4 py-2 border rounded-md"
               value={selectedProgram}
-              onChange={handleProgramChange}
+              onChange={e => setSelectedProgram(e.target.value)}
             >
-              {programOptions.map((program) => (
-                <option key={program} value={program}>
-                  {program === 'All' ? 'Programs' : program}
-                </option>
+              {programOptions.map(p => (
+                <option key={p} value={p}>{p === 'All' ? 'Programs' : p}</option>
               ))}
             </select>
 
-            {/* Company Name Filter */}
+            {/* Company Filter */}
             <select
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              className="px-4 py-2 border rounded-md"
               value={selectedCompany}
-              onChange={handleCompanyChange}
+              onChange={e => setSelectedCompany(e.target.value)}
             >
-              {companyOptions.map((company) => (
-                <option key={company} value={company}>
-                  {company === 'All' ? 'Company name' : company}
-                </option>
+              {companyOptions.map(c => (
+                <option key={c} value={c}>{c === 'All' ? 'Company name' : c}</option>
               ))}
             </select>
 
             {/* Status Filter */}
             <select
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              className="px-4 py-2 border rounded-md"
               value={selectedStatus}
-              onChange={handleStatusChange}
+              onChange={e => setSelectedStatus(e.target.value)}
             >
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status === 'All' ? 'Status' : status}
-                </option>
+              {statusOptions.map(s => (
+                <option key={s} value={s}>{s === 'All' ? 'Status' : s}</option>
               ))}
             </select>
 
-            {/* Sort By Dropdown */}
+            {/* Sort */}
             <select
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              className="px-4 py-2 border rounded-md"
               value={sortCriteria}
-              onChange={handleSortCriteriaChange}
+              onChange={e => setSortCriteria(e.target.value)}
             >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  Sort by {option.label}
-                </option>
+              {sortOptions.map(o => (
+                <option key={o.value} value={o.value}>Sort by {o.label}</option>
               ))}
             </select>
 
-            {/* The Sort Order Toggle Button (and its icon) has been removed */}
-
-            {/* Search Input */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Type interns name"
-                className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
+            {/* Search */}
+            <input
+              type="text"
+              placeholder="Search name..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="px-4 py-2 border rounded-md"
+            />
           </div>
         </div>
       </div>
 
-      {/* Interns Table Container */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
+      {/* Interns Table */}
+      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
         <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-red-800">
+          <thead className="bg-red-800 text-white text-xs uppercase">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-lg">
-                Stud. no.
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Lastname
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Firstname
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                MI.
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Email
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Program
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Adviser
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Company
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Supervisor
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tr-lg">
-                Status
-              </th>
+              {["Stud No", "Lastname", "Firstname", "MI", "Email", "Program", "Adviser", "Company", "Supervisor", "Status"].map(title => (
+                <th key={title} className="px-6 py-3 text-left font-bold">{title}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan="10" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  Loading interns...
-                </td>
-              </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan="10" className="px-6 py-4 whitespace-nowrap text-center text-red-500">
-                  {error}
-                </td>
-              </tr>
-            ) : interns.length === 0 ? (
-              <tr>
-                <td colSpan="10" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  No interns found matching your criteria.
-                </td>
-              </tr>
-            ) : (
-              interns.map((intern) => (
-                <tr key={intern.studNo}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.studNo}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.lastname}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.firstname}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.mi}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.program}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.adviser}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.company}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.supervisor}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intern.status}</td>
-                </tr>
-              ))
+          <tbody className="divide-y divide-gray-200 text-sm">
+            {loading && <tr><td colSpan="10" className="text-center py-4">Loading interns...</td></tr>}
+            {error && <tr><td colSpan="10" className="text-center py-4 text-red-500">{error}</td></tr>}
+            {!loading && !error && interns.length === 0 && (
+              <tr><td colSpan="10" className="text-center py-4 text-gray-500">No matching interns found.</td></tr>
             )}
+            {!loading && !error && interns.map((i, index) => (
+              <tr key={`${i.studNo}-${index}`}>
+                <td className="px-6 py-4">{i.studNo}</td>
+                <td className="px-6 py-4">{i.lastname}</td>
+                <td className="px-6 py-4">{i.firstname}</td>
+                <td className="px-6 py-4">{i.mi}</td>
+                <td className="px-6 py-4">{i.email}</td>
+                <td className="px-6 py-4">{i.program}</td>
+                <td className="px-6 py-4">{i.adviser}</td>
+                <td className="px-6 py-4">{i.company}</td>
+                <td className="px-6 py-4">{i.supervisor}</td>
+                <td className="px-6 py-4">{i.status}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

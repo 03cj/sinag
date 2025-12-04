@@ -128,9 +128,9 @@ const InternA = () => {
             ) : (
               processedInterns.map(i => (
                 <tr key={i.studNo}>
-                  <td className="px-6 py-4">{i.studentId}</td>
-                  <td className="px-6 py-4">{i.lastName}</td>
-                  <td className="px-6 py-4">{i.firstName}</td>
+                  <td className="px-6 py-4">{i.studNo}</td>
+                  <td className="px-6 py-4">{i.lastname}</td>
+                  <td className="px-6 py-4">{i.firstname}</td>
                   <td className="px-6 py-4">{i.mi}</td>
                   <td className="px-6 py-4">{i.email}</td>
                   <td className="px-6 py-4">{i.company}</td>

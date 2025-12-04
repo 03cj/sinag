@@ -27,6 +27,8 @@ router.put('/change-password', authMiddleware, authController.changePassword);
 
 router.post('/addCompany', upload.single('moaFile'), authController.addCompany);
 router.get('/companies', authMiddleware, authController.getCompanies);
+router.get('/company/profile', authMiddleware, authController.getCompanyProfile);
+router.put('/company/profile', authMiddleware, authController.updateCompanyProfile);
 
 
 module.exports = router;

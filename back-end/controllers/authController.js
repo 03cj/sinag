@@ -190,21 +190,45 @@ async function addIntern(req, res, next) {
 }
 async function getInterns(req, res) {
   try {
+    // Fetch all interns
     const interns = await User.findAll({
       where: { role: 'Intern' },
-      attributes: [
-        'id', 'firstName', 'lastName', 'mi', 'email', 'studentId' // only real columns
-      ],
+      attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'studentId', 'department']
     });
 
-    // Add optional fields here without touching the DB
-    const formattedInterns = interns.map(i => ({
-      ...i.toJSON(),
-      program: 'N/A',
-      company: 'N/A',
-      supervisor: 'N/A',
-      status: 'N/A',
-    }));
+    // Fetch all advisers
+    const advisers = await User.findAll({
+      where: { role: 'Adviser' },
+      attributes: ['id', 'firstName', 'lastName', 'department']
+    });
+
+    // Map advisers by department
+    const advisersByDept = {};
+    advisers.forEach(a => {
+      if (!advisersByDept[a.department]) advisersByDept[a.department] = [];
+      advisersByDept[a.department].push(a);
+    });
+
+    // Format interns
+    const formattedInterns = interns.map(i => {
+      const deptAdvisers = advisersByDept[i.department] || [];
+      const adviserName = deptAdvisers.length > 0
+        ? `${deptAdvisers[0].firstName} ${deptAdvisers[0].lastName}`
+        : 'Assign Adviser';
+
+      return {
+        studNo: i.studentId || i.id || 'N/A',
+        lastname: i.lastName || 'N/A',
+        firstname: i.firstName || 'N/A',
+        mi: i.mi || '',
+        email: i.email || 'N/A',
+        program: i.department || 'N/A',  // map department to program
+        adviser: adviserName,
+        company: 'NA',                   // fill if you join company later
+        supervisor: 'NA',
+        status: 'N/A'
+      };
+    });
 
     res.status(200).json(formattedInterns);
   } catch (err) {
@@ -212,6 +236,7 @@ async function getInterns(req, res) {
     res.status(500).json({ message: 'Failed to fetch interns' });
   }
 }
+
 
 
 
@@ -267,6 +292,49 @@ async function getCompanies(req, res, next) {
   }
 }
 
+async function getCompanyProfile(req, res, next) {
+  try {
+    const companyId = req.user.id; // from token
+
+    const company = await Company.findByPk(companyId);
+    if (!company) {
+      return res.status(404).json({ message: "Company profile not found" });
+    }
+
+    return res.json({
+      supervisorName: company.supervisorName,
+      companyName: company.name,
+      natureOfBusiness: company.natureOfBusiness,
+      email: company.email,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+}
+
+
+async function updateCompanyProfile(req, res, next) {
+  try {
+    const companyId = req.user.id;
+    const { supervisorName, companyName, natureOfBusiness } = req.body;
+
+    const company = await Company.findByPk(companyId);
+    if (!company) return res.status(404).json({ message: 'Company not found' });
+
+    company.supervisorName = supervisorName || company.supervisorName;
+    company.name = companyName || company.name;
+    company.natureOfBusiness = natureOfBusiness || company.natureOfBusiness;
+
+    await company.save();
+
+    res.json({ message: 'Company profile updated successfully', company });
+  } catch (err) {
+    console.error('Update Company Profile Error:', err);
+    next(err);
+  }
+}
+
 
 
 // ... export at the bottom
@@ -282,4 +350,6 @@ module.exports = {
   getInterns,
   addCompany,
   getCompanies,
+  getCompanyProfile,
+  updateCompanyProfile
 };
