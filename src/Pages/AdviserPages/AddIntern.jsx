@@ -9,12 +9,9 @@ const getAdviserDepartment = () => {
       const payloadBase64 = token.split('.')[1];
       const payload = JSON.parse(atob(payloadBase64));
 
-      // 🛑 TEMPORARY DEBUG LOG 🛑
       console.log('--- JWT DECODED PAYLOAD RECEIVED ON CLIENT ---');
       console.log(payload);
-      // 🛑 Check the console output for the 'department' field here 🛑
 
-      // Look for the correct field in the console output (should be 'department')
       return payload.department || 'N/A';
     } catch (e) {
       console.error('Error parsing token payload for department:', e);
