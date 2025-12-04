@@ -1,279 +1,130 @@
 import React, { useState, useEffect } from 'react';
 import { formatDistanceStrict, differenceInDays, isBefore } from 'date-fns';
 
-
-
 const CompaniesC = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddNewCompanyForm, setShowAddNewCompanyForm] = useState(false);
-  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
+
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [companyToDelete, setCompanyToDelete] = useState(null);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
-// delete from here to removed mock data
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      setLoading(true); 
-      setError(null);   
-
-      try {
-  
-     const mockCompanies = [
-  { no: '001', name: 'AAA', email: 'aaa@gmail.com', supervisor: 'Mrs. Cruz', address: '.st.', moa: '.pdf', natureOfBusiness: 'Manufacturing', MOAStart: '2022-01-01', MOAEnd: '2025-01-01' },
-  { no: '002', name: 'BBB Corp', email: 'info@bbbcorp.com', supervisor: 'Mr. Smith', address: '123 Main St.', moa: 'bbb_moa.pdf', natureOfBusiness: 'Corporate', MOAStart: '2021-03-01', MOAEnd: '2024-03-01' },
-  { no: '003', name: 'XYZ Innovations', email: 'contact@xyz.net', supervisor: 'Ms. Johnson', address: '456 Min. Ave.', moa: 'xyz_agreement.pdf', natureOfBusiness: 'Technology', MOAStart: '2020-05-01', MOAEnd: '2025-05-01' },
-  { no: '004', name: 'Global Tech', email: 'support@globaltech.org', supervisor: 'Dr. Lee', address: '789 Lopez Ln.', moa: 'global_tech_moa.pdf', natureOfBusiness: 'IT Services', MOAStart: '2023-07-01', MOAEnd: '2024-07-01' },
-  { no: '005', name: 'Creative Hub', email: 'hello@creativehub.com', supervisor: 'Mr. Davis', address: '101 Que. St.', moa: 'creative_moa.pdf', natureOfBusiness: 'Creative Agency', MOAStart: '2022-09-01', MOAEnd: '2024-09-01' },
-];
-
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-           const filteredCompanies = mockCompanies.filter(company =>
-          searchTerm
-            ? company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              company.natureOfBusiness.toLowerCase().includes(searchTerm.toLowerCase())
-            : true
-        );
-
-        setCompanies(filteredCompanies); // Update state with filtered sample data
-      } catch (err) {
-        console.error("Failed to fetch companies:", err);
-        setError("Failed to load companies. Please try again later."); // Set error message
-      } finally {
-        setLoading(false); // Set loading to false once fetching is complete
-      }
-      };
-
-     fetchCompanies(); // Call the fetch function
-     }, [searchTerm]); // Re-run effect when search term changes
-     //delete hanggang dito to remove unng mock data
-
-{/* uncomment for real backend
-     useEffect(() => {
+useEffect(() => {
   const fetchCompanies = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      let apiUrl = '/api/companies'; 
+      let apiUrl = 'http://localhost:5000/api/auth/companies';
+      if (searchTerm) apiUrl += `?q=${encodeURIComponent(searchTerm)}`;
 
-      if (searchTerm) {
-        apiUrl += `?q=${encodeURIComponent(searchTerm)}`; // pass search term as query
-      }
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
 
-      const response = await fetch(apiUrl);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-
-      setCompanies(data); // ✅ backend supplies the filtered data
+      setCompanies(data);
     } catch (err) {
       console.error("Failed to fetch companies:", err);
-      setError(err.message || "Failed to load companies. Please try again later.");
+      setError("Failed to load companies. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
-
   fetchCompanies();
 }, [searchTerm]);
-*/}
-    
+
+
 const computeMoaStatus = (start, end) => {
   if (!start || !end) return { validity: "N/A", warning: "" };
-
   const startDate = new Date(start);
   const endDate = new Date(end);
   const today = new Date();
-
   const validity = formatDistanceStrict(endDate, startDate);
-
   const daysLeft = differenceInDays(endDate, today);
-
   let warning = "";
-  if (isBefore(endDate, today)) {
-    warning = "MOA expired";
-  } else if (daysLeft <= 30) {
-    warning = `MOA expiring in ${daysLeft} days`;
-  }
-
+  if (isBefore(endDate, today)) warning = "MOA expired";
+  else if (daysLeft <= 30) warning = `MOA expiring in ${daysLeft} days`;
   return { validity, warning };
-};
-
-  const handleSearchChange = (event) => {setSearchTerm(event.target.value);};
-  const handleEditMoa = () => {console.log("Update MOA button clicked!"); };
-  const handleAddNewCompany = () => setShowAddNewCompanyForm(true);
-
-  const handleDeleteClick = (company) => {
-  setCompanyToDelete(company);
-  setShowDeleteConfirm(true);
-};
-
-const handleConfirmDelete = () => {
-  if (companyToDelete) {
-    setCompanies((prev) =>
-      prev.filter((c) => c.no !== companyToDelete.no)
-    );
-  }
-  setShowDeleteConfirm(false);
-  setCompanyToDelete(null);
 };
 
 
   return (
     <div className="p-5 md:p-8 bg-gray-100 min-h-screen">
-      {/* Header and Action Buttons */}
-      <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 sm:gap-0">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Company</h1>
-            <p className="text-gray-600 text-sm">List of companies with MOA</p>
-          </div>
-          {/* Aligned Buttons and Search Bar */}
-          <div className="flex flex-wrap items-center gap-3 justify-end w-full sm:w-auto">
-            
-            {/* Search Input aligned horizontally */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search company name" 
-                className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm w-full"
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
+      {/* Header & Search */}
+      <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Company</h1>
+          <p className="text-gray-600 text-sm">List of companies with MOA</p>
         </div>
+
+        <input
+          type="text"
+          placeholder="Search company name"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+        />
       </div>
 
-      {/* Companies Table Container */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
+      {/* Companies Table */}
+      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
         <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-red-800">
+          <thead className="bg-red-800 text-white text-xs uppercase">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-lg">
-                No.
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Company name
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Email
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Supervisor
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Address
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                Nature of Business
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">
-                MOA Validity
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tr-lg">
-                MOA
-              </th>
+              {['No.', 'Company Name', 'Email', 'Supervisor', 'Address', 'Nature of Business', 'MOA Validity', 'MOA'].map((title) => (
+                <th key={title} className="px-6 py-3 text-left font-bold">{title}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-            
-                <td colSpan="9" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  Loading companies...
-                </td>
-              </tr>
-              
-            ) : error ? (
-              <tr>
-            
-                <td colSpan="9" className="px-6 py-4 whitespace-nowrap text-center text-red-500">
-                  {error}
-                </td>
-              </tr>
-
-            ) : companies.length === 0 ? (
-              <tr>
-             
-                <td colSpan="9" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  No companies found matching your criteria.
-                </td>
-              </tr>
-            ) : (
-companies.map((company, index) => (
-  <tr key={company.no || index}>
-   
- <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{company.name}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{company.email}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{company.supervisor}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{company.address}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{company.natureOfBusiness}</td>
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-      {(() => {
-        const { validity, warning } = computeMoaStatus(company.MOAStart, company.MOAEnd);
-        return (
-          <>
-            {validity}
-            {warning && (
-              <button
-                onClick={() => {
-                  setSelectedCompany(company);
-                  setShowUpdateConfirm(true); 
-                }}
-                className={`ml-2 text-xs font-semibold px-2 py-1 rounded transition-colors duration-200 ${
-                  warning.includes("expired")
-                    ? "bg-red-200 text-red-800 hover:bg-red-300"
-                    : "bg-yellow-200 text-yellow-800 hover:bg-yellow-300"
-                }`}
-              >
-                {warning}
-              </button>
-            )}
-          </>
-        );
-      })()}
-    </td>
-
-    {/* MOA Link */}
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-      {company.moa ? (
-        <a
-          href={company.moa}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
-        >
-          {company.moa}
-        </a>
-      ) : (
-        "N/A"
-      )}
-    </td>
-  </tr>
-))
-
-            )}
-          </tbody>
+          <tbody className="divide-y divide-gray-200 text-sm">
+          {loading ? (
+            <tr>
+              <td colSpan="8" className="px-6 py-4 text-center text-gray-500">Loading companies...</td>
+            </tr>
+          ) : error ? (
+            <tr>
+              <td colSpan="8" className="px-6 py-4 text-center text-red-500">{error}</td>
+            </tr>
+          ) : companies.length === 0 ? (
+            <tr>
+              <td colSpan="8" className="px-6 py-4 text-center text-gray-500">No companies found.</td>
+            </tr>
+          ) : (
+            companies.map((company, index) => {
+              const { validity, warning } = computeMoaStatus(company.moaStart, company.moaEnd);
+              return (
+                <tr key={company.id || index}>
+                  {/* Use index + 1 for auto-increment No. */}
+                  <td className="px-6 py-4">{index + 1}</td>
+                  <td className="px-6 py-4">{company.name}</td>
+                  <td className="px-6 py-4">{company.email}</td>
+                  <td className="px-6 py-4">{company.supervisorName}</td>
+                  <td className="px-6 py-4">{company.address}</td>
+                  <td className="px-6 py-4">{company.natureOfBusiness}</td>
+                  <td className="px-6 py-4">
+                    {validity}
+                    {warning && (
+                      <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded ${
+                        warning.includes('expired') ? 'bg-red-200 text-red-800' : 'bg-yellow-200 text-yellow-800'
+                      }`}>{warning}</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {company.moa ? (
+                      <a href={company.moa} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{company.moa}</a>
+                    ) : 'N/A'}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
         </table>
-
       </div>
-     
     </div>
   );
 };
