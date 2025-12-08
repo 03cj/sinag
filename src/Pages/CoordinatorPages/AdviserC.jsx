@@ -138,7 +138,7 @@ const handleConfirmDelete = () => {
             ) : (
               filteredAdvisers.map(adviser => (
                 <tr key={adviser.id}>
-                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.id}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{adviser.employeeId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.lastName}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.firstName}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{adviser.mi}</td>
