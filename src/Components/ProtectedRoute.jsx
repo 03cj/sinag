@@ -1,27 +1,24 @@
 // src/Components/ProtectedRoute.jsx
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
-export default function ProtectedRoute({ allowedRoles = [] }) {
+const BASE_PATH = '/pup-sinag';
+
+export default function ProtectedRoute({ allowedRoles = [], children }) {
   const token = localStorage.getItem('token');
-  let role = (localStorage.getItem('role') || '').toLowerCase();
+  const userRole = (localStorage.getItem('role') || '').toLowerCase();
 
-  // 🟢 Map company accounts to supervisor (if they exist)
-  const roleAlias = {
-    company: 'supervisor',
-  };
-  role = roleAlias[role] || role;
-
-  // 🚫 No token or no role → must login
-  if (!token || !role) {
-    localStorage.clear(); // ensure no stale session
-    return <Navigate to="/pup-sinag" replace />;
+  // 🚫 Not Logged In
+  if (!token || !userRole) {
+    return <Navigate to={BASE_PATH} replace />;
   }
 
-  // 🚫 Role exists but not allowed for this route
-  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-    return <Navigate to="/pup-sinag" replace />;
+  // 🚫 Logged In but Unauthorized Role
+  const isRoleAllowed = allowedRoles.length === 0 || allowedRoles.includes(userRole);
+
+  if (!isRoleAllowed) {
+    return <Navigate to={BASE_PATH} replace />;
   }
 
-  // 🟢 Authorized → render nested route
-  return <Outlet />;
+  // ✅ Access Granted
+  return children;
 }
