@@ -1,42 +1,89 @@
+/* ============================================
+   GLOBAL RESET — FULL WEB WIDTH (NO PAPER SIZE)
+   ============================================ */
+
+html,
+body,
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  background: #ffffff !important;
+  text-align: left !important;
+  overflow-x: hidden;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
+/* Remove Vite demo artifacts if present */
+.logo,
+.card,
 .read-the-docs {
-  color: #888;
+  display: none !important;
+}
+
+/* ============================================
+   SCREEN VIEW — NORMAL WEB MODE
+   --------------------------------------------
+   NOTHING should look like a document here!
+   Make sure no .print-container has borders,
+   shadows, margins, or fixed widths on screen.
+   ============================================ */
+
+.print-container {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Optional – disable centering utility */
+.mx-auto,
+.max-w-screen-lg,
+.max-w-4xl,
+.max-w-3xl {
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+/* ============================================
+   PRINT MODE — APPLY ONLY WHEN PRINTING
+   ============================================ */
+
+@media print {
+  /* Set LONG BOND PAPER size */
+  @page {
+    size: 8.5in 13in;
+    margin: 1in;
+  }
+
+  /* Ensure print is clean */
+  html,
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    overflow: visible !important;
+  }
+
+  /* Only this container becomes a long paper */
+  .print-container {
+    background: white !important;
+    width: 8.5in !important;
+    min-height: 13in !important;
+    padding: 1in !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide UI elements that shouldn’t print */
+  .no-print,
+  button,
+  nav,
+  footer {
+    display: none !important;
+  }
 }

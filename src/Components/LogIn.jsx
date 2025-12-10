@@ -5,75 +5,50 @@ const LogIn = () => {
   const navigate = useNavigate();
   const { role } = useParams();
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
   const capitalize = role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'User';
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
-    const form = e.target;
-    const email = form.querySelector('input[type="email"]').value;
-    const password = form.querySelector('input[type="password"]').value;
+    if (!email || !password) {
+      setError('Please enter your email and password');
+      return;
+    }
 
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          mode: 'cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
+    setLoading(true);
 
-        const body = await res.json();
-        if (!res.ok) throw new Error(body.message || 'Login failed');
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-        // ==========================
-        // SAVE TOKEN AND ROLE
-        // ==========================
-        localStorage.setItem('token', body.token);
-        localStorage.setItem('role', body.user.role.toLowerCase()); // <--- IMPORTANT
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
 
-        setMessage(`${body.user.role} logged in successfully!`);
+      // Save authentication details
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.user.role.toLowerCase());
 
-        // ==========================
-        // ROLE-BASED REDIRECTION
-        // ==========================
-        const userRole = body.user.role.toLowerCase();
-
-        switch (userRole) {
-          case 'coordinator':
-            navigate('/pup-sinag/coordinator');
-            break;
-          case 'intern':
-            navigate('/pup-sinag/intern');
-            break;
-          case 'supervisor':
-            navigate('/pup-sinag/supervisor');
-            break;
-          case 'adviser':
-            navigate('/pup-sinag/adviser');
-            break;
-          default:
-            navigate('/pup-sinag'); // fallback
-        }
-      } catch (err) {
-        console.error('Login error:', err);
-        setError(err.message || 'Login failed (network error)');
-      } finally {
-        setLoading(false);
-      }
-    })();
+      // One-line role-based redirect
+      navigate(`/pup-sinag/${data.user.role.toLowerCase()}`, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Unable to login. Try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleForgotPassword = () => navigate(`/forgot-password`);
+  const handleForgotPassword = () => navigate('/forgot-password');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200">
@@ -81,26 +56,32 @@ const LogIn = () => {
         <h1 className="text-2xl font-bold text-red-900 mb-6 text-center">{capitalize} Login your Account</h1>
 
         <form onSubmit={handleLogin} className="space-y-4">
+          {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-900"
             />
           </div>
 
+          {/* Password Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-900 pr-10"
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-600"
               >
                 {showPassword ? 'Hide' : 'Show'}
@@ -108,16 +89,20 @@ const LogIn = () => {
             </div>
           </div>
 
+          {/* Login Button */}
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-red-900 text-white py-2 rounded-md hover:bg-red-700 transition-colors"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
-        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+        {/* Error Message */}
+        {error && <p className="text-sm text-red-600 mt-2 text-center">{error}</p>}
 
+        {/* Bottom Links */}
         <div className="mt-4 text-center">
           <button onClick={handleForgotPassword} className="text-sm text-red-900 font-semibold hover:underline mb-2">
             Forgot Password?

@@ -1,12 +1,15 @@
 /** @type {import('tailwindcss').Config} */
-const config = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+export default {
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
-    
+      container: {
+        center: false, // DO NOT CENTER CONTENT
+      },
+      maxWidth: {
+        none: 'none', // allow unlimited width
+      },
     },
   },
   plugins: [],
 };
-
-export default config;

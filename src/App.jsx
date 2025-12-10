@@ -26,9 +26,11 @@ import InternA from './Pages/AdviserPages/InternA';
 import ProfileA from './Pages/AdviserPages/ProfileA';
 import ReportsA from './Pages/AdviserPages/ReportsA';
 
-import Documents from './Pages/InternPages/Documents';
 import HomeI from './Pages/InternPages/HomeI';
+import HTE_Evaluation from './Pages/InternPages/HTE_Evaluation';
 import ProfileI from './Pages/InternPages/ProfileI';
+import SelfEvaluation from './Pages/InternPages/Self_Evaluation';
+import SupervisorEvaluation from './Pages/InternPages/Supervisor_Evaluation';
 
 import DashboardS from './Pages/SupervisorPages/DashboardS';
 import EvaluationS from './Pages/SupervisorPages/EvaluationS';
@@ -77,6 +79,7 @@ export default function App() {
           <Route path="reports" element={<ReportsA />} />
           <Route path="companies" element={<CompaniesA />} />
           <Route path="addIntern" element={<AddIntern />} />
+          <Route path="library" element={<ReportsA />} />
           <Route path="profile" element={<ProfileA />} />
         </Route>
 
@@ -91,23 +94,21 @@ export default function App() {
         >
           <Route index element={<HomeI />} />
           <Route path="home" element={<HomeI />} />
-          <Route path="documents" element={<Documents />} />
+          {/* } <Route path="documents" element={<Documents />} /> */}
           <Route path="profile" element={<ProfileI />} />
+          <Route path="evaluation" element={<HTE_Evaluation />} />
+          <Route path="self-evaluation" element={<SelfEvaluation />} />
+          <Route path="supervisor-evaluation" element={<SupervisorEvaluation />} />
         </Route>
 
         {/* SUPERVISOR ROUTES */}
-        <Route
-          path="supervisor"
-          element={
-            <ProtectedRoute allowedRoles={['supervisor']}>
-              <SupervisorLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardS />} />
-          <Route path="dashboard" element={<DashboardS />} />
-          <Route path="evaluation/:studNo" element={<EvaluationS />} />
-          <Route path="profile" element={<ProfileS />} />
+        <Route path="supervisor" element={<ProtectedRoute allowedRoles={['supervisor']} />}>
+          <Route element={<SupervisorLayout />}>
+            <Route index element={<DashboardS />} />
+            <Route path="dashboard" element={<DashboardS />} />
+            <Route path="evaluation/:studNo" element={<EvaluationS />} />
+            <Route path="profile" element={<ProfileS />} />
+          </Route>
         </Route>
       </Route>
     </Routes>
