@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const InternA = () => {
   const [interns, setInterns] = useState([]);
@@ -39,8 +39,8 @@ const InternA = () => {
         setInterns(data);
 
         // Optional: populate company options dynamically
-        const companies = Array.from(new Set(data.map(i => i.company))).sort();
-        setCompanyOptions(['All', ...companies]);
+        const HTE = Array.from(new Set(data.map((i) => i.company))).sort();
+        setCompanyOptions(['All', ...HTE]);
       } catch (err) {
         console.error('Failed to fetch interns:', err);
         setError(err.message || 'Failed to load interns.');
@@ -52,12 +52,13 @@ const InternA = () => {
     fetchInterns();
   }, []);
 
-
   // Apply filtering & sorting client-side
   const processedInterns = interns
-    .filter(i => (selectedCompany !== 'All' ? i.company === selectedCompany : true))
-    .filter(i => (selectedStatus !== 'All' ? i.status === selectedStatus : true))
-    .filter(i => (searchTerm ? `${i.firstname} ${i.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) : true))
+    .filter((i) => (selectedCompany !== 'All' ? i.company === selectedCompany : true))
+    .filter((i) => (selectedStatus !== 'All' ? i.status === selectedStatus : true))
+    .filter((i) =>
+      searchTerm ? `${i.firstname} ${i.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) : true,
+    )
     .sort((a, b) => {
       let valueA = a[sortCriteria];
       let valueB = b[sortCriteria];
@@ -83,20 +84,44 @@ const InternA = () => {
             <p className="text-gray-600 text-sm">Interns record</p>
           </div>
           <div className="flex items-center space-x-3">
-            <select value={selectedCompany} onChange={e => setSelectedCompany(e.target.value)} className="px-4 py-2 border rounded-md">
-              {companyOptions.map(c => <option key={c} value={c}>{c === 'All' ? 'Company name' : c}</option>)}
+            <select
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              className="px-4 py-2 border rounded-md"
+            >
+              {companyOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c === 'All' ? 'Company name' : c}
+                </option>
+              ))}
             </select>
-            <select value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="px-4 py-2 border rounded-md">
-              {statusOptions.map(s => <option key={s} value={s}>{s === 'All' ? 'Status' : s}</option>)}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-4 py-2 border rounded-md"
+            >
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>
+                  {s === 'All' ? 'Status' : s}
+                </option>
+              ))}
             </select>
-            <select value={sortCriteria} onChange={e => setSortCriteria(e.target.value)} className="px-4 py-2 border rounded-md">
-              {sortOptions.map(o => <option key={o.value} value={o.value}>Sort by {o.label}</option>)}
+            <select
+              value={sortCriteria}
+              onChange={(e) => setSortCriteria(e.target.value)}
+              className="px-4 py-2 border rounded-md"
+            >
+              {sortOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  Sort by {o.label}
+                </option>
+              ))}
             </select>
             <input
               type="text"
               placeholder="Type interns name"
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-4 pr-10 py-2 border rounded-md"
             />
           </div>
@@ -120,13 +145,25 @@ const InternA = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="8" className="text-center p-4 text-gray-500">Loading interns...</td></tr>
+              <tr>
+                <td colSpan="8" className="text-center p-4 text-gray-500">
+                  Loading interns...
+                </td>
+              </tr>
             ) : error ? (
-              <tr><td colSpan="8" className="text-center p-4 text-red-500">{error}</td></tr>
+              <tr>
+                <td colSpan="8" className="text-center p-4 text-red-500">
+                  {error}
+                </td>
+              </tr>
             ) : processedInterns.length === 0 ? (
-              <tr><td colSpan="8" className="text-center p-4 text-gray-500">No interns found.</td></tr>
+              <tr>
+                <td colSpan="8" className="text-center p-4 text-gray-500">
+                  No interns found.
+                </td>
+              </tr>
             ) : (
-              processedInterns.map(i => (
+              processedInterns.map((i) => (
                 <tr key={i.studNo}>
                   <td className="px-6 py-4">{i.studNo}</td>
                   <td className="px-6 py-4">{i.lastname}</td>

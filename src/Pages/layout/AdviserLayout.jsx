@@ -10,7 +10,7 @@ const AdviserLayout = () => {
   const navItems = [
     { name: 'Dashboard', path: 'dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Interns', path: 'interns', icon: <GraduationCap size={20} /> },
-    { name: 'Companies', path: 'companies', icon: <Building size={20} /> },
+    { name: 'HTE', path: 'hte', icon: <Building size={20} /> },
     { name: 'Reports', path: 'reports', icon: <FileText size={20} /> },
   ];
 
@@ -24,7 +24,7 @@ const AdviserLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar: Full width, dark background */}
-      <nav className="bg-red-900 text-white py-3 px-4 shadow-xl flex flex-col md:flex-row justify-between items-center z-10 mt-5">
+      <nav className="bg-red-900 text-white py-3 px-4 shadow-xl flex flex-col md:flex-row justify-between items-center z-10 ">
         <div className="w-full flex flex-col md:flex-row justify-between items-center">
           {/* START LEFT GROUP: Logo + Main Nav Items */}
           <div className="w-full flex flex-col md:flex-row md:items-center md:gap-8">
@@ -46,9 +46,16 @@ const AdviserLayout = () => {
                 <NavLink
                   key={item.name}
                   to={item.path}
+                  // Apply the transition class to the element
+                  // and ensure the hover state only changes the colors
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-1 rounded-lg transition text-sm font-medium
-                    ${isActive ? 'bg-yellow-600 text-red-900 font-bold shadow-inner' : 'hover:bg-red-700 text-white'}`
+                    `flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-300 ease-in-out
+
+         ${
+           isActive
+             ? ' text-yellow-300 font-bold shadow-inner' // Active state: Use the desired active colors
+             : 'text-white hover:text-yellow-300 ' // Inactive state: Hover changes text and background colors
+         }`
                   }
                 >
                   {item.icon}
@@ -63,17 +70,24 @@ const AdviserLayout = () => {
           <div className="hidden md:flex items-center gap-4">
             <NavLink
               to="profile"
-              className="flex items-center gap-2 px-3 py-1 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-1 rounded-lg transition text-sm font-medium
+     ${
+       isActive
+         ? 'text-yellow-400 font-bold' // <-- Active state: Set color to yellow-400 and bold the text
+         : 'text-white hover:text-yellow-400' // <-- Inactive state: Default to white, hover changes to yellow-400
+     }`
+              }
             >
               <User size={20} />
-              Profile
+              {/*Profile*/}
             </NavLink>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 text-white hover:bg-red-700 transition bg-transparent border-none cursor-pointer px-3 py-1 rounded-lg text-sm font-medium"
+              className="flex items-center gap-2 text-white hover:text-yellow-300 transition bg-transparent border-none cursor-pointer px-3 py-1 rounded-lg text-sm font-medium"
             >
               <LogOut size={20} />
-              Logout
+              {/*Logout*/}
             </button>
           </div>
 

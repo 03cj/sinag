@@ -1,19 +1,26 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../Context/AuthContext';
+import sinagLogo from '/PUP-SINAG.png';
+import pupSeal from '/pup_1904.png';
 
 const LogIn = () => {
+  // --- HOOKS ---
   const navigate = useNavigate();
   const { role } = useParams();
+  const { login } = useAuth();
 
+  // --- STATE ---
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // --- CONSTANTS ---
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const capitalize = role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'User';
 
+  // --- AUTH HANDLER ---
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -35,11 +42,8 @@ const LogIn = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
-      // Save authentication details
-      localStorage.setItem('token', data.token);
+      login(data.token);
       localStorage.setItem('role', data.user.role.toLowerCase());
-
-      // One-line role-based redirect
       navigate(`/pup-sinag/${data.user.role.toLowerCase()}`, { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to login. Try again.');
@@ -48,75 +52,96 @@ const LogIn = () => {
     }
   };
 
-  const handleForgotPassword = () => navigate('/forgot-password');
+  // --- LEFT PANEL GRADIENT ---
+  const leftPanelGradient = `
+    linear-gradient(
+      to bottom,
+      #FFE066 0%,
+      #FFF2B3 38%,
+      #FFFFFF 65%,
+      #F7EAEA 80%,
+      #EAD1D1 92%,
+      #E0BFBF 100%
+    )
+  `;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-200">
-      <div className="bg-white p-20 rounded-xl shadow-xl w-full max-w-md mb-20">
-        <h1 className="text-2xl font-bold text-red-900 mb-6 text-center">{capitalize} Login your Account</h1>
+    <div className="min-h-screen flex bg-gray-100">
+      {/* LEFT PANEL */}
+      <div
+        className="hidden lg:flex w-1/2 items-center justify-center
+                   text-[#5E0000] shadow-inner"
+        style={{ background: leftPanelGradient }}
+      >
+        <div className="max-w-lg mx-auto flex flex-col items-center gap-6 px-6 -translate-y-8">
+          <h2 className="text-lg font-bold text-center whitespace-nowrap">
+            PUP System for Internship Navigation and Guidance
+          </h2>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          {/* Email Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-900"
-            />
+          {/* SINAG LOGO — CLOSER TO TEXT */}
+          <img src={sinagLogo} alt="PUP SINAG Logo" className="w-[380px] h-auto drop-shadow-xl mt-1" />
+        </div>
+      </div>
+
+      {/* RIGHT PANEL */}
+      <div
+        className="w-full lg:w-1/2 flex items-center justify-center
+                   bg-white lg:border-l lg:border-gray-200"
+      >
+        <div className="w-full max-w-md px-12">
+          <div className="flex justify-center mb-6">
+            <img src={pupSeal} alt="PUP Seal" className="w-20 h-20" />
           </div>
 
-          {/* Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+          <h1 className="text-xl font-semibold text-center text-gray-700 mb-8">Login your PUP SINAG Account</h1>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-5 py-3 border-2 border-gray-300 rounded-full
+                         focus:outline-none focus:ring-2 focus:ring-[#8B0000]"
+              required
+            />
+
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-5 py-3 border-2 border-gray-300 rounded-full
+                           focus:outline-none focus:ring-2 focus:ring-[#8B0000] pr-20"
                 required
-                className="mt-1 w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-900 pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-600"
+                className="absolute inset-y-0 right-0 pr-5 flex items-center
+                           text-sm font-medium text-gray-500 hover:text-[#8B0000]"
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
-          </div>
 
-          {/* Login Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-red-900 text-white py-2 rounded-md hover:bg-red-700 transition-colors"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-
-        {/* Error Message */}
-        {error && <p className="text-sm text-red-600 mt-2 text-center">{error}</p>}
-
-        {/* Bottom Links */}
-        <div className="mt-4 text-center">
-          <button onClick={handleForgotPassword} className="text-sm text-red-900 font-semibold hover:underline mb-2">
-            Forgot Password?
-          </button>
-
-          <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
             <button
-              onClick={() => navigate(`/pup-sinag/sign-up`)}
-              className="text-red-900 font-semibold hover:underline"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#8B0000] text-[#FFD700] text-lg font-bold
+                         py-3 rounded-full hover:bg-[#6A0000]
+                         transition-colors disabled:opacity-50"
             >
-              Sign Up
+              {loading ? 'Logging in...' : 'Login'}
             </button>
-          </p>
+
+            {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+          </form>
+
+          <div className="mt-6 text-center">
+            <button className="text-sm text-gray-700 hover:text-[#8B0000] hover:underline">Forgot Password</button>
+          </div>
         </div>
       </div>
     </div>

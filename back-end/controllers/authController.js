@@ -193,28 +193,27 @@ async function getInterns(req, res) {
     // Fetch all interns
     const interns = await User.findAll({
       where: { role: 'Intern' },
-      attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'studentId', 'department']
+      attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'studentId', 'department'],
     });
 
     // Fetch all advisers
     const advisers = await User.findAll({
       where: { role: 'Adviser' },
-      attributes: ['id', 'firstName', 'lastName', 'department']
+      attributes: ['id', 'firstName', 'lastName', 'department'],
     });
 
     // Map advisers by department
     const advisersByDept = {};
-    advisers.forEach(a => {
+    advisers.forEach((a) => {
       if (!advisersByDept[a.department]) advisersByDept[a.department] = [];
       advisersByDept[a.department].push(a);
     });
 
     // Format interns
-    const formattedInterns = interns.map(i => {
+    const formattedInterns = interns.map((i) => {
       const deptAdvisers = advisersByDept[i.department] || [];
-      const adviserName = deptAdvisers.length > 0
-        ? `${deptAdvisers[0].firstName} ${deptAdvisers[0].lastName}`
-        : 'Assign Adviser';
+      const adviserName =
+        deptAdvisers.length > 0 ? `${deptAdvisers[0].firstName} ${deptAdvisers[0].lastName}` : 'Assign Adviser';
 
       return {
         studNo: i.studentId || i.id || 'N/A',
@@ -222,11 +221,11 @@ async function getInterns(req, res) {
         firstname: i.firstName || 'N/A',
         mi: i.mi || '',
         email: i.email || 'N/A',
-        program: i.department || 'N/A',  // map department to program
+        program: i.department || 'N/A', // map department to program
         adviser: adviserName,
-        company: 'NA',                   // fill if you join company later
+        company: 'NA', // fill if you join company later
         supervisor: 'NA',
-        status: 'N/A'
+        status: 'N/A',
       };
     });
 
@@ -237,30 +236,27 @@ async function getInterns(req, res) {
   }
 }
 
-
-
-
-//company 
+//company
 async function addCompany(req, res, next) {
   try {
-    const { 
-      name, 
-      email, 
-      supervisorName, 
-      address, 
-      natureOfBusiness, 
-      moaStart, 
-      moaEnd,
-      initialPassword
-    } = req.body;
+    const { name, email, supervisorName, address, natureOfBusiness, moaStart, moaEnd, initialPassword } = req.body;
     const moaFile = req.file ? req.file.filename : null; // multer stores file info in req.file
 
     // Only required fields validation (exclude MOA file)
-    if (!name || !email || !supervisorName || !address || !natureOfBusiness || !moaStart || !moaEnd || !initialPassword) {
+    if (
+      !name ||
+      !email ||
+      !supervisorName ||
+      !address ||
+      !natureOfBusiness ||
+      !moaStart ||
+      !moaEnd ||
+      !initialPassword
+    ) {
       return res.status(400).json({ message: 'All required fields except MOA file must be filled.' });
     }
 
- const result = await authService.addCompany({
+    const result = await authService.addCompany({
       name,
       email,
       supervisorName,
@@ -269,12 +265,12 @@ async function addCompany(req, res, next) {
       moaStart,
       moaEnd,
       moaFile,
-      password: initialPassword
+      password: initialPassword,
     });
 
     res.status(201).json({
       message: result.message,
-      company: result.company
+      company: result.company,
     });
   } catch (err) {
     console.error('Error adding company:', err);
@@ -282,13 +278,13 @@ async function addCompany(req, res, next) {
   }
 }
 
-async function getCompanies(req, res, next) {
+async function getHTE(req, res, next) {
   try {
-    const companies = await Company.findAll(); // fetch all companies
-    res.status(200).json(companies);
+    const HTE = await Company.findAll(); // fetch all HTE
+    res.status(200).json(HTE);
   } catch (err) {
-    console.error('Error fetching companies:', err);
-    res.status(500).json({ message: 'Failed to fetch companies' });
+    console.error('Error fetching HTE:', err);
+    res.status(500).json({ message: 'Failed to fetch HTE' });
   }
 }
 
@@ -298,7 +294,7 @@ async function getCompanyProfile(req, res, next) {
 
     const company = await Company.findByPk(companyId);
     if (!company) {
-      return res.status(404).json({ message: "Company profile not found" });
+      return res.status(404).json({ message: 'Company profile not found' });
     }
 
     return res.json({
@@ -307,12 +303,10 @@ async function getCompanyProfile(req, res, next) {
       natureOfBusiness: company.natureOfBusiness,
       email: company.email,
     });
-
   } catch (err) {
     next(err);
   }
 }
-
 
 async function updateCompanyProfile(req, res, next) {
   try {
@@ -335,8 +329,6 @@ async function updateCompanyProfile(req, res, next) {
   }
 }
 
-
-
 // ... export at the bottom
 module.exports = {
   signup,
@@ -349,7 +341,7 @@ module.exports = {
   addIntern,
   getInterns,
   addCompany,
-  getCompanies,
+  getHTE,
   getCompanyProfile,
-  updateCompanyProfile
+  updateCompanyProfile,
 };

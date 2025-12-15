@@ -5,11 +5,11 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const path = require('path'); // ⭐ NEEDED FOR STATIC FILE SERVING
+const path = require('path');
 
 const sequelize = require('./config/db');
 const authRoutes = require('./routes/auth');
-const documentsRoutes = require('./routes/documents'); // ⭐ FIXED NAME
+const documentsRoutes = require('./routes/documents');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -30,7 +30,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount routes
 app.use('/api/auth', authRoutes);
-app.use('/api/documents', documentsRoutes); // ⭐ FIXED NAME
+app.use('/api/documents', documentsRoutes);
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'pup-sinag backend running' }));

@@ -22,9 +22,9 @@ router.get('/me', authController.me);
 router.put('/profile', authController.updateProfile);
 router.put('/change-password', authController.changePassword);
 
-// Companies
+// HTE
 router.post('/addCompany', upload.single('moaFile'), authController.addCompany);
-router.get('/companies', authController.getCompanies);
+router.get('/HTE', authController.getHTE);
 router.get('/company/profile', authController.getCompanyProfile);
 router.put('/company/profile', authController.updateCompanyProfile);
 

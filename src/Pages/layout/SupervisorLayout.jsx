@@ -17,7 +17,7 @@ const SupervisorNav = () => {
 
   return (
     <div>
-      <nav className="bg-red-900 text-white py-2 px-4 md:py-3 md:px-6 shadow-md flex flex-wrap justify-between items-center mt-5">
+      <nav className="bg-red-900 text-white py-2 px-4 md:py-3 md:px-6 shadow-md flex flex-wrap justify-between items-center">
         {/* Static Dashboard Title/Brand Area */}
         <div className="flex items-center">
           <span className="text-xl font-bold italic text-yellow-400">Supervisor Dashboard</span>

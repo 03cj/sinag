@@ -1,29 +1,28 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const AddNewCompany = ({ onAddSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    supervisorName: "",
-    address: "",
-    natureOfBusiness: "",
-    moaStart: "",
-    moaEnd: "",
+    name: '',
+    email: '',
+    supervisorName: '',
+    address: '',
+    natureOfBusiness: '',
+    moaStart: '',
+    moaEnd: '',
     moaFile: null,
-    initialPassword: ""
+    initialPassword: '',
   });
 
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "moaFile") {
-      setFormData(prev => ({ ...prev, [name]: files[0] }));
+    if (name === 'moaFile') {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -50,7 +49,7 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
 
     try {
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
+      Object.keys(formData).forEach((key) => formDataToSend.append(key, formData[key]));
 
       const token = localStorage.getItem('token');
 
@@ -66,15 +65,15 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
       onAddSuccess(result.company);
       alert('New Company added successfully!');
       setFormData({
-        name: "",
-        email: "",
-        supervisorName: "",
-        address: "",
-        natureOfBusiness: "",
-        moaStart: "",
-        moaEnd: "",
+        name: '',
+        email: '',
+        supervisorName: '',
+        address: '',
+        natureOfBusiness: '',
+        moaStart: '',
+        moaEnd: '',
         moaFile: null,
-        initialPassword: ""
+        initialPassword: '',
       });
     } catch (err) {
       console.error(err);
@@ -86,22 +85,21 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900 ">
-      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">Add New Company</h2>
+      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">Add New HTE</h2>
       <p className="text-gray-600 text-center mb-4 mt-2 italic">
-        Fill in the details below to add a new company to the system. All fields marked with an asterisk (<span className="text-red-500">*</span>) are required.
+        Fill in the details below to add a new HTE to the system. All fields marked with an asterisk (
+        <span className="text-red-500">*</span>) are required.
       </p>
 
       {error && (
-        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4 animate-fadeIn">
-          {error}
-        </p>
+        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4 animate-fadeIn">{error}</p>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-black mb-1">
-              Name of Company <span className="text-red-500">*</span>
+              Name of HTE <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -225,44 +223,38 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
               onChange={handleChange}
               className="hidden"
             />
-            {formData.moaFile && (
-              <p className="mt-2 text-sm text-green-600">Selected: {formData.moaFile.name}</p>
-            )}
+            {formData.moaFile && <p className="mt-2 text-sm text-green-600">Selected: {formData.moaFile.name}</p>}
           </div>
         </div>
 
-{/* Initial Password */}
-<div className="mt-4">
-  <label htmlFor="initialPassword" className="block text-sm font-medium text-black mb-1">
-    Initial Password <span className="text-red-500">*</span>
-  </label>
+        {/* Initial Password */}
+        <div className="mt-4">
+          <label htmlFor="initialPassword" className="block text-sm font-medium text-black mb-1">
+            Initial Password <span className="text-red-500">*</span>
+          </label>
 
-  <div className="relative">
-    <input
-      type={showPassword ? "text" : "password"}
-      id="initialPassword"
-      name="initialPassword"
-      value={formData.initialPassword}
-      onChange={handleChange}  
-      className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-      required
-    />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="initialPassword"
+              name="initialPassword"
+              value={formData.initialPassword}
+              onChange={handleChange}
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              required
+            />
 
-    <button
-      type="button"
-      onClick={() => setShowPassword(!showPassword)}
-      className="absolute inset-y-0 right-3 text-sm text-gray-600"
-    >
-      {showPassword ? "Hide" : "Show"}
-    </button>
-  </div>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 text-sm text-gray-600"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
 
-  <p className="text-xs text-gray-500 mt-1 italic">
-    This password will be used by the company on first login.
-  </p>
-</div>
-
-        
+          <p className="text-xs text-gray-500 mt-1 italic">This password will be used by the company on first login.</p>
+        </div>
 
         <div className="flex justify-end space-x-3 pt-4">
           <button

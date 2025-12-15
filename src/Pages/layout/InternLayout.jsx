@@ -23,7 +23,7 @@ const InternLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Full-width container with top margin */}
-      <nav className="bg-red-900 text-white py-3 px-4 shadow-xl flex flex-col md:flex-row justify-between items-center z-10 mt-5">
+      <nav className="bg-red-900 text-white py-3 px-4 shadow-xl flex flex-col md:flex-row justify-between items-center z-10">
         {/* FIX APPLIED: Removed max-w-7xl and mx-auto from the inner div. 
             Now the content will spread out across the full width, only constrained by the padding (px-4) 
         */}
@@ -50,7 +50,7 @@ const InternLayout = () => {
                   to={item.path}
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-3 py-1 rounded-lg transition text-sm font-medium
-                    ${isActive ? 'bg-yellow-600 text-red-900 font-bold shadow-inner' : 'hover:bg-red-700 text-white'}`
+                    ${isActive ? ' text-yellow-300 font-bold shadow-inner' : 'hover:text-yellow-300 text-white'}`
                   }
                 >
                   {item.icon}
@@ -65,17 +65,17 @@ const InternLayout = () => {
           <div className="hidden md:flex items-center gap-4">
             <NavLink
               to="profile"
-              className="flex items-center gap-2 px-3 py-1 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1 rounded-lg text-white-300 transition text-sm font-medium hover:text-yellow-300"
             >
               <User size={20} />
-              Profile
+              {/*Profile*/}
             </NavLink>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 text-white hover:bg-red-700 transition bg-transparent border-none cursor-pointer px-3 py-1 rounded-lg text-sm font-medium"
+              className="flex items-center gap-2 text-white hover:text-yellow-300 transition bg-transparent border-none cursor-pointer px-3 py-1 rounded-lg text-sm font-medium"
             >
               <LogOut size={20} />
-              Logout
+              {/*Logout*/}
             </button>
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const InternC = () => {
   const [interns, setInterns] = useState([]);
@@ -58,24 +58,23 @@ const InternC = () => {
 
         // Normalize data & fallback values
         const normalized = data.map((intern) => ({
-        studNo: intern.studentId || intern.id || 'N/A',
-        lastname: intern.lastName || intern.lastname || 'N/A',
-        firstname: intern.firstName || intern.firstname || 'N/A',
-        mi: intern.mi || '',
-        email: intern.email || 'N/A',
-        program: intern.department || intern.program || 'N/A', // department column is program
-        adviser: intern.Adviser ? `${intern.Adviser.firstName} ${intern.Adviser.lastName}` : 'Assign Adviser',
-        company: intern.Company?.name || 'NA',
-        supervisor: intern.Company?.supervisorName || 'NA',
-        status: intern.status || 'NA',
-      }));
-
+          studNo: intern.studentId || intern.id || 'N/A',
+          lastname: intern.lastName || intern.lastname || 'N/A',
+          firstname: intern.firstName || intern.firstname || 'N/A',
+          mi: intern.mi || '',
+          email: intern.email || 'N/A',
+          program: intern.department || intern.program || 'N/A', // department column is program
+          adviser: intern.Adviser ? `${intern.Adviser.firstName} ${intern.Adviser.lastName}` : 'Assign Adviser',
+          company: intern.Company?.name || 'NA',
+          supervisor: intern.Company?.supervisorName || 'NA',
+          status: intern.status || 'NA',
+        }));
 
         setInterns(normalized);
 
         // Populate company options dynamically
-        const companies = Array.from(new Set(normalized.map(i => i.company))).sort();
-        setCompanyOptions(['All', ...companies]);
+        const HTE = Array.from(new Set(normalized.map((i) => i.company))).sort();
+        setCompanyOptions(['All', ...HTE]);
       } catch (err) {
         console.error(err);
         setError('Unable to load intern records.');
@@ -102,10 +101,12 @@ const InternC = () => {
             <select
               className="px-4 py-2 border rounded-md"
               value={selectedProgram}
-              onChange={e => setSelectedProgram(e.target.value)}
+              onChange={(e) => setSelectedProgram(e.target.value)}
             >
-              {programOptions.map(p => (
-                <option key={p} value={p}>{p === 'All' ? 'Programs' : p}</option>
+              {programOptions.map((p) => (
+                <option key={p} value={p}>
+                  {p === 'All' ? 'Programs' : p}
+                </option>
               ))}
             </select>
 
@@ -113,10 +114,12 @@ const InternC = () => {
             <select
               className="px-4 py-2 border rounded-md"
               value={selectedCompany}
-              onChange={e => setSelectedCompany(e.target.value)}
+              onChange={(e) => setSelectedCompany(e.target.value)}
             >
-              {companyOptions.map(c => (
-                <option key={c} value={c}>{c === 'All' ? 'Company name' : c}</option>
+              {companyOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c === 'All' ? 'Company name' : c}
+                </option>
               ))}
             </select>
 
@@ -124,10 +127,12 @@ const InternC = () => {
             <select
               className="px-4 py-2 border rounded-md"
               value={selectedStatus}
-              onChange={e => setSelectedStatus(e.target.value)}
+              onChange={(e) => setSelectedStatus(e.target.value)}
             >
-              {statusOptions.map(s => (
-                <option key={s} value={s}>{s === 'All' ? 'Status' : s}</option>
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>
+                  {s === 'All' ? 'Status' : s}
+                </option>
               ))}
             </select>
 
@@ -135,10 +140,12 @@ const InternC = () => {
             <select
               className="px-4 py-2 border rounded-md"
               value={sortCriteria}
-              onChange={e => setSortCriteria(e.target.value)}
+              onChange={(e) => setSortCriteria(e.target.value)}
             >
-              {sortOptions.map(o => (
-                <option key={o.value} value={o.value}>Sort by {o.label}</option>
+              {sortOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  Sort by {o.label}
+                </option>
               ))}
             </select>
 
@@ -147,7 +154,7 @@ const InternC = () => {
               type="text"
               placeholder="Search name..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="px-4 py-2 border rounded-md"
             />
           </div>
@@ -159,31 +166,62 @@ const InternC = () => {
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-red-800 text-white text-xs uppercase">
             <tr>
-              {["Stud No", "Lastname", "Firstname", "MI", "Email", "Program", "Adviser", "Company", "Supervisor", "Status"].map(title => (
-                <th key={title} className="px-6 py-3 text-left font-bold">{title}</th>
+              {[
+                'Stud No',
+                'Lastname',
+                'Firstname',
+                'MI',
+                'Email',
+                'Program',
+                'Adviser',
+                'Company',
+                'Supervisor',
+                'Status',
+              ].map((title) => (
+                <th key={title} className="px-6 py-3 text-left font-bold">
+                  {title}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 text-sm">
-            {loading && <tr><td colSpan="10" className="text-center py-4">Loading interns...</td></tr>}
-            {error && <tr><td colSpan="10" className="text-center py-4 text-red-500">{error}</td></tr>}
-            {!loading && !error && interns.length === 0 && (
-              <tr><td colSpan="10" className="text-center py-4 text-gray-500">No matching interns found.</td></tr>
-            )}
-            {!loading && !error && interns.map((i, index) => (
-              <tr key={`${i.studNo}-${index}`}>
-                <td className="px-6 py-4">{i.studNo}</td>
-                <td className="px-6 py-4">{i.lastname}</td>
-                <td className="px-6 py-4">{i.firstname}</td>
-                <td className="px-6 py-4">{i.mi}</td>
-                <td className="px-6 py-4">{i.email}</td>
-                <td className="px-6 py-4">{i.program}</td>
-                <td className="px-6 py-4">{i.adviser}</td>
-                <td className="px-6 py-4">{i.company}</td>
-                <td className="px-6 py-4">{i.supervisor}</td>
-                <td className="px-6 py-4">{i.status}</td>
+            {loading && (
+              <tr>
+                <td colSpan="10" className="text-center py-4">
+                  Loading interns...
+                </td>
               </tr>
-            ))}
+            )}
+            {error && (
+              <tr>
+                <td colSpan="10" className="text-center py-4 text-red-500">
+                  {error}
+                </td>
+              </tr>
+            )}
+            {!loading && !error && interns.length === 0 && (
+              <tr>
+                <td colSpan="10" className="text-center py-4 text-gray-500">
+                  No matching interns found.
+                </td>
+              </tr>
+            )}
+            {!loading &&
+              !error &&
+              interns.map((i, index) => (
+                <tr key={`${i.studNo}-${index}`}>
+                  <td className="px-6 py-4">{i.studNo}</td>
+                  <td className="px-6 py-4">{i.lastname}</td>
+                  <td className="px-6 py-4">{i.firstname}</td>
+                  <td className="px-6 py-4">{i.mi}</td>
+                  <td className="px-6 py-4">{i.email}</td>
+                  <td className="px-6 py-4">{i.program}</td>
+                  <td className="px-6 py-4">{i.adviser}</td>
+                  <td className="px-6 py-4">{i.company}</td>
+                  <td className="px-6 py-4">{i.supervisor}</td>
+                  <td className="px-6 py-4">{i.status}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

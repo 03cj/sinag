@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { formatDistanceStrict, differenceInDays, isBefore } from 'date-fns';
+import { differenceInDays, formatDistanceStrict, isBefore } from 'date-fns';
 import { Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import AddNewCompany from './AddNewCompany';
 import UpdateMoa from './UpdateMOA';
 
-const CompaniesC = () => {
-  const [companies, setCompanies] = useState([]);
+const HTEC = () => {
+  const [HTE, setHTE] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,13 +16,13 @@ const CompaniesC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [companyToDelete, setCompanyToDelete] = useState(null);
 
-  // Fetch companies from backend
+  // Fetch HTE from backend
   useEffect(() => {
-    const fetchCompanies = async () => {
+    const fetchHTE = async () => {
       setLoading(true);
       setError(null);
       try {
-        let apiUrl = 'http://localhost:5000/api/auth/companies';
+        let apiUrl = 'http://localhost:5000/api/auth/HTE';
         if (searchTerm) apiUrl += `?q=${encodeURIComponent(searchTerm)}`;
 
         const response = await fetch(apiUrl, {
@@ -34,20 +34,20 @@ const CompaniesC = () => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
-        setCompanies(data);
+        setHTE(data);
       } catch (err) {
-        console.error("Failed to fetch companies:", err);
-        setError("Failed to load companies. Please try again later.");
+        console.error('Failed to fetch HTE:', err);
+        setError('Failed to load HTE. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCompanies();
+    fetchHTE();
   }, [searchTerm]);
 
   const computeMoaStatus = (start, end) => {
-    if (!start || !end) return { validity: "N/A", warning: "" };
+    if (!start || !end) return { validity: 'N/A', warning: '' };
 
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -56,9 +56,9 @@ const CompaniesC = () => {
     const validity = formatDistanceStrict(endDate, startDate);
     const daysLeft = differenceInDays(endDate, today);
 
-    let warning = "";
+    let warning = '';
     if (isBefore(endDate, today)) {
-      warning = "MOA expired";
+      warning = 'MOA expired';
     } else if (daysLeft <= 30) {
       warning = `MOA expiring in ${daysLeft} days`;
     }
@@ -76,7 +76,7 @@ const CompaniesC = () => {
 
   const handleConfirmDelete = () => {
     if (companyToDelete) {
-      setCompanies((prev) => prev.filter((c) => c.id !== companyToDelete.id));
+      setHTE((prev) => prev.filter((c) => c.id !== companyToDelete.id));
       setShowDeleteConfirm(false);
       setCompanyToDelete(null);
     }
@@ -88,27 +88,32 @@ const CompaniesC = () => {
       <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 sm:gap-0">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Company</h1>
-            <p className="text-gray-600 text-sm">List of companies with MOA</p>
+            <h1 className="text-2xl font-bold text-gray-800">Host Training Establishments</h1>
+            <p className="text-gray-600 text-sm">List of HTE with MOA</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 justify-end w-full sm:w-auto">
             <button
               onClick={handleAddNewCompany}
               className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-sm"
             >
-              Add new Company
+              Add new HTE
             </button>
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search company name"
+                placeholder="Search HTE name"
                 className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm w-full"
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
             </div>
@@ -116,12 +121,22 @@ const CompaniesC = () => {
         </div>
       </div>
 
-      {/* Companies Table */}
+      {/* HTE Table */}
       <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-red-800">
             <tr>
-              {['Actions', 'No.', 'Company name', 'Email', 'Supervisor', 'Address', 'Nature of Business', 'MOA Validity', 'MOA'].map((title, idx) => (
+              {[
+                'Actions',
+                'No.',
+                'HTE',
+                'Email',
+                'Supervisor',
+                'Address',
+                'Nature of Business',
+                'MOA Validity',
+                'MOA',
+              ].map((title, idx) => (
                 <th
                   key={idx}
                   scope="col"
@@ -136,7 +151,7 @@ const CompaniesC = () => {
             {loading ? (
               <tr>
                 <td colSpan="9" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  Loading companies...
+                  Loading HTE...
                 </td>
               </tr>
             ) : error ? (
@@ -145,14 +160,14 @@ const CompaniesC = () => {
                   {error}
                 </td>
               </tr>
-            ) : companies.length === 0 ? (
+            ) : HTE.length === 0 ? (
               <tr>
                 <td colSpan="9" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                  No companies found matching your criteria.
+                  No HTE found matching your criteria.
                 </td>
               </tr>
             ) : (
-              companies.map((company, index) => (
+              HTE.map((company, index) => (
                 <tr key={company.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <button
@@ -182,9 +197,9 @@ const CompaniesC = () => {
                                 setShowUpdateConfirm(true);
                               }}
                               className={`ml-2 text-xs font-semibold px-2 py-1 rounded transition-colors duration-200 ${
-                                warning.includes("expired")
-                                  ? "bg-red-200 text-red-800 hover:bg-red-300"
-                                  : "bg-yellow-200 text-yellow-800 hover:bg-yellow-300"
+                                warning.includes('expired')
+                                  ? 'bg-red-200 text-red-800 hover:bg-red-300'
+                                  : 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300'
                               }`}
                             >
                               {warning}
@@ -204,7 +219,9 @@ const CompaniesC = () => {
                       >
                         {company.moaFile}
                       </a>
-                    ) : "N/A"}
+                    ) : (
+                      'N/A'
+                    )}
                   </td>
                 </tr>
               ))
@@ -247,8 +264,21 @@ const CompaniesC = () => {
                 Do you want to update MOA for <span className="font-semibold">{selectedCompany.name}</span>?
               </p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setShowUpdateConfirm(false)} className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md">No</button>
-                <button onClick={() => { setShowUpdateConfirm(false); setShowUpdateForm(true); }} className="px-4 py-2 bg-yellow-500 hover:bg-red-200 text-black rounded-md">Yes</button>
+                <button
+                  onClick={() => setShowUpdateConfirm(false)}
+                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => {
+                    setShowUpdateConfirm(false);
+                    setShowUpdateForm(true);
+                  }}
+                  className="px-4 py-2 bg-yellow-500 hover:bg-red-200 text-black rounded-md"
+                >
+                  Yes
+                </button>
               </div>
             </div>
           </div>
@@ -260,7 +290,7 @@ const CompaniesC = () => {
               company={selectedCompany}
               onCancel={() => setShowUpdateForm(false)}
               onUpdateSuccess={(updatedCompany) => {
-                setCompanies((prev) => prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c)));
+                setHTE((prev) => prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c)));
                 setShowUpdateForm(false);
               }}
             />
@@ -273,7 +303,7 @@ const CompaniesC = () => {
         <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50">
           <AddNewCompany
             onAddSuccess={(newCompany) => {
-              setCompanies((prev) => [...prev, newCompany]);
+              setHTE((prev) => [...prev, newCompany]);
               setShowAddNewCompanyForm(false);
             }}
             onCancel={() => setShowAddNewCompanyForm(false)}
@@ -284,4 +314,4 @@ const CompaniesC = () => {
   );
 };
 
-export default CompaniesC;
+export default HTEC;

@@ -134,7 +134,7 @@ const CompanyDashboard = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* 1. "Hello Company name!" Banner */}
         <div className="bg-red-800 text-white p-6 rounded-lg shadow-xl">
-          <h2 className="text-4xl font-extrabold italic text-yellow-400">Hello {companyName}!</h2>
+          <h2 className="text-4xl font-bold italic text-yellow-400">Hello {companyName}!</h2>
         </div>
 
         {/* Main Content: Two Columns */}
