@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
+
 import sinagLogo from '/PUP-SINAG.png';
 import pupSeal from '/pup_1904.png';
+
+const BASE_PATH = '/pup-sinag';
 
 const LogIn = () => {
   // --- HOOKS ---
   const navigate = useNavigate();
-  const { role } = useParams();
   const { login } = useAuth();
 
   // --- STATE ---
@@ -17,10 +19,10 @@ const LogIn = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // --- CONSTANTS ---
+  // --- API ---
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-  // --- AUTH HANDLER ---
+  // --- LOGIN HANDLER ---
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -42,9 +44,29 @@ const LogIn = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
+      // ✅ SAVE TOKEN
       login(data.token);
-      localStorage.setItem('role', data.user.role.toLowerCase());
-      navigate(`/pup-sinag/${data.user.role.toLowerCase()}`, { replace: true });
+
+      // ✅ DECODE ROLE FROM JWT (THIS IS THE FIX)
+      const payload = JSON.parse(atob(data.token.split('.')[1]));
+      const role = payload.role.toLowerCase();
+
+      localStorage.setItem('role', role);
+
+      // ✅ ROLE-BASED REDIRECT
+      if (role === 'superadmin') {
+        navigate(`${BASE_PATH}/superadmin`, { replace: true });
+      } else if (role === 'coordinator') {
+        navigate(`${BASE_PATH}/coordinator`, { replace: true });
+      } else if (role === 'adviser') {
+        navigate(`${BASE_PATH}/adviser`, { replace: true });
+      } else if (role === 'intern') {
+        navigate(`${BASE_PATH}/intern`, { replace: true });
+      } else if (role === 'supervisor') {
+        navigate(`${BASE_PATH}/supervisor`, { replace: true });
+      } else {
+        navigate(BASE_PATH, { replace: true });
+      }
     } catch (err) {
       setError(err.message || 'Unable to login. Try again.');
     } finally {
@@ -69,25 +91,19 @@ const LogIn = () => {
     <div className="min-h-screen flex bg-gray-100">
       {/* LEFT PANEL */}
       <div
-        className="hidden lg:flex w-1/2 items-center justify-center
-                   text-[#5E0000] shadow-inner"
+        className="hidden lg:flex w-1/2 items-center justify-center text-[#5E0000] shadow-inner"
         style={{ background: leftPanelGradient }}
       >
         <div className="max-w-lg mx-auto flex flex-col items-center gap-6 px-6 -translate-y-8">
           <h2 className="text-lg font-bold text-center whitespace-nowrap">
             PUP System for Internship Navigation and Guidance
           </h2>
-
-          {/* SINAG LOGO — CLOSER TO TEXT */}
-          <img src={sinagLogo} alt="PUP SINAG Logo" className="w-[380px] h-auto drop-shadow-xl mt-1" />
+          <img src={sinagLogo} alt="PUP SINAG Logo" className="w-[380px] h-auto drop-shadow-xl" />
         </div>
       </div>
 
       {/* RIGHT PANEL */}
-      <div
-        className="w-full lg:w-1/2 flex items-center justify-center
-                   bg-white lg:border-l lg:border-gray-200"
-      >
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white lg:border-l">
         <div className="w-full max-w-md px-12">
           <div className="flex justify-center mb-6">
             <img src={pupSeal} alt="PUP Seal" className="w-20 h-20" />
@@ -101,8 +117,7 @@ const LogIn = () => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-5 py-3 border-2 border-gray-300 rounded-full
-                         focus:outline-none focus:ring-2 focus:ring-[#8B0000]"
+              className="w-full px-5 py-3 border-2 border-gray-300 rounded-full focus:ring-2 focus:ring-[#8B0000]"
               required
             />
 
@@ -112,15 +127,13 @@ const LogIn = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-5 py-3 border-2 border-gray-300 rounded-full
-                           focus:outline-none focus:ring-2 focus:ring-[#8B0000] pr-20"
+                className="w-full px-5 py-3 border-2 border-gray-300 rounded-full focus:ring-2 focus:ring-[#8B0000] pr-20"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-5 flex items-center
-                           text-sm font-medium text-gray-500 hover:text-[#8B0000]"
+                className="absolute inset-y-0 right-0 pr-5 flex items-center text-sm text-gray-500 hover:text-[#8B0000]"
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>
@@ -129,9 +142,7 @@ const LogIn = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#8B0000] text-[#FFD700] text-lg font-bold
-                         py-3 rounded-full hover:bg-[#6A0000]
-                         transition-colors disabled:opacity-50"
+              className="w-full bg-[#8B0000] text-[#FFD700] text-lg font-bold py-3 rounded-full hover:bg-[#6A0000] transition disabled:opacity-50"
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>

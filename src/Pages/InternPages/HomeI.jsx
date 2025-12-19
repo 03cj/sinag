@@ -178,74 +178,70 @@ const HomeI = () => {
   }
 
   return (
-    <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {' '}
-        {/* Main container */}
-        {/* 1. Welcome Banner */}
-        <div className="bg-red-800 text-white p-6 rounded-lg shadow-md">
-          <h2 className="text-3xl font-bold">Welcome Intern!</h2>
-          <h3 className="text-xl font-semibold italic text-white mb-4 whitespace-nowrap">
-            {' '}
-            Surname, Fname, Midd name(2022-902048)
-          </h3>
-        </div>
-        {/* NEW WRAPPER DIV for the two columns */}
-        <div className="flex flex-col md:flex-row md:space-x-8">
-          {/* Left Column Container */}
-          <div className="flex flex-col w-full md:w-1/3 space-y-4">
-            {/* Box with Intern Name and Buttons */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300">
-              <div className="flex flex-col space-y-2">
-                <button
-                  onClick={() => setActiveView('status')}
-                  className={`text-sm py-2 rounded-md border transition-colors ${activeView === 'status' ? 'bg-red-600 text-white' : 'text-red-600 border-red-600 hover:bg-red-300'}`}
-                >
-                  Status
-                </button>
-                <button
-                  onClick={() => setActiveView('inbox')}
-                  className={`text-sm py-2 rounded-md border transition-colors ${activeView === 'inbox' ? 'bg-red-600 text-white' : 'text-red-600 border-red-600 hover:bg-red-300'}`}
-                >
-                  Inbox
-                </button>
-              </div>
-            </div>
-
-            {/* Internship Details  */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Internship Details</h3>
-              <div className="grid grid-cols-1 gap-4 text-gray-700">
-                <div>
-                  <p>
-                    <span className="font-medium">Company:</span> {internData.companyDetails.companyName}
-                  </p>
-                  <p>
-                    <span className="font-medium">Supervisor:</span> {internData.companyDetails.supervisor}
-                  </p>
-                </div>
-                <div>
-                  <p>
-                    <span className="font-medium">Start Date:</span> {internData.companyDetails.startDate}
-                  </p>
-                  <p>
-                    <span className="font-medium">End Date:</span> {internData.companyDetails.endDate}
-                  </p>
-                </div>
-                <div className="col-span-1">
-                  <p>
-                    <span className="font-medium">Hours Required:</span> {internData.companyDetails.hoursRequired} hrs
-                  </p>
-                </div>
-              </div>
+    <div className="max-w-6xl mx-auto space-y-8">
+      {' '}
+      {/* Main container */}
+      {/* 1. Welcome Banner */}
+      <div className="bg-red-800 text-white p-6 rounded-lg shadow-md">
+        <h2 className="text-3xl font-bold">Welcome Intern!</h2>
+        <h3 className="text-xl font-semibold italic text-white mb-4 whitespace-nowrap">
+          {' '}
+          Surname, Fname, Midd name(2022-902048)
+        </h3>
+      </div>
+      {/* NEW WRAPPER DIV for the two columns */}
+      <div className="flex flex-col md:flex-row md:space-x-8">
+        {/* Left Column Container */}
+        <div className="flex flex-col w-full md:w-1/3 space-y-4">
+          {/* Box with Intern Name and Buttons */}
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300">
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={() => setActiveView('status')}
+                className={`text-sm py-2 rounded-md border transition-colors ${activeView === 'status' ? 'bg-red-600 text-white' : 'text-red-600 border-red-600 hover:bg-red-300'}`}
+              >
+                Status
+              </button>
+              <button
+                onClick={() => setActiveView('inbox')}
+                className={`text-sm py-2 rounded-md border transition-colors ${activeView === 'inbox' ? 'bg-red-600 text-white' : 'text-red-600 border-red-600 hover:bg-red-300'}`}
+              >
+                Inbox
+              </button>
             </div>
           </div>
 
-          {/* The dynamic box for Status or Inbox content */}
-          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex-1">
-            {renderRightBoxContent()}
+          {/* Internship Details  */}
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Internship Details</h3>
+            <div className="grid grid-cols-1 gap-4 text-gray-700">
+              <div>
+                <p>
+                  <span className="font-medium">Company:</span> {internData.companyDetails.companyName}
+                </p>
+                <p>
+                  <span className="font-medium">Supervisor:</span> {internData.companyDetails.supervisor}
+                </p>
+              </div>
+              <div>
+                <p>
+                  <span className="font-medium">Start Date:</span> {internData.companyDetails.startDate}
+                </p>
+                <p>
+                  <span className="font-medium">End Date:</span> {internData.companyDetails.endDate}
+                </p>
+              </div>
+              <div className="col-span-1">
+                <p>
+                  <span className="font-medium">Hours Required:</span> {internData.companyDetails.hoursRequired} hrs
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* The dynamic box for Status or Inbox content */}
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-300 flex-1">{renderRightBoxContent()}</div>
       </div>
     </div>
   );

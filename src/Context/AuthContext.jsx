@@ -1,27 +1,44 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext(null);
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export const AuthProvider = ({ children }) => {
-  // Check for a 'token' in localStorage on initial load
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load user if token exists
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    fetch(`${API_BASE}/api/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setUser(data);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const login = (token) => {
-    // Save the token and update the state
     localStorage.setItem('token', token);
-    setIsAuthenticated(true);
   };
 
   const logout = () => {
-    // Remove the token and update the state
     localStorage.removeItem('token');
-    localStorage.removeItem('role'); // Good practice to clear role too
-    setIsAuthenticated(false);
+    setUser(null);
   };
 
-  // Provide the state and functions globally
-  return <AuthContext.Provider value={{ isAuthenticated, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to easily use the auth context
 export const useAuth = () => useContext(AuthContext);

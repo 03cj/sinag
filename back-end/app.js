@@ -1,5 +1,4 @@
 /* eslint-env node */
-// Server bootstrap for pup-sinag backend (modularized)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -8,13 +7,31 @@ const morgan = require('morgan');
 const path = require('path');
 
 const sequelize = require('./config/db');
+
+// =========================
+// LOAD MODELS (REQUIRED FOR SYNC)
+// =========================
+const User = require('./models/user');
+const Company = require('./models/company');
+const Intern = require('./models/interns');
+const InternDocs = require('./models/interndocs');
+
+// =========================
+// LOAD ROUTES
+// =========================
 const authRoutes = require('./routes/auth');
 const documentsRoutes = require('./routes/documents');
+const dashboardRoutes = require('./routes/dashboard');
 
-const PORT = process.env.PORT || 5000;
+// =========================
+// INIT APP
+// =========================
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Middlewares
+// =========================
+// GLOBAL MIDDLEWARES
+// =========================
 app.use(helmet());
 app.use(
   cors({
@@ -24,35 +41,79 @@ app.use(
 app.use(express.json());
 app.use(morgan(process.env.LOG_LEVEL === 'debug' ? 'dev' : 'tiny'));
 
-// ⭐ SERVE UPLOADED FILES PUBLICLY
-// This allows you to access PDFs via http://localhost:5000/uploads/library/filename.pdf
+// =========================
+// STATIC FILES
+// =========================
+// Access uploads via: http://localhost:5000/uploads/filename.pdf
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Mount routes
+// =========================
+// ROUTES (NO authMiddleware HERE)
+// =========================
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
-// Health check
-app.get('/', (req, res) => res.json({ message: 'pup-sinag backend running' }));
+// =========================
+// HEALTH CHECK
+// =========================
+app.get('/', (req, res) => {
+  res.json({ message: 'pup-sinag backend running' });
+});
 
-// Generic error handler
+// =========================
+// ERROR HANDLER (LAST)
+// =========================
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error('❌ SERVER ERROR:', err);
   res.status(err?.status || 500).json({
     message: err?.message || 'Server error',
   });
 });
 
-// Sync DB and start server
-console.log('Starting server and syncing DB...');
+// =========================
+// MODEL ASSOCIATIONS
+// =========================
+
+// Intern ↔ User
+Intern.belongsTo(User, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE',
+});
+User.hasOne(Intern, {
+  foreignKey: 'user_id',
+});
+
+// Intern ↔ Company (HTE)
+Intern.belongsTo(Company, {
+  foreignKey: 'company_id',
+  onDelete: 'SET NULL',
+});
+Company.hasMany(Intern, {
+  foreignKey: 'company_id',
+});
+
+// InternDocs ↔ User
+InternDocs.belongsTo(User, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE',
+});
+User.hasMany(InternDocs, {
+  foreignKey: 'user_id',
+});
+
+// =========================
+// SYNC DB & START SERVER
+// =========================
+console.log('🚀 Starting server and syncing DB...');
 sequelize
   .sync()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Backend listening on http://localhost:${PORT}`);
+      console.log(`✅ Backend listening on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('Failed to sync DB:', err);
+    console.error('❌ Failed to sync DB:', err);
     process.exit(1);
   });

@@ -17,7 +17,7 @@ const Company = sequelize.define(
     password: { type: DataTypes.STRING(255), allowNull: false },
   },
   {
-    tableName: 'HTE',
+    tableName: 'companies',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: false,

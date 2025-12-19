@@ -4,9 +4,9 @@ const userService = require('./userService');
 const companyService = require('./companyService');
 const jwtUtil = require('../utils/jwt');
 
-/**
- * Coordinator Signup
- */
+/* =========================
+   COORDINATOR SIGNUP
+========================= */
 async function signup({ firstName, lastName, email, password }) {
   const existing = await userService.findByEmail(email);
   if (existing) throw new Error('User already exists');
@@ -28,13 +28,25 @@ async function signup({ firstName, lastName, email, password }) {
     type: 'user',
   });
 
-  return { message: 'User created successfully', token };
+  return {
+    message: 'User created successfully',
+    token,
+    user,
+  };
 }
 
-/**
- * Add Adviser Account
- */
-async function addAdviser({ firstName, lastName, email, password, department, employeeId }) {
+/* =========================
+   ADD ADVISER ACCOUNT
+========================= */
+async function addAdviser({
+  firstName,
+  lastName,
+  mi, // ✅ INCLUDED
+  email,
+  password,
+  department,
+  employeeId,
+}) {
   const existing = await userService.findByEmail(email);
   if (existing) throw new Error('User already exists');
 
@@ -43,20 +55,32 @@ async function addAdviser({ firstName, lastName, email, password, department, em
   const user = await userService.createUser({
     firstName,
     lastName,
+    mi, // ✅ SAVED
     email,
     passwordHash,
+    role: 'Adviser',
     department,
     employeeId,
-    role: 'Adviser',
   });
 
-  return { message: 'Adviser created successfully', user };
+  return {
+    message: 'Adviser created successfully',
+    user,
+  };
 }
 
-/**
- * Add Intern Account
- */
-async function addIntern({ firstName, lastName, email, password, program, studentId }) {
+/* =========================
+   ADD INTERN ACCOUNT
+========================= */
+async function addIntern({
+  firstName,
+  lastName,
+  mi, // optional but supported
+  email,
+  password,
+  program,
+  studentId,
+}) {
   const existing = await userService.findByEmail(email);
   if (existing) throw new Error('User already exists');
 
@@ -65,6 +89,7 @@ async function addIntern({ firstName, lastName, email, password, program, studen
   const user = await userService.createUser({
     firstName,
     lastName,
+    mi,
     email,
     passwordHash,
     role: 'Intern',
@@ -72,12 +97,15 @@ async function addIntern({ firstName, lastName, email, password, program, studen
     studentId,
   });
 
-  return { message: 'Intern created successfully', user };
+  return {
+    message: 'Intern created successfully',
+    user,
+  };
 }
 
-/**
- * Add Company Account (Supervisor-level Access)
- */
+/* =========================
+   ADD COMPANY ACCOUNT
+========================= */
 async function addCompany({
   name,
   email,
@@ -106,21 +134,21 @@ async function addCompany({
     password: passwordHash,
   });
 
-  return { message: 'Company created successfully', company };
+  return {
+    message: 'Company created successfully',
+    company,
+  };
 }
 
-/**
- * LOGIN SERVICE
- * Checks Users table first, then Company table
- */
+/* =========================
+   LOGIN (USER OR COMPANY)
+========================= */
 async function login({ email, password }) {
-  console.log('🔐 Login attempt:', email);
-
-  /** 1️⃣ Try USER login */
+  /** 1️⃣ USER LOGIN */
   const user = await userService.findByEmail(email);
   if (user) {
-    const match = await bcrypt.compare(password, user.passwordHash);
-    if (!match) throw new Error('Invalid credentials');
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) throw new Error('Invalid credentials');
 
     const token = jwtUtil.sign({
       id: user.id,
@@ -131,7 +159,7 @@ async function login({ email, password }) {
     });
 
     return {
-      message: 'Logged in',
+      message: 'Logged in successfully',
       token,
       user: {
         id: user.id,
@@ -143,29 +171,28 @@ async function login({ email, password }) {
     };
   }
 
-  /** 2️⃣ Try COMPANY login */
+  /** 2️⃣ COMPANY LOGIN */
   const company = await companyService.getCompanyByEmail(email);
   if (company) {
-    const match = await bcrypt.compare(password, company.password);
-    if (!match) throw new Error('Invalid credentials');
+    const isMatch = await bcrypt.compare(password, company.password);
+    if (!isMatch) throw new Error('Invalid credentials');
 
-    // COMPANY ACCOUNTS ARE SUPERVISORS
     const token = jwtUtil.sign({
       id: company.id,
       email: company.email,
-      role: 'supervisor',
+      role: 'Supervisor',
       type: 'company',
       supervisorName: company.supervisorName,
       companyName: company.name,
     });
 
     return {
-      message: 'Logged in',
+      message: 'Logged in successfully',
       token,
       user: {
         id: company.id,
         email: company.email,
-        role: 'supervisor',
+        role: 'Supervisor',
         type: 'company',
         supervisorName: company.supervisorName,
         companyName: company.name,
@@ -173,10 +200,12 @@ async function login({ email, password }) {
     };
   }
 
-  /** 3️⃣ No match */
   throw new Error('Invalid credentials');
 }
 
+/* =========================
+   EXPORTS
+========================= */
 module.exports = {
   signup,
   login,

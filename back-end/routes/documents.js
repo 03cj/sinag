@@ -1,36 +1,25 @@
 /* eslint-env node */
 const express = require('express');
-const fs = require('fs');
-const multer = require('multer');
-
 const router = express.Router();
 
-// Ensure upload folder exists
-const uploadPath = 'uploads/library';
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
+const authMiddleware = require('../middleware/authMiddleware');
+const upload = require('../middleware/upload');
 
-const storage = multer.diskStorage({
-  destination: uploadPath,
-  filename: (_, file, cb) => {
-    cb(null, Date.now() + '_' + file.originalname);
-  },
-});
+const { uploadInternDoc, getInternDocs } = require('../controllers/internDocsController');
 
-const upload = multer({ storage });
+/* =========================
+   PROTECTED ROUTES
+========================= */
+router.use(authMiddleware());
 
-// POST /api/documents/upload
-router.post('/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
-  }
+/* =========================
+   INTERN DOCUMENT ROUTES
+========================= */
 
-  res.status(200).json({
-    message: 'PDF saved to Library!',
-    file: req.file.filename,
-    path: req.file.path,
-  });
-});
+// Upload intern document
+router.post('/intern-docs/upload', upload.single('document'), uploadInternDoc);
 
-module.exports = router;
+// Get intern documents by user ID
+router.get('/intern-docs/:userId', getInternDocs);
+
+module.exports = router; // ✅ MUST export router ONLY

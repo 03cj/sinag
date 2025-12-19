@@ -7,14 +7,16 @@ import SignUp from './Components/SignUp';
 import NoPageFound from './Pages/NoPageFound';
 
 // --- MAIN LAYOUT ---
-// Assuming 'Layout' is the one that was previously 'Index' and contains the conditional Header logic.
 import Layout from './Pages/layout/Layout';
 
-// Role-Specific Layouts (These usually contain the sidebar/sub-navigation)
+// Role-Specific Layouts
 import AdviserLayout from './Pages/layout/AdviserLayout';
 import CoordinatorLayout from './Pages/layout/CoordinatorLayout';
 import InternLayout from './Pages/layout/InternLayout';
 import SupervisorLayout from './Pages/layout/SupervisorLayout';
+
+// ✅ SUPER ADMIN PAGE
+import AddCoordinator from './Pages/AddCoordinator';
 
 // Coordinator Pages
 import AddNewCompany from './Pages/CoordinatorPages/AddNewCompany';
@@ -50,19 +52,27 @@ export default function App() {
   return (
     <Routes>
       {/* ---------------------------------------------------- */}
-      {/* 1. PUBLIC ROUTES (Header is ALWAYS HIDDEN)             */}
+      {/* 1. PUBLIC ROUTES (NO HEADER)                          */}
       {/* ---------------------------------------------------- */}
-      {/* These routes are not nested under any layout, ensuring no header interference. */}
-      <Route path="/" element={<Login />} /> {/* Route: / */}
-      <Route path="/pup-sinag" element={<Login />} /> {/* Route: /pup-sinag */}
-      <Route path="/sign-up" element={<SignUp />} /> {/* Route: /sign-up */}
+      <Route path="/" element={<Login />} />
+      <Route path="/pup-sinag" element={<Login />} />
+      <Route path="/sign-up" element={<SignUp />} />
+
       {/* ---------------------------------------------------- */}
-      {/* 2. PROTECTED ROUTES (Header is CONDITIONAL)            */}
+      {/* 2. SUPER ADMIN ROUTE (SINGLE PAGE ONLY)               */}
       {/* ---------------------------------------------------- */}
-      {/* The main Layout (which contains your conditional header logic) wraps all 
-        role-specific routes. This ensures that the header appears ONLY once the user 
-        is authenticated and is viewing a path other than the login page.
-      */}
+      <Route
+        path="/pup-sinag/superadmin"
+        element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <AddCoordinator />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ---------------------------------------------------- */}
+      {/* 3. PROTECTED ROUTES WITH MAIN LAYOUT                  */}
+      {/* ---------------------------------------------------- */}
       <Route path="/pup-sinag" element={<Layout />}>
         {/* COORDINATOR ROUTES */}
         <Route
@@ -135,8 +145,9 @@ export default function App() {
           <Route path="profile" element={<ProfileS />} />
         </Route>
       </Route>
+
       {/* ---------------------------------------------------- */}
-      {/* 3. CATCH-ALL ROUTE (MUST BE LAST)                      */}
+      {/* 4. CATCH-ALL (MUST BE LAST)                           */}
       {/* ---------------------------------------------------- */}
       <Route path="*" element={<NoPageFound />} />
     </Routes>

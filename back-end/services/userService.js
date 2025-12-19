@@ -1,14 +1,24 @@
 /* eslint-env node */
 const User = require('../models/user');
 
+/* =========================
+   FIND USER BY EMAIL
+========================= */
 async function findByEmail(email) {
-  return User.findOne({ where: { email: String(email).toLowerCase() } });
+  return User.findOne({
+    where: { email: String(email).toLowerCase() },
+  });
 }
 
-async function createUser({ firstName, lastName, email, passwordHash, role, department, employeeId, studentId }) {
+/* =========================
+   CREATE USER
+   (FIXED: includes mi)
+========================= */
+async function createUser({ firstName, lastName, mi, email, passwordHash, role, department, employeeId, studentId }) {
   return User.create({
     firstName,
     lastName,
+    mi, // ✅ NOW SAVED
     email: String(email).toLowerCase(),
     passwordHash,
     role,
@@ -18,13 +28,13 @@ async function createUser({ firstName, lastName, email, passwordHash, role, depa
   });
 }
 
-
-// 🔧 NEW FUNCTION: update user profile
+/* =========================
+   UPDATE USER PROFILE
+========================= */
 async function updateUser(id, data) {
   const user = await User.findByPk(id);
   if (!user) return null;
 
-  // update only allowed fields
   await user.update({
     contactNumber: data.contactNumber,
     department: data.department,
@@ -34,22 +44,33 @@ async function updateUser(id, data) {
   return user;
 }
 
-// 🔍 NEW FUNCTION: get all advisers
+/* =========================
+   GET ALL ADVISERS
+========================= */
 async function getAdvisers() {
   return User.findAll({
     where: { role: 'Adviser' },
-    attributes: ['id', 'firstName', 'lastName', 'email', 'department', 'employeeId'],
+    attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'department', 'employeeId'],
   });
 }
 
-// 🔍 Get all interns
+/* =========================
+   GET ALL INTERNS
+========================= */
 async function getInterns() {
   return User.findAll({
     where: { role: 'Intern' },
-    attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'studentId', 'program', 'company', 'supervisor', 'status'],
+    attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'studentId', 'department'],
   });
 }
 
-
-
-module.exports = { findByEmail, createUser, updateUser, getAdvisers, getInterns };
+/* =========================
+   EXPORTS
+========================= */
+module.exports = {
+  findByEmail,
+  createUser,
+  updateUser,
+  getAdvisers,
+  getInterns,
+};
