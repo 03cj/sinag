@@ -11,5 +11,6 @@
     "prettier.arrowParens": "always",
     "prettier.bracketSpacing": true,
     "prettier.semi": true,
-    "prettier.printWidth": 120
+    "prettier.printWidth": 120,
+    "editor.fontSize": 12
 }

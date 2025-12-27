@@ -39,10 +39,10 @@ const evaluationSections = [
     ],
   },
   {
-    title: 'V. Feedback Mechanism',
+    title: 'V. Feedatabaseack Mechanism',
     indicators: [
-      'Conducts weekly/routine feedback on performance.',
-      'Gives constructive and regular descriptive feedback concerning student intern’s progress.',
+      'Conducts weekly/routine feedatabaseack on performance.',
+      'Gives constructive and regular descriptive feedatabaseack concerning student intern’s progress.',
       'Consults with the internship adviser on any concern, query, or issue regarding the student-intern’s documentation/evaluation of student-intern.',
       'Provides written evaluation of the student intern.',
       'Gives credit and recognition for a job well done.',

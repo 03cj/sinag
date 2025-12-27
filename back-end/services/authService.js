@@ -8,7 +8,7 @@ const jwtUtil = require('../utils/jwt');
    COORDINATOR SIGNUP
 ========================= */
 async function signup({ firstName, lastName, email, password }) {
-  const existing = await userService.findByEmail(email);
+  const existing = await userService.findatabaseyEmail(email);
   if (existing) throw new Error('User already exists');
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -47,7 +47,7 @@ async function addAdviser({
   department,
   employeeId,
 }) {
-  const existing = await userService.findByEmail(email);
+  const existing = await userService.findatabaseyEmail(email);
   if (existing) throw new Error('User already exists');
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -81,7 +81,7 @@ async function addIntern({
   program,
   studentId,
 }) {
-  const existing = await userService.findByEmail(email);
+  const existing = await userService.findatabaseyEmail(email);
   if (existing) throw new Error('User already exists');
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -145,7 +145,7 @@ async function addCompany({
 ========================= */
 async function login({ email, password }) {
   /** 1️⃣ USER LOGIN */
-  const user = await userService.findByEmail(email);
+  const user = await userService.findatabaseyEmail(email);
   if (user) {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) throw new Error('Invalid credentials');

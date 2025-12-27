@@ -81,21 +81,22 @@ const AdviserC = () => {
     if (!adviserToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/advisers/${adviserToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+      const response = await fetch(
+        `http://localhost:5000/api/auth/advisers/${adviserToDelete.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.message || 'Failed to delete adviser');
       }
 
-      // Update UI ONLY after backend success
       setAdvisers((prev) => prev.filter((a) => a.id !== adviserToDelete.id));
-
       setShowDeleteConfirm(false);
       setAdviserToDelete(null);
     } catch (err) {
@@ -143,12 +144,12 @@ const AdviserC = () => {
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-red-800">
             <tr>
-              {['ACTIONS', 'ID no.', 'Lastname', 'Firstname', 'MI.', 'Email', 'Program', 'Interns'].map(
+              {['ACTIONS', 'Lastname', 'Firstname', 'MI.', 'Email', 'Program', 'Interns'].map(
                 (title, idx) => (
                   <th
                     key={idx}
                     className={`px-6 py-3 text-xs font-bold text-white uppercase tracking-wider ${
-                      idx === 0 ? 'text-center rounded-tl-lg' : idx === 7 ? 'rounded-tr-lg' : ''
+                      idx === 0 ? 'text-center rounded-tl-lg' : idx === 6 ? 'rounded-tr-lg' : ''
                     }`}
                   >
                     {title}
@@ -161,19 +162,19 @@ const AdviserC = () => {
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan="8" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                   Loading advisers...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan="8" className="px-6 py-4 text-center text-red-500">
+                <td colSpan="7" className="px-6 py-4 text-center text-red-500">
                   {error}
                 </td>
               </tr>
             ) : filteredAdvisers.length === 0 ? (
               <tr>
-                <td colSpan="8" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                   No advisers found.
                 </td>
               </tr>
@@ -201,12 +202,11 @@ const AdviserC = () => {
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 text-sm">{adviser.employeeId}</td>
                   <td className="px-6 py-4 text-sm">{adviser.lastName}</td>
                   <td className="px-6 py-4 text-sm">{adviser.firstName}</td>
                   <td className="px-6 py-4 text-sm">{adviser.mi}</td>
                   <td className="px-6 py-4 text-sm">{adviser.email}</td>
-                  <td className="px-6 py-4 text-sm">{adviser.department}</td>
+                  <td className="px-6 py-4 text-sm">{adviser.program}</td>
                   <td className="px-6 py-4 text-sm">{adviser.interns}</td>
                 </tr>
               ))
@@ -228,10 +228,16 @@ const AdviserC = () => {
               ?
             </p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 bg-gray-300 rounded-md">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md"
+              >
                 Cancel
               </button>
-              <button onClick={handleConfirmDelete} className="px-4 py-2 bg-yellow-500 rounded-md">
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-yellow-500 rounded-md"
+              >
                 Delete
               </button>
             </div>
@@ -258,7 +264,9 @@ const AdviserC = () => {
           <EditAdviser
             adviser={adviserToEdit}
             onUpdate={(updatedAdviser) => {
-              setAdvisers((prev) => prev.map((a) => (a.id === updatedAdviser.id ? updatedAdviser : a)));
+              setAdvisers((prev) =>
+                prev.map((a) => (a.id === updatedAdviser.id ? updatedAdviser : a)),
+              );
               setShowEditAdviserForm(false);
               setAdviserToEdit(null);
             }}

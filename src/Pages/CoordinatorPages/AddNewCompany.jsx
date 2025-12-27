@@ -19,21 +19,23 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
 
   /* =========================
      HANDLE INPUT CHANGE
-     AUTO CAPSLOCK (EXCEPT EMAIL)
+     AUTO CAPS (EXCEPT EMAIL)
   ========================= */
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
+    // File input
     if (name === 'moaFile') {
-      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+      setFormData((prev) => ({ ...prev, moaFile: files[0] }));
       return;
     }
 
-    const uppercaseFields = ['name', 'supervisorName', 'address', 'natureOfBusiness'];
+    // Fields to auto-uppercase
+    const upperFields = ['name', 'supervisorName', 'address', 'natureOfBusiness'];
 
     setFormData((prev) => ({
       ...prev,
-      [name]: uppercaseFields.includes(name) ? value.toUpperCase() : value,
+      [name]: upperFields.includes(name) ? value.toUpperCase() : value,
     }));
   };
 
@@ -45,7 +47,6 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
     if (formData.name) {
       const year = new Date().getFullYear();
       const safeName = formData.name.replace(/\s+/g, '');
-
       setFormData((prev) => ({
         ...prev,
         initialPassword: `${safeName}_${year}`,
@@ -78,21 +79,26 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
     setSubmitting(true);
 
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => formDataToSend.append(key, formData[key]));
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, value]) => payload.append(key, value));
 
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/auth/addCompany', {
+      const res = await fetch('http://localhost:5000/api/auth/addCompany', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formDataToSend,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
       });
 
-      if (!response.ok) throw new Error('Failed to add company');
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || 'Failed to add company');
+      }
 
-      const result = await response.json();
-      onAddSuccess(result.company);
+      const company = await res.json();
+      onAddSuccess && onAddSuccess(company);
       alert('New Company added successfully!');
 
       setFormData({
@@ -108,7 +114,7 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
       });
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to add new company. Please try again.');
+      setError(err.message || 'Failed to add new company.');
     } finally {
       setSubmitting(false);
     }
@@ -124,7 +130,9 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
       </p>
 
       {error && (
-        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4 animate-fadeIn">{error}</p>
+        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">
+          {error}
+        </p>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -235,11 +243,23 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
 
           {/* MOA FILE */}
           <div>
-            <label className="cursor-pointer font-bold border border-red-900 px-6 py-2 rounded-md inline-block">
+            <label
+              htmlFor="moaFile"
+              className="cursor-pointer font-bold border border-red-900 px-6 py-2 rounded-md inline-block"
+            >
               Upload MOA (PDF) <span className="text-red-300">*</span>
             </label>
-            <input type="file" name="moaFile" accept="application/pdf" onChange={handleChange} className="hidden" />
-            {formData.moaFile && <p className="mt-2 text-sm text-green-600">Selected: {formData.moaFile.name}</p>}
+            <input
+              id="moaFile"
+              type="file"
+              name="moaFile"
+              accept="application/pdf"
+              onChange={handleChange}
+              className="hidden"
+            />
+            {formData.moaFile && (
+              <p className="mt-2 text-sm text-green-600">Selected: {formData.moaFile.name}</p>
+            )}
           </div>
         </div>
 
@@ -248,30 +268,34 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
           <label className="block text-sm font-medium mb-1">
             Initial Password <span className="text-red-500">*</span>
           </label>
-
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
               value={formData.initialPassword}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-md"
-              required
+              readOnly
+              className="w-full px-4 py-2 border rounded-md bg-gray-100"
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowPassword((p) => !p)}
               className="absolute right-3 top-2 text-sm text-gray-600"
             >
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
-
-          <p className="text-xs italic text-gray-500 mt-1">Auto-generated from HTE name and current year</p>
+          <p className="text-xs italic text-gray-500 mt-1">
+            Auto-generated from HTE name and current year
+          </p>
         </div>
 
         {/* ACTIONS */}
         <div className="flex justify-end space-x-3 pt-4">
-          <button type="button" onClick={onCancel} className="px-5 py-2 border rounded-md" disabled={submitting}>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-5 py-2 border rounded-md"
+            disabled={submitting}
+          >
             Cancel
           </button>
 

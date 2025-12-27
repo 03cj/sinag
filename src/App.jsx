@@ -1,24 +1,34 @@
 import { Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './Components/ProtectedRoute';
 
-// Public Components
+/* =========================
+   PUBLIC PAGES (NO HEADER)
+========================= */
 import Login from './Components/LogIn';
 import SignUp from './Components/SignUp';
 import NoPageFound from './Pages/NoPageFound';
 
-// --- MAIN LAYOUT ---
+/* =========================
+   MAIN LAYOUT (WITH HEADER)
+========================= */
 import Layout from './Pages/layout/Layout';
 
-// Role-Specific Layouts
+/* =========================
+   ROLE LAYOUTS
+========================= */
 import AdviserLayout from './Pages/layout/AdviserLayout';
 import CoordinatorLayout from './Pages/layout/CoordinatorLayout';
 import InternLayout from './Pages/layout/InternLayout';
 import SupervisorLayout from './Pages/layout/SupervisorLayout';
 
-// ✅ SUPER ADMIN PAGE
+/* =========================
+   SUPER ADMIN
+========================= */
 import AddCoordinator from './Pages/AddCoordinator';
 
-// Coordinator Pages
+/* =========================
+   COORDINATOR PAGES
+========================= */
 import AddNewCompany from './Pages/CoordinatorPages/AddNewCompany';
 import AdviserC from './Pages/CoordinatorPages/AdviserC';
 import DashboardC from './Pages/CoordinatorPages/DashboardC';
@@ -27,7 +37,9 @@ import InternC from './Pages/CoordinatorPages/InternC';
 import ProfileC from './Pages/CoordinatorPages/ProfileC';
 import ReportsC from './Pages/CoordinatorPages/ReportsC';
 
-// Adviser Pages
+/* =========================
+   ADVISER PAGES
+========================= */
 import AddIntern from './Pages/AdviserPages/AddIntern';
 import DashboardA from './Pages/AdviserPages/DashboardA';
 import HTEA from './Pages/AdviserPages/HTEA';
@@ -35,7 +47,9 @@ import InternA from './Pages/AdviserPages/InternA';
 import ProfileA from './Pages/AdviserPages/ProfileA';
 import ReportsA from './Pages/AdviserPages/ReportsA';
 
-// Intern Pages
+/* =========================
+   INTERN PAGES
+========================= */
 import Documents from './Pages/InternPages/Documents';
 import HomeI from './Pages/InternPages/HomeI';
 import HTE_Evaluation from './Pages/InternPages/HTE_Evaluation';
@@ -43,7 +57,9 @@ import ProfileI from './Pages/InternPages/ProfileI';
 import SelfEvaluation from './Pages/InternPages/Self_Evaluation';
 import SupervisorEvaluation from './Pages/InternPages/Supervisor_Evaluation';
 
-// Supervisor Pages
+/* =========================
+   SUPERVISOR PAGES
+========================= */
 import DashboardS from './Pages/SupervisorPages/DashboardS';
 import EvaluationS from './Pages/SupervisorPages/EvaluationS';
 import ProfileS from './Pages/SupervisorPages/ProfileS';
@@ -51,16 +67,16 @@ import ProfileS from './Pages/SupervisorPages/ProfileS';
 export default function App() {
   return (
     <Routes>
-      {/* ---------------------------------------------------- */}
-      {/* 1. PUBLIC ROUTES (NO HEADER)                          */}
-      {/* ---------------------------------------------------- */}
+      {/* =====================================
+          PUBLIC ROUTES (NO HEADER)
+      ===================================== */}
       <Route path="/" element={<Login />} />
       <Route path="/pup-sinag" element={<Login />} />
       <Route path="/sign-up" element={<SignUp />} />
 
-      {/* ---------------------------------------------------- */}
-      {/* 2. SUPER ADMIN ROUTE (SINGLE PAGE ONLY)               */}
-      {/* ---------------------------------------------------- */}
+      {/* =====================================
+          SUPER ADMIN (NO MAIN LAYOUT)
+      ===================================== */}
       <Route
         path="/pup-sinag/superadmin"
         element={
@@ -70,11 +86,11 @@ export default function App() {
         }
       />
 
-      {/* ---------------------------------------------------- */}
-      {/* 3. PROTECTED ROUTES WITH MAIN LAYOUT                  */}
-      {/* ---------------------------------------------------- */}
+      {/* =====================================
+          PROTECTED ROUTES (WITH HEADER)
+      ===================================== */}
       <Route path="/pup-sinag" element={<Layout />}>
-        {/* COORDINATOR ROUTES */}
+        {/* ---------- COORDINATOR ---------- */}
         <Route
           path="coordinator"
           element={
@@ -93,7 +109,7 @@ export default function App() {
           <Route path="profile" element={<ProfileC />} />
         </Route>
 
-        {/* ADVISER ROUTES */}
+        {/* ---------- ADVISER ---------- */}
         <Route
           path="adviser"
           element={
@@ -105,14 +121,13 @@ export default function App() {
           <Route index element={<DashboardA />} />
           <Route path="dashboard" element={<DashboardA />} />
           <Route path="interns" element={<InternA />} />
-          <Route path="reports" element={<ReportsA />} />
           <Route path="HTE" element={<HTEA />} />
           <Route path="addIntern" element={<AddIntern />} />
-          <Route path="library" element={<ReportsA />} />
+          <Route path="reports" element={<ReportsA />} />
           <Route path="profile" element={<ProfileA />} />
         </Route>
 
-        {/* INTERN ROUTES */}
+        {/* ---------- INTERN ---------- */}
         <Route
           path="intern"
           element={
@@ -130,7 +145,7 @@ export default function App() {
           <Route path="supervisor-evaluation" element={<SupervisorEvaluation />} />
         </Route>
 
-        {/* SUPERVISOR ROUTES */}
+        {/* ---------- SUPERVISOR ---------- */}
         <Route
           path="supervisor"
           element={
@@ -146,9 +161,9 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* ---------------------------------------------------- */}
-      {/* 4. CATCH-ALL (MUST BE LAST)                           */}
-      {/* ---------------------------------------------------- */}
+      {/* =====================================
+          404 (MUST BE LAST)
+      ===================================== */}
       <Route path="*" element={<NoPageFound />} />
     </Routes>
   );

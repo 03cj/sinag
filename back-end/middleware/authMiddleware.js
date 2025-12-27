@@ -6,17 +6,22 @@ const { verify } = require('../utils/jwt');
  *
  * Usage:
  *  - router.use(authMiddleware())
- *  - router.use(authMiddleware(['SuperAdmin']))
+ *  - router.use(authMiddleware(['coordinator']))
  */
 function authMiddleware(allowedRoles = []) {
-  // normalize roles
-  const roles = Array.isArray(allowedRoles) ? allowedRoles : typeof allowedRoles === 'string' ? [allowedRoles] : [];
+  // normalize roles to array (lowercase)
+  const roles = Array.isArray(allowedRoles)
+    ? allowedRoles.map((r) => r.toLowerCase())
+    : typeof allowedRoles === 'string'
+    ? [allowedRoles.toLowerCase()]
+    : [];
 
-  // RETURN REAL MIDDLEWARE
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
 
-    // 1. Check header
+    /* =========================
+       1. CHECK AUTH HEADER
+    ========================= */
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         message: 'Missing or invalid authorization header',
@@ -26,7 +31,9 @@ function authMiddleware(allowedRoles = []) {
     const token = authHeader.split(' ')[1];
 
     try {
-      // 2. Verify token
+      /* =========================
+         2. VERIFY JWT
+      ========================= */
       const payload = verify(token);
 
       if (!payload?.id || !payload?.role) {
@@ -35,23 +42,29 @@ function authMiddleware(allowedRoles = []) {
         });
       }
 
-      // 3. Attach user
+      /* =========================
+         3. ATTACH USER TO REQUEST
+      ========================= */
       req.user = {
         id: payload.id,
         email: payload.email,
-        role: payload.role,
-        department: payload.department || null,
+        role: payload.role.toLowerCase(), // ✅ normalize
+        program: payload.department || payload.program || null,
         type: payload.type || 'user',
       };
 
-      // 4. Role check
-      if (roles.length && !roles.includes(payload.role)) {
+      /* =========================
+         4. ROLE-BASED ACCESS CHECK
+      ========================= */
+      if (roles.length && !roles.includes(req.user.role)) {
         return res.status(403).json({
           message: 'Access denied',
         });
       }
 
-      // 5. Continue
+      /* =========================
+         5. CONTINUE
+      ========================= */
       next();
     } catch (err) {
       console.error('Auth middleware error:', err);

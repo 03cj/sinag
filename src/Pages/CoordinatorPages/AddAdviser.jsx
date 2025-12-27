@@ -5,7 +5,6 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
     lastname: '',
     firstname: '',
     mi: '',
-    id: '',
     program: '',
     email: '',
     initialPassword: '',
@@ -22,7 +21,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    const uppercaseFields = ['lastname', 'firstname', 'mi', 'program', 'id'];
+    const uppercaseFields = ['lastname', 'firstname', 'mi', 'program'];
 
     setFormData((prev) => ({
       ...prev,
@@ -33,7 +32,6 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
   /* =========================
      AUTO-GENERATE PASSWORD
      LASTNAME_PROGRAM_YEAR
-     (NO LAYOUT CHANGE)
   ========================= */
   useEffect(() => {
     if (formData.lastname && formData.program) {
@@ -59,8 +57,6 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
     if (
       !formData.lastname ||
       !formData.firstname ||
-      !formData.mi ||
-      !formData.id ||
       !formData.program ||
       !formData.email ||
       !formData.initialPassword
@@ -84,8 +80,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
           firstName: formData.firstname,
           lastName: formData.lastname,
           mi: formData.mi,
-          employeeId: formData.id,
-          department: formData.program,
+          program: formData.program,
           email: formData.email,
           password: formData.initialPassword,
         }),
@@ -104,7 +99,6 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
         lastname: '',
         firstname: '',
         mi: '',
-        id: '',
         program: '',
         email: '',
         initialPassword: '',
@@ -125,139 +119,114 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
         <span className="text-red-500">*</span>) are required.
       </p>
 
-      {error && <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">{error}</p>}
+      {error && (
+        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">
+          {error}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* NAME ROW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="lastname" className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1">
               Last Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="lastname"
               name="lastname"
               value={formData.lastname}
               onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              className="w-full px-4 py-2 border rounded-md"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="firstname" className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1">
               First Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="firstname"
               name="firstname"
               value={formData.firstname}
               onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              className="w-full px-4 py-2 border rounded-md"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="mi" className="block text-sm font-medium mb-1">
-              M.I.
-            </label>
+            <label className="block text-sm font-medium mb-1">M.I.</label>
             <input
               type="text"
-              id="mi"
               name="mi"
               value={formData.mi}
               onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              className="w-full px-4 py-2 border rounded-md"
             />
           </div>
         </div>
 
-        {/* DETAILS ROW */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* DETAILS ROW (ID REMOVED) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="id" className="block text-sm font-medium mb-1">
-              ID Number <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="id"
-              name="id"
-              value={formData.id}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="program" className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1">
               Program <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="program"
               name="program"
               value={formData.program}
               onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              className="w-full px-4 py-2 border rounded-md"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1">
               Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
-              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              className="w-full px-4 py-2 border rounded-md"
               required
             />
           </div>
         </div>
 
-        {/* PASSWORD (UNCHANGED LAYOUT) */}
+        {/* PASSWORD */}
         <div>
-          <label htmlFor="initialPassword" className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium mb-1">
             Initial Password <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
-              id="initialPassword"
-              name="initialPassword"
               value={formData.initialPassword}
-              onChange={handleChange}
-              className="mt-1 block w-full pr-20 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
+              readOnly
+              className="w-full pr-20 px-4 py-2 border rounded-md bg-gray-100"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-sm text-gray-600 hover:text-gray-800 focus:outline-none"
-              tabIndex={-1}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm"
             >
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
-          <p className="mt-2 text-sm text-gray-500 italic">
-            This password is auto-generated using Last Name, Program, and current year.
-          </p>
         </div>
 
         {/* ACTIONS */}
-        <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex justify-end gap-3 pt-4">
           <button
             type="button"
             onClick={onCancel}
-            className="px-5 py-2 border border-gray-500 rounded-md text-black bg-white hover:bg-gray-50"
+            className="px-5 py-2 border rounded-md"
             disabled={submitting}
           >
             Cancel
@@ -266,9 +235,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
           <button
             type="submit"
             disabled={submitting}
-            className={`px-5 py-2 rounded-md text-white bg-red-700 hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out ${
-              submitting ? 'opacity-60 cursor-not-allowed' : ''
-            }`}
+            className="px-5 py-2 bg-red-700 text-white rounded-md"
           >
             {submitting ? 'Adding...' : 'Add Adviser'}
           </button>

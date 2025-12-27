@@ -37,7 +37,7 @@ const Endorsement = ({ intern, onClose }) => {
 
     const formData = new FormData();
     formData.append('file', pdfBlob, fileName);
-    formData.append('uploadedBy', `${intern.firstname} ${intern.lastname}`);
+    formData.append('uploadedatabasey', `${intern.firstname} ${intern.lastname}`);
 
     const response = await fetch('http://localhost:5001/api/documents/upload', {
       method: 'POST',

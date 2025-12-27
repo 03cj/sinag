@@ -1,20 +1,76 @@
 /* eslint-env node */
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 
-const sequelize = require('./config/db');
+// =========================
+// DATABASE
+// =========================
+const sequelize = require('./config/database');
 
 // =========================
-// LOAD MODELS (REQUIRED FOR SYNC)
+// LOAD MODELS FIRST (REQUIRED)
 // =========================
 const User = require('./models/user');
 const Company = require('./models/company');
 const Intern = require('./models/interns');
 const InternDocs = require('./models/interndocs');
+
+// =========================
+// DEFINE ASSOCIATIONS (🔥 CRITICAL 🔥)
+// =========================
+
+// Intern ↔ User
+Intern.belongsTo(User, {
+  foreignKey: {
+    name: 'user_id',
+    allowNull: false,
+  },
+  constraints: true,
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+
+User.hasOne(Intern, {
+  foreignKey: 'user_id',
+  constraints: true,
+});
+
+// Intern ↔ Company (HTE)
+Intern.belongsTo(Company, {
+  foreignKey: {
+    name: 'company_id',
+    allowNull: true,
+  },
+  constraints: true,
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE',
+});
+
+Company.hasMany(Intern, {
+  foreignKey: 'company_id',
+  constraints: true,
+});
+
+// InternDocs ↔ User
+InternDocs.belongsTo(User, {
+  foreignKey: {
+    name: 'user_id',
+    allowNull: false,
+  },
+  constraints: true,
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+
+User.hasMany(InternDocs, {
+  foreignKey: 'user_id',
+  constraints: true,
+});
 
 // =========================
 // LOAD ROUTES
@@ -24,7 +80,7 @@ const documentsRoutes = require('./routes/documents');
 const dashboardRoutes = require('./routes/dashboard');
 
 // =========================
-// INIT APP
+// INIT EXPRESS
 // =========================
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,22 +89,17 @@ const PORT = process.env.PORT || 5000;
 // GLOBAL MIDDLEWARES
 // =========================
 app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || '*',
-  }),
-);
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json());
-app.use(morgan(process.env.LOG_LEVEL === 'debug' ? 'dev' : 'tiny'));
+app.use(morgan('dev'));
 
 // =========================
 // STATIC FILES
 // =========================
-// Access uploads via: http://localhost:5000/uploads/filename.pdf
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // =========================
-// ROUTES (NO authMiddleware HERE)
+// ROUTES
 // =========================
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentsRoutes);
@@ -66,54 +117,24 @@ app.get('/', (req, res) => {
 // =========================
 app.use((err, req, res, next) => {
   console.error('❌ SERVER ERROR:', err);
-  res.status(err?.status || 500).json({
-    message: err?.message || 'Server error',
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal server error',
   });
 });
 
 // =========================
-// MODEL ASSOCIATIONS
+// SYNC DATABASE & START SERVER
 // =========================
+console.log('🚀 Starting backend and syncing database...');
 
-// Intern ↔ User
-Intern.belongsTo(User, {
-  foreignKey: 'user_id',
-  onDelete: 'CASCADE',
-});
-User.hasOne(Intern, {
-  foreignKey: 'user_id',
-});
-
-// Intern ↔ Company (HTE)
-Intern.belongsTo(Company, {
-  foreignKey: 'company_id',
-  onDelete: 'SET NULL',
-});
-Company.hasMany(Intern, {
-  foreignKey: 'company_id',
-});
-
-// InternDocs ↔ User
-InternDocs.belongsTo(User, {
-  foreignKey: 'user_id',
-  onDelete: 'CASCADE',
-});
-User.hasMany(InternDocs, {
-  foreignKey: 'user_id',
-});
-
-// =========================
-// SYNC DB & START SERVER
-// =========================
-console.log('🚀 Starting server and syncing DB...');
 sequelize
-  .sync()
+  .sync() // ❗ Safe for dev | use migrations in prod
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`✅ Backend listening on http://localhost:${PORT}`);
+      console.log(`✅ Backend running at http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('❌ Failed to sync DB:', err);
+    console.error('❌ DB Sync failed:', err);
     process.exit(1);
   });

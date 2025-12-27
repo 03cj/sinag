@@ -1,38 +1,12 @@
 import { useEffect, useState } from 'react';
 
-// --- Client-side code (e.g., in AddIntern component file) ---
-
-const getAdviserDepartment = () => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    try {
-      const payloadBase64 = token.split('.')[1];
-      const payload = JSON.parse(atob(payloadBase64));
-
-      // 🛑 TEMPORARY DEBUG LOG 🛑
-      console.log('--- JWT DECODED PAYLOAD RECEIVED ON CLIENT ---');
-      console.log(payload);
-      // 🛑 Check the console output for the 'department' field here 🛑
-
-      // Look for the correct field in the console output (should be 'department')
-      return payload.department || 'N/A';
-    } catch (e) {
-      console.error('Error parsing token payload for department:', e);
-      return 'N/A';
-    }
-  }
-  return 'N/A';
-};
-
 const AddIntern = ({ onAddSuccess, onCancel }) => {
-  const adviserDepartment = getAdviserDepartment(); // CORRECTED: Proper naming and function call
-
   const [formData, setFormData] = useState({
     lastname: '',
     firstname: '',
     mi: '',
     id: '',
-    program: adviserDepartment, // CORRECTED: Use the correctly named variable
+    program: '',
     email: '',
     initialPassword: '',
   });
@@ -41,19 +15,109 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Use useEffect to log the program once, for debugging
+  /* =========================
+     FETCH ADVISER PROGRAM
+  ========================= */
   useEffect(() => {
-    // CORRECTED: Use the correctly named variable
-    console.log('Adviser Program Set:', adviserDepartment);
-  }, [adviserDepartment]); // CORRECTED: Use the correctly named variable
+    const fetchAdviserProgram = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
+        if (!res.ok) throw new Error('Failed to fetch user');
+
+        const user = await res.json();
+
+        if (user.role !== 'Adviser') {
+          setError('Only advisers can add interns.');
+          return;
+        }
+
+        if (!user.program) {
+          setError('Your adviser account has no program assigned.');
+          return;
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          program: user.program,
+        }));
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load adviser program.');
+      }
+    };
+
+    fetchAdviserProgram();
+  }, []);
+
+  /* =========================
+     AUTO-GENERATE PASSWORD
+     WHEN PROGRAM LOADS
+  ========================= */
+  useEffect(() => {
+    if (formData.id && formData.program) {
+      setFormData((prev) => ({
+        ...prev,
+        initialPassword: `${prev.id}_${prev.program}`,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.program]);
+
+  /* =========================
+     HANDLE INPUT
+     - AUTO CAPS
+     - AUTO PASSWORD = ID_PROGRAM
+  ========================= */
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Email stays as-is
+    if (name === 'email') {
+      setFormData((prev) => ({
+        ...prev,
+        email: value,
+      }));
+      return;
+    }
+
+    // Student ID → CAPS + AUTO PASSWORD
+    if (name === 'id') {
+      const idValue = value.toUpperCase();
+      setFormData((prev) => ({
+        ...prev,
+        id: idValue,
+        initialPassword: prev.program
+          ? `${idValue}_${prev.program}`
+          : prev.initialPassword,
+      }));
+      return;
+    }
+
+    // Password can be edited manually
+    if (name === 'initialPassword') {
+      setFormData((prev) => ({
+        ...prev,
+        initialPassword: value,
+      }));
+      return;
+    }
+
+    // All other inputs → CAPS
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value.toUpperCase(),
     }));
   };
 
+  /* =========================
+     SUBMIT
+  ========================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,11 +127,9 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
       !formData.id ||
       !formData.email ||
       !formData.initialPassword ||
-      formData.program === 'N/A' ||
       !formData.program
     ) {
-      // Corrected error message to reflect that it's the Adviser's Department being used.
-      setError("Please fill out all required fields. Ensure the Adviser's Department is correctly set.");
+      setError('Please fill out all required fields.');
       return;
     }
 
@@ -85,11 +147,11 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
         body: JSON.stringify({
           firstName: formData.firstname,
           lastName: formData.lastname,
+          mi: formData.mi,
           studentId: formData.id,
-          // ❌ ERROR 3: You tried to access formData.department, but the state field is named 'program'.
-          program: formData.program, // CORRECTED: Use formData.program
+          program: formData.program,
           email: formData.email,
-          password: formData.initialPassword,
+          initialPassword: formData.initialPassword,
         }),
       });
 
@@ -102,13 +164,13 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
       onAddSuccess && onAddSuccess(newIntern);
       alert('Intern added successfully!');
 
-      // Reset form, but keep the department/program state
+      // Reset form but keep program
       setFormData((prev) => ({
         lastname: '',
         firstname: '',
         mi: '',
         id: '',
-        program: adviserDepartment, // CORRECTED: Use the correctly named variable
+        program: prev.program,
         email: '',
         initialPassword: '',
       }));
@@ -121,57 +183,59 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900 ">
-      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">Add New Intern</h2>
+    <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900">
+      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">
+        Add New Intern
+      </h2>
+
       <p className="text-gray-600 text-center mb-4 mt-2 italic">
         Fill in the details below to add a new intern to the system. All fields marked with an asterisk (
         <span className="text-red-500">*</span>) are required.
       </p>
 
       {error && (
-        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4 animate-fadeIn">{error}</p>
+        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">
+          {error}
+        </p>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* --- First Row: Name Fields --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="lastname" className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Last Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="lastname"
               name="lastname"
               value={formData.lastname}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
+
           <div>
-            <label htmlFor="firstname" className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               First Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="firstname"
               name="firstname"
               value={formData.firstname}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
+
           <div>
-            <label htmlFor="mi" className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               M.I.
             </label>
             <input
               type="text"
-              id="mi"
               name="mi"
               value={formData.mi}
               onChange={handleChange}
@@ -183,79 +247,65 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
         {/* --- Second Row: ID, Program, Email --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="id" className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Student ID No. <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="id"
               name="id"
               value={formData.id}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
 
-          {/* This display needs to read from formData.program */}
           <div>
-            <label htmlFor="program" className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Program (Inherited from Adviser) <span className="text-red-500">*</span>
             </label>
-            <div
-              id="program" // CORRECTED: Changed id from 'department' to 'program' for consistency
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700 sm:text-sm font-semibold"
-            >
-              {formData.program} {/* CORRECTED: Read from formData.program */}
+            <div className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700 sm:text-sm font-semibold">
+              {formData.program}
             </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-black mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
-              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
           </div>
         </div>
 
         {/* --- Password Field --- */}
         <div>
-          <label htmlFor="initialPassword" className="block text-sm font-medium text-black mb-1">
+          <label className="block text-sm font-medium text-black mb-1">
             Initial Password <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
-              id="initialPassword"
               name="initialPassword"
               value={formData.initialPassword}
               onChange={handleChange}
               className="mt-1 block w-full pr-20 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
               required
-              aria-required="true"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-sm text-gray-600 hover:text-gray-800 focus:outline-none"
-              tabIndex={-1}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-sm text-gray-600"
             >
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
-          <p className="mt-2 text-sm text-gray-500 italic">
-            This password will be temporary and can be changed by the intern upon first login.
-          </p>
         </div>
 
         {/* --- Action Buttons --- */}
@@ -263,7 +313,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
           <button
             type="button"
             onClick={onCancel}
-            className="px-5 py-2 border border-gray-500 rounded-md text-black bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            className="px-5 py-2 border border-gray-500 rounded-md bg-white"
             disabled={submitting}
           >
             Cancel
@@ -271,29 +321,12 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
 
           <button
             type="submit"
-            className={`px-5 py-2 rounded-md text-white bg-red-700 hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out ${submitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`px-5 py-2 rounded-md text-white bg-red-700 hover:bg-red-900 ${
+              submitting ? 'opacity-60 cursor-not-allowed' : ''
+            }`}
             disabled={submitting}
           >
-            {submitting ? (
-              <span className="flex items-center">
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Adding...
-              </span>
-            ) : (
-              'Add Intern'
-            )}
+            {submitting ? 'Adding…' : 'Add Intern'}
           </button>
         </div>
       </form>

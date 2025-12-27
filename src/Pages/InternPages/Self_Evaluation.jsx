@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 
 // Data object holding the content extracted from the image files (Unchanged)
 const selfEvaluationData = {
-  submittedBy: 'CHERYL S. SAGUN',
-  notedBy: 'PROF. NOMERIANO C. CANTAN (Internship Adviser)',
+  submittedatabasey: 'CHERYL S. SAGUN',
+  notedatabasey: 'PROF. NOMERIANO C. CANTAN (Internship Adviser)',
   q1: {
     question: 'Has the practicum/filed work experience help you prepare for a job in a computer field? Why or why not?',
     answer:
-      'Yes. The practicum experience helped me build a professional network by connecting with industry experts and colleagues. Additionally, it exposed me to current technologies and industry practices, which enhanced my understanding of what is expected in a professional setting. The mentorship and feedback I received during the practicum were invaluable for my personal and professional growth, helping me identify and work on my areas of improvement. Overall, it boosted my confidence and readiness to face real-world challenges in the computer field.',
+      'Yes. The practicum experience helped me build a professional network by connecting with industry experts and colleagues. Additionally, it exposed me to current technologies and industry practices, which enhanced my understanding of what is expected in a professional setting. The mentorship and feedatabaseack I received during the practicum were invaluable for my personal and professional growth, helping me identify and work on my areas of improvement. Overall, it boosted my confidence and readiness to face real-world challenges in the computer field.',
   },
   q2: {
     question: 'Which of the subject you have taken were one of the most value during the practicum?',
@@ -24,7 +24,7 @@ const selfEvaluationData = {
   q4: {
     question: 'What you could have done to improve your practicum/filed work experience?',
     answer:
-      "Reflecting on my practicum experience, it's evident that setting clearer goals, improving communication with my supervisor, and taking more initiative in seeking tasks could have enhanced my training. Being proactive in seeking feedback, reflecting on my experiences, and networking with professionals would have furthered my growth. Additionally, better time management could have allowed me to maximize my learning opportunities. Moving forward, prioritizing these aspects will lead to a more rewarding and enriching practicum experience.",
+      "Reflecting on my practicum experience, it's evident that setting clearer goals, improving communication with my supervisor, and taking more initiative in seeking tasks could have enhanced my training. Being proactive in seeking feedatabaseack, reflecting on my experiences, and networking with professionals would have furthered my growth. Additionally, better time management could have allowed me to maximize my learning opportunities. Moving forward, prioritizing these aspects will lead to a more rewarding and enriching practicum experience.",
   },
   q5_1: {
     question: '5.1. You felt prepared to do:',
@@ -60,7 +60,7 @@ const QuestionAnswerBlock = ({ data }) => (
 );
 
 const SelfEvaluation = () => {
-  const { q1, q2, q3, q4, q5_1, q5_2, q6, q7, submittedBy, notedBy } = selfEvaluationData;
+  const { q1, q2, q3, q4, q5_1, q5_2, q6, q7, submittedatabasey, notedatabasey } = selfEvaluationData;
   const navigate = useNavigate();
 
   const allQuestions = [q1, q2, q3, q4, q5_1, q5_2, q6, q7];
@@ -125,13 +125,13 @@ const SelfEvaluation = () => {
           <div className="flex flex-col md:flex-row justify-between pt-4 space-y-6 md:space-y-0 md:space-x-12">
             {/* Submitted By */}
             <div className="flex-1 text-center">
-              <p className="text-lg font-bold border-b border-gray-800 pb-1 text-gray-800">{submittedBy}</p>
+              <p className="text-lg font-bold border-b border-gray-800 pb-1 text-gray-800">{submittedatabasey}</p>
               <p className="text-sm text-gray-600 mt-1">Signature over Full Name of Student Intern</p>
             </div>
 
             {/* Noted By */}
             <div className="flex-1 text-center">
-              <p className="text-lg font-bold border-b border-gray-800 pb-1 text-gray-800">{notedBy}</p>
+              <p className="text-lg font-bold border-b border-gray-800 pb-1 text-gray-800">{notedatabasey}</p>
               <p className="text-sm text-gray-600 mt-1">Signature over Full Name of Internship Adviser</p>
             </div>
           </div>

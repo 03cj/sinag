@@ -1,28 +1,63 @@
 /* eslint-env node */
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/database');
 
 const User = sequelize.define(
   'User',
   {
-    id: { type: DataTypes.INTEGER.UNSIGNED, primaryKey: true, autoIncrement: true },
-    firstName: { type: DataTypes.STRING(100), allowNull: false },
-    lastName: { type: DataTypes.STRING(100), allowNull: false },
-    mi: { type: DataTypes.STRING(50), allowNull: false },
-    email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
-    passwordHash: { type: DataTypes.STRING(255), allowNull: false },
-    role: { type: DataTypes.STRING(50), allowNull: false, defaultValue: 'Coordinator' },
-    contactNumber: { type: DataTypes.STRING(20), allowNull: true },
-    department: { type: DataTypes.STRING(100), allowNull: true },
-    employeeId: { type: DataTypes.STRING(50), allowNull: true },
-    studentId: { type: DataTypes.STRING(50), allowNull: true },
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED, // ✅ FIXED
+      autoIncrement: true,
+      primaryKey: true,
+    },
+
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    mi: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+
+    passwordHash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    studentId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    program: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: 'users',
     timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: false,
-  },
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+  }
 );
 
 module.exports = User;

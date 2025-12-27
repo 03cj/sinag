@@ -30,7 +30,7 @@ async function getAllHTE() {
 }
 
 async function getCompanyById(id) {
-  return Company.findByPk(id);
+  return Company.findatabaseyPk(id);
 }
 
 async function getCompanyByEmail(email) {

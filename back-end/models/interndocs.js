@@ -1,42 +1,60 @@
 /* eslint-env node */
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
-const User = require('./user');
+const { DataTypes, Model } = require('sequelize');
+const sequelize = require('../config/database');
 
-const InternDocs = sequelize.define(
-  'InternDocs',
+class InternDocs extends Model {}
+
+InternDocs.init(
   {
-    id: { type: DataTypes.INTEGER.UNSIGNED, primaryKey: true, autoIncrement: true },
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+
+    user_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+    },
+
     docType: {
       type: DataTypes.ENUM(
         'Medical Certificate',
         'Resume / CV',
         'Insurance',
         'Certificate of Registration (COR)',
-        'Good Moral Certificate'
+        'Good Moral Certificate',
       ),
       allowNull: false,
     },
-    filePath: { type: DataTypes.STRING(255), allowNull: false },
+
+    filePath: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+
     status: {
       type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'),
       defaultValue: 'Pending',
     },
-    remarks: { type: DataTypes.STRING(255), allowNull: true },
-    uploadedAt: {
+
+    remarks: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+
+    uploaded_at: {
       type: DataTypes.DATE,
-      field: 'uploaded_at',
       defaultValue: DataTypes.NOW,
     },
   },
   {
-    tableName: 'interndocs',
+    sequelize,
+    modelName: 'InternDocs',
+    tableName: 'intern_docs', // ✅ snake_case is safer
     timestamps: false,
-  }
+    underscored: true,
+  },
 );
-
-// 🔗 Correct associations
-InternDocs.belongsTo(User, { foreignKey: 'user_id', onDelete: 'CASCADE' });
-User.hasMany(InternDocs, { foreignKey: 'user_id' });
 
 module.exports = InternDocs;

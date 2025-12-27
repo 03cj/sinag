@@ -1,26 +1,14 @@
-/* eslint-env node */
 const express = require('express');
 const router = express.Router();
 
 const authMiddleware = require('../middleware/authMiddleware');
 const dashboardController = require('../controllers/dashboardController');
 
-/* =========================
-   PROTECTED ROUTES
-========================= */
-router.use(authMiddleware()); // ✅ MUST be invoked
+router.use(authMiddleware());
 
-/* =========================
-   DASHBOARD ROUTES
-========================= */
-
-// Program statistics
-router.get('/programs', dashboardController.getProgramStats);
-
-// Company statistics
-router.get('/companies', dashboardController.getCompanyStats);
-
-// KPI summary
+router.get('/programs', dashboardController.getPrograms);
+router.get('/companies', dashboardController.getCompanies);
 router.get('/kpis', dashboardController.getKpis);
+router.get('/adviser-programs', dashboardController.getAdviserPrograms);
 
-module.exports = router; // ✅ export router ONLY
+module.exports = router;

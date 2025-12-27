@@ -4,7 +4,7 @@ const User = require('../models/user');
 /* =========================
    FIND USER BY EMAIL
 ========================= */
-async function findByEmail(email) {
+async function findatabaseyEmail(email) {
   return User.findOne({
     where: { email: String(email).toLowerCase() },
   });
@@ -32,7 +32,7 @@ async function createUser({ firstName, lastName, mi, email, passwordHash, role, 
    UPDATE USER PROFILE
 ========================= */
 async function updateUser(id, data) {
-  const user = await User.findByPk(id);
+  const user = await User.findatabaseyPk(id);
   if (!user) return null;
 
   await user.update({
@@ -68,7 +68,7 @@ async function getInterns() {
    EXPORTS
 ========================= */
 module.exports = {
-  findByEmail,
+  findatabaseyEmail,
   createUser,
   updateUser,
   getAdvisers,

@@ -5,7 +5,10 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
-const { uploadInternDoc, getInternDocs } = require('../controllers/internDocsController');
+const {
+  uploadInternDoc,
+  getInternDocs,
+} = require('../controllers/internDocsController');
 
 console.log('✅ Auth routes loaded');
 
@@ -24,8 +27,9 @@ router.post('/login', authController.login);
 
 /* =========================
    PROTECTED ROUTES
+   (requires valid JWT)
 ========================= */
-router.use(authMiddleware()); // ✅ correct (factory middleware)
+router.use(authMiddleware());
 
 /* =========================
    USER PROFILE
@@ -35,29 +39,53 @@ router.put('/profile', authController.updateProfile);
 router.put('/change-password', authController.changePassword);
 
 /* =========================
+   COORDINATORS
+   (Coordinator is the highest role)
+========================= */
+router.post(
+  '/addCoordinator',
+  authMiddleware(['coordinator']), // ✅ FIXED
+  authController.addCoordinator
+);
+
+/* =========================
+   ADVISERS
+========================= */
+router.get('/advisers', authController.getAdvisers);
+router.post('/addAdviser', authController.addAdviser);
+router.put('/advisers/:id', authController.updateAdviser);
+router.delete('/advisers/:id', authController.deleteAdviser);
+
+/* =========================
    INTERNS
 ========================= */
 router.post('/addIntern', authController.addIntern);
 router.get('/interns', authController.getInterns);
 
 /* =========================
-   ADVISERS ROUTES
-========================= */
-router.get('/advisers', authController.getAdvisers);
-b;
-
-/* =========================
    COMPANY / HTE
 ========================= */
-router.post('/addCompany', upload.single('moaFile'), authController.addCompany);
-
+router.post(
+  '/addCompany',
+  upload.single('moaFile'),
+  authController.addCompany
+);
 router.get('/HTE', authController.getHTE);
+router.put(
+  '/HTE/:id',
+  upload.single('moaFile'),
+  authController.updateCompany
+);
+router.delete('/HTE/:id', authController.deleteHTE);
 
 /* =========================
    INTERN DOCUMENTS
 ========================= */
-router.post('/intern-docs/upload', upload.single('document'), uploadInternDoc);
-
+router.post(
+  '/intern-docs/upload',
+  upload.single('document'),
+  uploadInternDoc
+);
 router.get('/intern-docs/:userId', getInternDocs);
 
 /* =========================

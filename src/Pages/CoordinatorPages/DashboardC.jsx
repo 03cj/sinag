@@ -35,6 +35,7 @@ const gradient = (ctx, top, bottom) => {
 
 const DashboardC = () => {
   const [selectedProgram, setSelectedProgram] = useState('All');
+  const [programsFilter, setProgramsFilter] = useState(['All']);
 
   const [kpiData, setKpiData] = useState({
     activeInterns: 'Loading...',
@@ -45,8 +46,6 @@ const DashboardC = () => {
   const [programChartData, setProgramChartData] = useState(null);
   const [companyChartData, setCompanyChartData] = useState(null);
 
-  const programsFilter = ['All', 'BSBA', 'BSIT', 'BSENT', 'BEED', 'BSIE'];
-
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -54,7 +53,7 @@ const DashboardC = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const [programRes, companyRes, kpiRes] = await Promise.all([
+        const [programRes, companyRes, kpiRes, adviserProgramRes] = await Promise.all([
           fetch(`${API_BASE}/api/dashboard/programs`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -64,32 +63,41 @@ const DashboardC = () => {
           fetch(`${API_BASE}/api/dashboard/kpis`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          fetch(`${API_BASE}/api/dashboard/adviser-programs`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
 
         const programData = await programRes.json();
         const companyData = await companyRes.json();
         const kpis = await kpiRes.json();
+        const adviserPrograms = await adviserProgramRes.json();
+
+        /* =========================
+           PROGRAM FILTERS (REAL DATA)
+        ========================= */
+        setProgramsFilter(['All', ...adviserPrograms]);
 
         /* =========================
            FILTER PROGRAM DATA
         ========================= */
         const filteredPrograms =
-          selectedProgram === 'All' ? programData : programData.filter((p) => p.program === selectedProgram);
+          selectedProgram === 'All'
+            ? programData
+            : programData.filter((p) => p.program === selectedProgram);
 
         const totalProgramsCount = filteredPrograms.reduce((sum, p) => sum + p.count, 0);
-
         const programPercentages = filteredPrograms.map((p) =>
           totalProgramsCount ? Math.round((p.count / totalProgramsCount) * 100) : 0,
         );
 
         const totalCompanyCount = companyData.reduce((sum, c) => sum + c.count, 0);
-
         const companyPercentages = companyData.map((c) =>
           totalCompanyCount ? Math.round((c.count / totalCompanyCount) * 100) : 0,
         );
 
         /* =========================
-           KPI UPDATE
+           KPI UPDATE (REAL DATA)
         ========================= */
         setKpiData({
           activeInterns: kpis.activeInterns,
@@ -171,7 +179,8 @@ const DashboardC = () => {
       },
       tooltip: {
         callbacks: {
-          label: (ctx) => `${ctx.label}: ${ctx.parsed} (${ctx.chart.data.percentages?.[ctx.dataIndex]}%)`,
+          label: (ctx) =>
+            `${ctx.label}: ${ctx.parsed} (${ctx.chart.data.percentages?.[ctx.dataIndex]}%)`,
         },
       },
     },
@@ -182,13 +191,18 @@ const DashboardC = () => {
       <div className="flex flex-col md:flex-row gap-5">
         {/* FILTER SIDEBAR */}
         <aside className="bg-white rounded-lg shadow-md p-5 w-full md:w-52 border">
-          <div className="bg-red-800 text-white font-bold text-center py-2 mb-4 rounded">Filters</div>
+          <div className="bg-red-800 text-white font-bold text-center py-2 mb-4 rounded">
+            Filters
+          </div>
+
           {programsFilter.map((program) => (
             <div
               key={program}
               onClick={() => setSelectedProgram(program)}
               className={`py-2 cursor-pointer ${
-                selectedProgram === program ? 'font-bold text-red-800' : 'text-gray-600'
+                selectedProgram === program
+                  ? 'font-bold text-red-800'
+                  : 'text-gray-600'
               }`}
             >
               {program}
@@ -206,16 +220,32 @@ const DashboardC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="bg-white rounded-lg shadow-md p-5 border">
-              <h3 className="text-center font-semibold mb-4">Number of Interns Per Program</h3>
+              <h3 className="text-center font-semibold mb-4">
+                Number of Interns Per Program
+              </h3>
               <div className="h-64">
-                {programChartData && <Pie data={programChartData} options={chartOptions} plugins={[shadowPlugin]} />}
+                {programChartData && (
+                  <Pie
+                    data={programChartData}
+                    options={chartOptions}
+                    plugins={[shadowPlugin]}
+                  />
+                )}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-5 border">
-              <h3 className="text-center font-semibold mb-4">Number of Interns Per Company</h3>
+              <h3 className="text-center font-semibold mb-4">
+                Number of Interns Per Company
+              </h3>
               <div className="h-64">
-                {companyChartData && <Pie data={companyChartData} options={chartOptions} plugins={[shadowPlugin]} />}
+                {companyChartData && (
+                  <Pie
+                    data={companyChartData}
+                    options={chartOptions}
+                    plugins={[shadowPlugin]}
+                  />
+                )}
               </div>
             </div>
           </div>

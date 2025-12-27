@@ -6,7 +6,7 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
     lastName: adviser.lastName || adviser.lastname || '',
     mi: adviser.mi || '',
     email: adviser.email || '',
-    department: adviser.department || '',
+    program: adviser.program || adviser.department || '',
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -14,22 +14,22 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
 
   /* =========================
      HANDLE INPUT CHANGE
-     - Uppercase names & dept
+     - Uppercase names & program
      - Lowercase email
      - Trim leading spaces
   ========================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    const upperCaseFields = ['firstName', 'lastName', 'mi', 'department'];
+    const upperCaseFields = ['firstName', 'lastName', 'mi', 'program'];
 
     setFormData((prev) => ({
       ...prev,
       [name]: upperCaseFields.includes(name)
         ? value.toUpperCase().replace(/^\s+/, '')
         : name === 'email'
-          ? value.toLowerCase().replace(/\s+/g, '')
-          : value,
+        ? value.toLowerCase().replace(/\s+/g, '')
+        : value,
     }));
   };
 
@@ -54,7 +54,7 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         mi: formData.mi.trim(),
-        department: formData.department.trim(),
+        program: formData.program.trim(),
         email: formData.email.trim().toLowerCase(),
       };
 
@@ -86,7 +86,11 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
     <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md border border-red-900">
       <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Edit Adviser</h2>
 
-      {error && <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">{error}</p>}
+      {error && (
+        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">
+          {error}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* LAST NAME */}
@@ -146,13 +150,13 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
           />
         </div>
 
-        {/* DEPARTMENT */}
+        {/* PROGRAM */}
         <div>
           <label className="block text-sm font-medium mb-1">Program / Department</label>
           <input
             type="text"
-            name="department"
-            value={formData.department}
+            name="program"
+            value={formData.program}
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-md"
           />
@@ -160,7 +164,12 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
 
         {/* ACTIONS */}
         <div className="flex justify-end gap-3 pt-4">
-          <button type="button" onClick={onCancel} className="px-4 py-2 border rounded-md" disabled={submitting}>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 border rounded-md"
+            disabled={submitting}
+          >
             Cancel
           </button>
 

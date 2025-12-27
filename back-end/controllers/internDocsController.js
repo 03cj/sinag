@@ -1,19 +1,28 @@
+/* eslint-env node */
 const InternDocs = require('../models/interndocs');
 const User = require('../models/user');
 
-// POST /api/interns/:userId/docs
+/* =========================
+   UPLOAD INTERN DOCUMENT
+========================= */
+// POST /api/auth/intern-docs/upload
 async function uploadInternDoc(req, res, next) {
   try {
     const { docType } = req.body;
     const file = req.file;
 
-    if (!file) return res.status(400).json({ message: 'No file uploaded' });
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
 
-    // Use the logged-in user ID from JWT
+    // Logged-in user ID from JWT
     const userId = req.user.id;
 
+    // ✅ FIXED TYPO HERE
     const user = await User.findByPk(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     const newDoc = await InternDocs.create({
       docType,
@@ -21,21 +30,35 @@ async function uploadInternDoc(req, res, next) {
       user_id: userId,
     });
 
-    res.status(201).json({ message: 'File uploaded', doc: newDoc });
+    res.status(201).json({
+      message: 'File uploaded successfully',
+      doc: newDoc,
+    });
   } catch (err) {
     next(err);
   }
 }
 
-// GET /api/interns/:userId/docs
+/* =========================
+   GET INTERN DOCUMENTS
+========================= */
+// GET /api/auth/intern-docs/:userId
 async function getInternDocs(req, res, next) {
   try {
     const { userId } = req.params;
-    const docs = await InternDocs.findAll({ where: { user_id: userId } });
+
+    const docs = await InternDocs.findAll({
+      where: { user_id: userId },
+      order: [['created_at', 'DESC']],
+    });
+
     res.json(docs);
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { uploadInternDoc, getInternDocs };
+module.exports = {
+  uploadInternDoc,
+  getInternDocs,
+};

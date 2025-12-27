@@ -81,8 +81,8 @@ const HTE_Evaluation = () => {
     strengths: '',
     improvements: '',
     recommendations: '',
-    submittedBy: '',
-    notedBy: '',
+    submittedatabasey: '',
+    notedatabasey: '',
     // ------------------------
   });
 
@@ -352,8 +352,8 @@ const HTE_Evaluation = () => {
                 <span className="font-bold block mb-1 text-gray-800">Submitted by:</span>
                 <input
                   type="text"
-                  value={formData.submittedBy}
-                  onChange={(e) => setFormData({ ...formData, submittedBy: e.target.value })}
+                  value={formData.submittedatabasey}
+                  onChange={(e) => setFormData({ ...formData, submittedatabasey: e.target.value })}
                   className="w-full p-1 text-center text-sm border-0 border-b border-gray-300 focus:ring-0 focus:border-red-500"
                   placeholder="[Signature over Full Name of Student Intern]"
                   disabled={isSubmitting}
@@ -367,8 +367,8 @@ const HTE_Evaluation = () => {
                 <span className="font-bold block mb-1 text-gray-800">Noted by:</span>
                 <input
                   type="text"
-                  value={formData.notedBy}
-                  onChange={(e) => setFormData({ ...formData, notedBy: e.target.value })}
+                  value={formData.notedatabasey}
+                  onChange={(e) => setFormData({ ...formData, notedatabasey: e.target.value })}
                   className="w-full p-1 text-center text-sm border-0 border-b border-gray-300 focus:ring-0 focus:border-red-500"
                   placeholder="[Signature over Full Name of Internship Adviser]"
                   disabled={isSubmitting}
