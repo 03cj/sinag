@@ -16,7 +16,7 @@ const InternC = () => {
 
   /* =========================
      FETCH ADVISERS
-     (USED FOR PROGRAM MATCHING)
+     (1 ADVISER → 1 PROGRAM)
   ========================= */
   useEffect(() => {
     const fetchAdvisers = async () => {
@@ -42,6 +42,7 @@ const InternC = () => {
 
   /* =========================
      FETCH INTERNS
+     (1 PROGRAM → MANY INTERNS)
   ========================= */
   useEffect(() => {
     const fetchInterns = async () => {
@@ -50,17 +51,17 @@ const InternC = () => {
         setError(null);
 
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/auth/interns', {
+        const res = await fetch('http://localhost:5000/api/auth/interns', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
 
-        const data = await response.json();
+        const data = await res.json();
 
         const normalized = data.map((intern) => {
           const internProgram = intern.User?.program || intern.program;
@@ -94,11 +95,26 @@ const InternC = () => {
       }
     };
 
-    // re-run when advisers are loaded
     if (advisers.length > 0) {
       fetchInterns();
     }
   }, [advisers]);
+
+  /* =========================
+     SEARCH FILTER
+  ========================= */
+  const filteredInterns = interns.filter((intern) => {
+    if (!searchTerm.trim()) return true;
+
+    const term = searchTerm.toLowerCase();
+
+    return (
+      intern.lastname.toLowerCase().includes(term) ||
+      intern.firstname.toLowerCase().includes(term) ||
+      intern.studNo.toLowerCase().includes(term) ||
+      intern.email.toLowerCase().includes(term)
+    );
+  });
 
   /* =========================
      SORTING
@@ -114,10 +130,14 @@ const InternC = () => {
 
   const SortArrow = ({ active }) => {
     if (!active) return <span className="ml-1 text-gray-300">↕</span>;
-    return <span className="ml-1 font-bold">{sortOrder === 'asc' ? '↑' : '↓'}</span>;
+    return (
+      <span className="ml-1 font-bold">
+        {sortOrder === 'asc' ? '↑' : '↓'}
+      </span>
+    );
   };
 
-  const sortedInterns = [...interns].sort((a, b) => {
+  const sortedInterns = [...filteredInterns].sort((a, b) => {
     const aVal = a[sortField]?.toString().toLowerCase() || '';
     const bVal = b[sortField]?.toString().toLowerCase() || '';
 
@@ -148,7 +168,12 @@ const InternC = () => {
               className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-red-500 text-sm"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

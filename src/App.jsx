@@ -67,16 +67,16 @@ import ProfileS from './Pages/SupervisorPages/ProfileS';
 export default function App() {
   return (
     <Routes>
-      {/* =====================================
-          PUBLIC ROUTES (NO HEADER)
-      ===================================== */}
+      {/* =========================
+         PUBLIC ROUTES
+      ========================= */}
       <Route path="/" element={<Login />} />
       <Route path="/pup-sinag" element={<Login />} />
       <Route path="/sign-up" element={<SignUp />} />
 
-      {/* =====================================
-          SUPER ADMIN (NO MAIN LAYOUT)
-      ===================================== */}
+      {/* =========================
+         SUPER ADMIN
+      ========================= */}
       <Route
         path="/pup-sinag/superadmin"
         element={
@@ -86,11 +86,11 @@ export default function App() {
         }
       />
 
-      {/* =====================================
-          PROTECTED ROUTES (WITH HEADER)
-      ===================================== */}
+      {/* =========================
+         PROTECTED ROUTES
+      ========================= */}
       <Route path="/pup-sinag" element={<Layout />}>
-        {/* ---------- COORDINATOR ---------- */}
+        {/* ========== COORDINATOR ========== */}
         <Route
           path="coordinator"
           element={
@@ -109,7 +109,7 @@ export default function App() {
           <Route path="profile" element={<ProfileC />} />
         </Route>
 
-        {/* ---------- ADVISER ---------- */}
+        {/* ========== ADVISER ========== */}
         <Route
           path="adviser"
           element={
@@ -127,7 +127,7 @@ export default function App() {
           <Route path="profile" element={<ProfileA />} />
         </Route>
 
-        {/* ---------- INTERN ---------- */}
+        {/* ========== INTERN ========== */}
         <Route
           path="intern"
           element={
@@ -145,7 +145,7 @@ export default function App() {
           <Route path="supervisor-evaluation" element={<SupervisorEvaluation />} />
         </Route>
 
-        {/* ---------- SUPERVISOR ---------- */}
+        {/* ========== SUPERVISOR ========== */}
         <Route
           path="supervisor"
           element={
@@ -161,9 +161,9 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* =====================================
-          404 (MUST BE LAST)
-      ===================================== */}
+      {/* =========================
+         404
+      ========================= */}
       <Route path="*" element={<NoPageFound />} />
     </Routes>
   );

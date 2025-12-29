@@ -11,20 +11,22 @@ async function uploadInternDoc(req, res, next) {
     const { docType } = req.body;
     const file = req.file;
 
+    if (!docType) {
+      return res.status(400).json({ message: 'Document type is required' });
+    }
+
     if (!file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    // Logged-in user ID from JWT
     const userId = req.user.id;
 
-    // ✅ FIXED TYPO HERE
     const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const newDoc = await InternDocs.create({
+    const doc = await InternDocs.create({
       docType,
       filePath: file.filename,
       user_id: userId,
@@ -32,7 +34,7 @@ async function uploadInternDoc(req, res, next) {
 
     res.status(201).json({
       message: 'File uploaded successfully',
-      doc: newDoc,
+      doc,
     });
   } catch (err) {
     next(err);

@@ -3,55 +3,107 @@ import { useEffect, useState } from 'react';
 import KPICard from '../../Components/KPICard';
 import InternA_ from './InternA_in_dashboardA';
 
+/* =========================
+   HELPER: GET ADVISER PROGRAM
+========================= */
+const getAdviserProgram = () => {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.program || payload.department || null;
+  } catch (err) {
+    console.error('Invalid token:', err);
+    return null;
+  }
+};
+
 const DashboardA = () => {
+  const adviserProgram = getAdviserProgram();
+
   const [kpiData, setKpiData] = useState({
     activeInterns: 'Loading...',
     activePrograms: 'Loading...',
     partnerHTE: 'Loading...',
   });
 
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setKpiData({
-        activeInterns: 'Loading...',
-        activePrograms: 'Loading...',
-        partnerHTE: 'Loading...',
-      });
+      try {
+        const token = localStorage.getItem('token');
 
-      // Simulate API delay (replace with real API later)
-      await new Promise((resolve) => setTimeout(resolve, 500));
+        /* =========================
+           FETCH INTERN COUNTS
+        ========================= */
+        const [internRes, hteRes] = await Promise.all([
+          fetch(`${API_BASE}/api/dashboard/programs`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE}/api/dashboard/kpis`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-      // ===== DUMMY DATA (REPLACE WITH API) =====
-      setKpiData({
-        activeInterns: '100',
-        activePrograms: '1',
-        partnerHTE: '5',
-      });
+        const programData = await internRes.json();
+        const kpis = await hteRes.json();
+
+        /* =========================
+           FILTER BY ADVISER PROGRAM
+        ========================= */
+        const adviserProgramData = programData.find(
+          (p) => p.program === adviserProgram
+        );
+
+        const activeInterns = adviserProgramData
+          ? adviserProgramData.count
+          : 0;
+
+        /* =========================
+           KPI UPDATE
+        ========================= */
+        setKpiData({
+          activeInterns,
+          activePrograms: adviserProgram || 'N/A',
+          partnerHTE: kpis.partnerHTE,
+        });
+      } catch (err) {
+        console.error('Failed to load adviser dashboard:', err);
+        setKpiData({
+          activeInterns: 0,
+          activePrograms: adviserProgram || 'N/A',
+          partnerHTE: 0,
+        });
+      }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [adviserProgram]);
 
   return (
-    <div className=" min-h-screen">
+    <div className="min-h-screen">
       {/* KPI SECTION */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
         <KPICard
           title="Active Intern"
           value={kpiData.activeInterns}
-          description="(Currently active)"
+          description="(Same program as adviser)"
           className="bg-red-800 text-white"
           valueClassName="text-6xl"
           descriptionClassName="text-white"
         />
+
         <KPICard
           title="Active Program"
           value={kpiData.activePrograms}
-          description="Single Program"
+          description="Assigned Program"
           className="bg-red-800 text-white"
-          valueClassName="text-6xl"
+          valueClassName="text-4xl"
           descriptionClassName="text-white"
         />
+
         <KPICard
           title="Partner HTE"
           value={kpiData.partnerHTE}
@@ -62,7 +114,7 @@ const DashboardA = () => {
         />
       </div>
 
-      {/* INTERN TABLE SECTION */}
+      {/* INTERN TABLE */}
       <InternA_ />
     </div>
   );

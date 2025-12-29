@@ -53,20 +53,21 @@ const DashboardC = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const [programRes, companyRes, kpiRes, adviserProgramRes] = await Promise.all([
-          fetch(`${API_BASE}/api/dashboard/programs`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/api/dashboard/companies`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/api/dashboard/kpis`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/api/dashboard/adviser-programs`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+        const [programRes, companyRes, kpiRes, adviserProgramRes] =
+          await Promise.all([
+            fetch(`${API_BASE}/api/dashboard/programs`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${API_BASE}/api/dashboard/companies`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${API_BASE}/api/dashboard/kpis`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${API_BASE}/api/dashboard/adviser-programs`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
 
         const programData = await programRes.json();
         const companyData = await companyRes.json();
@@ -74,7 +75,7 @@ const DashboardC = () => {
         const adviserPrograms = await adviserProgramRes.json();
 
         /* =========================
-           PROGRAM FILTERS (REAL DATA)
+           PROGRAM FILTERS
         ========================= */
         setProgramsFilter(['All', ...adviserPrograms]);
 
@@ -86,22 +87,44 @@ const DashboardC = () => {
             ? programData
             : programData.filter((p) => p.program === selectedProgram);
 
-        const totalProgramsCount = filteredPrograms.reduce((sum, p) => sum + p.count, 0);
-        const programPercentages = filteredPrograms.map((p) =>
-          totalProgramsCount ? Math.round((p.count / totalProgramsCount) * 100) : 0,
+        const filteredInternTotal = filteredPrograms.reduce(
+          (sum, p) => sum + p.count,
+          0
         );
 
-        const totalCompanyCount = companyData.reduce((sum, c) => sum + c.count, 0);
+        const totalProgramsCount = programData.length;
+
+        const programPercentages = filteredPrograms.map((p) =>
+          filteredInternTotal
+            ? Math.round((p.count / filteredInternTotal) * 100)
+            : 0
+        );
+
+        const totalCompanyCount = companyData.reduce(
+          (sum, c) => sum + c.count,
+          0
+        );
+
         const companyPercentages = companyData.map((c) =>
-          totalCompanyCount ? Math.round((c.count / totalCompanyCount) * 100) : 0,
+          totalCompanyCount
+            ? Math.round((c.count / totalCompanyCount) * 100)
+            : 0
         );
 
         /* =========================
-           KPI UPDATE (REAL DATA)
+           KPI UPDATE (FILTER AWARE)
         ========================= */
         setKpiData({
-          activeInterns: kpis.activeInterns,
-          activePrograms: kpis.activePrograms,
+          activeInterns:
+            selectedProgram === 'All'
+              ? kpis.activeInterns
+              : filteredInternTotal,
+
+          activePrograms:
+            selectedProgram === 'All'
+              ? totalProgramsCount
+              : selectedProgram,
+
           partnerHTE: kpis.partnerHTE,
         });
 

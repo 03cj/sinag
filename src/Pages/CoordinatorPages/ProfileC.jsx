@@ -9,7 +9,6 @@ const ProfileC = () => {
   const [profileData, setProfileData] = useState({
     fullName: '',
     email: '',
-    employeeId: '',
   });
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -43,9 +42,11 @@ const ProfileC = () => {
         const user = data.user;
 
         setProfileData({
-          fullName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : '',
+          fullName:
+            user.firstName && user.lastName
+              ? `${user.firstName} ${user.lastName}`
+              : '',
           email: user.email || '',
-          employeeId: user.employeeId || '',
         });
       } catch (err) {
         setError('Failed to load profile data. Please try again.');
@@ -70,9 +71,7 @@ const ProfileC = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          employeeId: profileData.employeeId,
-        }),
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
@@ -103,17 +102,21 @@ const ProfileC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/auth/change-password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
+      const response = await fetch(
+        'http://localhost:5000/api/auth/change-password',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        }
+      );
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || `Failed: ${response.status}`);
+      if (!response.ok)
+        throw new Error(data.message || `Failed: ${response.status}`);
 
       setSuccessMessage('Password changed successfully!');
       setCurrentPassword('');
@@ -136,9 +139,13 @@ const ProfileC = () => {
 
   return (
     <div className="flex justify-center items-start min-h-screen bg-gray-100 p-8">
-      <div className={`w-full bg-white shadow-xl ${BORDER_COLOR} border-t-8 rounded-lg overflow-hidden`}>
-        <div className={`text-center py-4 px-6 ${PRIMARY_COLOR_BG} text-white font-bold text-lg`}>
-          {profileData.fullName} ({profileData.employeeId})
+      <div
+        className={`w-full bg-white shadow-xl ${BORDER_COLOR} border-t-8 rounded-lg overflow-hidden`}
+      >
+        <div
+          className={`text-center py-4 px-6 ${PRIMARY_COLOR_BG} text-white font-bold text-lg`}
+        >
+          {profileData.fullName}
         </div>
 
         <div className="p-6">
@@ -155,11 +162,15 @@ const ProfileC = () => {
           )}
 
           {/* Personal Information Section */}
-          <div className={`space-y-4 p-4 mb-8 border ${BORDER_COLOR} rounded-md`}>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Personal Information</h2>
+          <div
+            className={`space-y-4 p-4 mb-8 border ${BORDER_COLOR} rounded-md`}
+          >
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Personal Information
+            </h2>
 
             <div className="space-y-4">
-              {['fullName', 'email', 'employeeId'].map((field) => (
+              {['fullName', 'email'].map((field) => (
                 <div key={field} className="flex items-center">
                   <label className="w-1/3 text-sm font-medium text-gray-700 capitalize">
                     {field.replace(/([A-Z])/g, ' $1')}
@@ -179,12 +190,26 @@ const ProfileC = () => {
 
           {/* Password Section */}
           <div className={`space-y-4 p-4 border ${BORDER_COLOR} rounded-md`}>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Account Settings</h2>
-            <h3 className="text-lg font-medium text-gray-700 mb-4">Change Password</h3>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Account Settings
+            </h2>
+            <h3 className="text-lg font-medium text-gray-700 mb-4">
+              Change Password
+            </h3>
 
             {[
-              { id: 'currentPassword', value: currentPassword, handler: setCurrentPassword, label: 'Current Password' },
-              { id: 'newPassword', value: newPassword, handler: setNewPassword, label: 'New Password' },
+              {
+                id: 'currentPassword',
+                value: currentPassword,
+                handler: setCurrentPassword,
+                label: 'Current Password',
+              },
+              {
+                id: 'newPassword',
+                value: newPassword,
+                handler: setNewPassword,
+                label: 'New Password',
+              },
               {
                 id: 'confirmNewPassword',
                 value: confirmNewPassword,
@@ -193,7 +218,9 @@ const ProfileC = () => {
               },
             ].map(({ id, value, handler, label }) => (
               <div key={id} className="flex items-center">
-                <label className="w-1/3 text-sm font-medium text-gray-700">{label}</label>
+                <label className="w-1/3 text-sm font-medium text-gray-700">
+                  {label}
+                </label>
                 <input
                   type="password"
                   value={value}
@@ -206,8 +233,11 @@ const ProfileC = () => {
           </div>
 
           {/* Certification */}
-          <div className={`mt-6 p-4 border-l-4 ${BORDER_COLOR} bg-gray-50 text-gray-600 italic text-sm`}>
-            I hereby certify that all the information provided are true and correct to the best of my knowledge.
+          <div
+            className={`mt-6 p-4 border-l-4 ${BORDER_COLOR} bg-gray-50 text-gray-600 italic text-sm`}
+          >
+            I hereby certify that all the information provided are true and
+            correct to the best of my knowledge.
           </div>
 
           <div className="mt-6 flex justify-end">

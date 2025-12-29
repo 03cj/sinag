@@ -32,7 +32,6 @@ exports.getAdviserPrograms = async (req, res, next) => {
 ========================= */
 exports.getPrograms = async (req, res, next) => {
   try {
-    // 1️⃣ Get adviser programs first
     const advisers = await User.findAll({
       where: { role: 'Adviser' },
       attributes: ['program'],
@@ -43,17 +42,17 @@ exports.getPrograms = async (req, res, next) => {
       .map((a) => a.program)
       .filter(Boolean);
 
-    // Adviser restriction (logged-in adviser)
     let whereCondition = {
       status: ['Pending', 'Endorsed', 'Accepted', 'Completed'],
       program: { [Op.in]: adviserPrograms },
     };
 
-    if (req.user.role === 'Adviser') {
-      const adviser = await User.findByPk(req.user.id);
-      if (adviser?.program) {
-        whereCondition.program = adviser.program;
+    // Adviser restriction
+    if (req.user.role === 'adviser') {
+      if (!req.user.program) {
+        return res.json([]);
       }
+      whereCondition.program = req.user.program;
     }
 
     const results = await Intern.findAll({
@@ -68,7 +67,7 @@ exports.getPrograms = async (req, res, next) => {
       results.map((r) => ({
         program: r.program,
         count: Number(r.count),
-      })),
+      }))
     );
   } catch (err) {
     next(err);
@@ -85,11 +84,11 @@ exports.getCompanies = async (req, res, next) => {
     };
 
     // Adviser restriction
-    if (req.user.role === 'Adviser') {
-      const adviser = await User.findByPk(req.user.id);
-      if (adviser?.program) {
-        whereCondition.program = adviser.program;
+    if (req.user.role === 'adviser') {
+      if (!req.user.program) {
+        return res.json([]);
       }
+      whereCondition.program = req.user.program;
     }
 
     const results = await Intern.findAll({
@@ -110,7 +109,7 @@ exports.getCompanies = async (req, res, next) => {
       results.map((r) => ({
         company: r['Company.name'] || 'Unassigned',
         count: Number(r.count),
-      })),
+      }))
     );
   } catch (err) {
     next(err);
@@ -119,6 +118,7 @@ exports.getCompanies = async (req, res, next) => {
 
 /* =========================
    KPI COUNTS
+   (Coordinator + Adviser)
 ========================= */
 exports.getKpis = async (req, res, next) => {
   try {
@@ -127,23 +127,22 @@ exports.getKpis = async (req, res, next) => {
     };
 
     // Adviser restriction
-    if (req.user.role === 'Adviser') {
-      const adviser = await User.findByPk(req.user.id);
-      if (adviser?.program) {
-        internWhere.program = adviser.program;
-      }
+    if (req.user.role === 'adviser' && req.user.program) {
+      internWhere.program = req.user.program;
     }
 
     const [activeInterns, activePrograms, partnerHTE] = await Promise.all([
       // Active interns
       Intern.count({ where: internWhere }),
 
-      // Active programs = advisers count
+      // DISTINCT programs
       User.count({
         where: {
           role: 'Adviser',
           program: { [Op.ne]: null },
         },
+        distinct: true,
+        col: 'program',
       }),
 
       // Partner HTE
@@ -153,6 +152,43 @@ exports.getKpis = async (req, res, next) => {
     res.json({
       activeInterns,
       activePrograms,
+      partnerHTE,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* =========================
+   ADVISER-SPECIFIC KPI
+   (DashboardA)
+========================= */
+exports.getAdviserKpis = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'adviser') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    if (!req.user.program) {
+      return res.json({
+        activeInterns: 0,
+        activeProgram: null,
+        partnerHTE: 0,
+      });
+    }
+
+    const activeInterns = await Intern.count({
+      where: {
+        program: req.user.program,
+        status: ['Pending', 'Endorsed', 'Accepted'],
+      },
+    });
+
+    const partnerHTE = await Company.count();
+
+    res.json({
+      activeInterns,
+      activeProgram: req.user.program,
       partnerHTE,
     });
   } catch (err) {

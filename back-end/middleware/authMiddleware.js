@@ -76,3 +76,4 @@ function authMiddleware(allowedRoles = []) {
 }
 
 module.exports = authMiddleware;
+ 

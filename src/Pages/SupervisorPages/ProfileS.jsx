@@ -25,23 +25,31 @@ const ProfileS = () => {
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // FETCH COMPANY DATA
+  /* =========================
+     FETCH COMPANY PROFILE
+  ========================= */
   useEffect(() => {
     const fetchCompanyData = async () => {
+      setLoading(true);
+      setError(null);
+      setSuccessMessage(null);
+
       try {
-        setLoading(true);
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`http://localhost:5000/api/auth/company/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          'http://localhost:5000/api/auth/company/profile',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.message);
 
         setProfileData({
           supervisorName: data.supervisorName || '',
-          companyName: data.companyName || '',
+          companyName: data.name || data.companyName || '',
           natureOfBusiness: data.natureOfBusiness || '',
           email: data.email || '',
         });
@@ -55,53 +63,71 @@ const ProfileS = () => {
     fetchCompanyData();
   }, []);
 
-  // SAVE PROFILE
+  /* =========================
+     SAVE PROFILE
+  ========================= */
   const handleSaveProfile = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:5000/api/auth/company/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(profileData),
-      });
+      const response = await fetch(
+        'http://localhost:5000/api/auth/company/profile',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            supervisorName: profileData.supervisorName,
+            companyName: profileData.companyName,
+            natureOfBusiness: profileData.natureOfBusiness,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
 
       setSuccessMessage('Profile updated successfully!');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to save profile.');
     } finally {
       setLoading(false);
     }
   };
 
-  // CHANGE PASSWORD
+  /* =========================
+     CHANGE PASSWORD
+  ========================= */
   const handleChangePassword = async () => {
     if (newPassword !== confirmNewPassword) {
-      return setError('New password and confirm password do not match.');
+      setError('New password and confirm password do not match.');
+      return;
     }
 
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:5000/api/auth/change-password`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      });
+      const response = await fetch(
+        'http://localhost:5000/api/auth/change-password',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        }
+      );
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
@@ -111,7 +137,7 @@ const ProfileS = () => {
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to change password.');
     } finally {
       setLoading(false);
     }
@@ -133,48 +159,70 @@ const ProfileS = () => {
         </div>
 
         <div className="p-6">
-          {/* Alerts */}
-          {error && <div className="mb-4 p-3 border border-red-500 bg-red-100 text-red-700">{error}</div>}
+          {error && (
+            <div className="mb-4 p-3 border border-red-500 bg-red-100 text-red-700">
+              {error}
+            </div>
+          )}
+
           {successMessage && (
             <div className="mb-4 p-3 border border-green-500 bg-green-100 text-green-700">
               {successMessage}
             </div>
           )}
 
-          {/* Company Info */}
+          {/* Company Information */}
           <div className={`p-4 mb-8 border ${BORDER_COLOR} rounded-md`}>
             <h2 className="text-xl font-semibold mb-4">Company Information</h2>
 
-            {['supervisorName', 'companyName', 'natureOfBusiness', 'email'].map((field) => (
-              <div key={field} className="flex items-center mb-3">
-                <label className="w-1/3 text-sm font-medium text-gray-700 capitalize">
-                  {field.replace(/([A-Z])/g, ' $1')}
-                </label>
-                <input
-                  type="text"
-                  name={field}
-                  value={profileData[field]}
-                  onChange={handleProfileChange}
-                  disabled={loading || field === 'email'}
-                  className={`block w-2/3 px-3 py-2 border-2 ${BORDER_COLOR} rounded-md shadow-sm ${INPUT_FOCUS_RING} ${
-                    field === 'email' ? 'bg-gray-200 cursor-not-allowed' : ''
-                  }`}
-                />
-              </div>
-            ))}
+            {['supervisorName', 'companyName', 'natureOfBusiness', 'email'].map(
+              (field) => (
+                <div key={field} className="flex items-center mb-3">
+                  <label className="w-1/3 text-sm font-medium text-gray-700 capitalize">
+                    {field.replace(/([A-Z])/g, ' $1')}
+                  </label>
+                  <input
+                    type="text"
+                    name={field}
+                    value={profileData[field]}
+                    onChange={handleProfileChange}
+                    disabled={loading || field === 'email'}
+                    className={`block w-2/3 px-3 py-2 border-2 ${BORDER_COLOR} rounded-md shadow-sm ${INPUT_FOCUS_RING} ${
+                      field === 'email'
+                        ? 'bg-gray-200 cursor-not-allowed'
+                        : ''
+                    }`}
+                  />
+                </div>
+              )
+            )}
           </div>
 
-          {/* Password Section */}
+          {/* Password */}
           <div className={`p-4 border ${BORDER_COLOR} rounded-md`}>
             <h2 className="text-xl font-semibold mb-4">Update Password</h2>
 
-            {[  
-              { label: 'Current Password', value: currentPassword, setter: setCurrentPassword },
-              { label: 'New Password', value: newPassword, setter: setNewPassword },
-              { label: 'Confirm New Password', value: confirmNewPassword, setter: setConfirmNewPassword }
+            {[
+              {
+                label: 'Current Password',
+                value: currentPassword,
+                setter: setCurrentPassword,
+              },
+              {
+                label: 'New Password',
+                value: newPassword,
+                setter: setNewPassword,
+              },
+              {
+                label: 'Confirm New Password',
+                value: confirmNewPassword,
+                setter: setConfirmNewPassword,
+              },
             ].map(({ label, value, setter }) => (
               <div key={label} className="mb-3 flex items-center">
-                <label className="w-1/3 text-sm font-medium text-gray-700">{label}</label>
+                <label className="w-1/3 text-sm font-medium text-gray-700">
+                  {label}
+                </label>
                 <input
                   type="password"
                   value={value}
@@ -191,7 +239,7 @@ const ProfileS = () => {
               onClick={handleCombinedSave}
               disabled={loading}
               className={`px-6 py-2 text-white font-bold rounded-md shadow-lg ${PRIMARY_COLOR_BG} ${
-                loading && 'opacity-50 cursor-not-allowed'
+                loading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
               {loading ? 'Saving...' : 'Save'}

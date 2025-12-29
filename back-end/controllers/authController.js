@@ -6,6 +6,7 @@ const { literal } = require('sequelize');
 const User = require('../models/user');
 const Intern = require('../models/interns');
 const Company = require('../models/company');
+const InternDocs = require('../models/interndocs');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -16,7 +17,7 @@ const signToken = (payload) => {
   return jwt.sign(
     {
       ...payload,
-      role: payload.role.toLowerCase(), // normalize role
+      role: payload.role.toLowerCase(),
     },
     JWT_SECRET,
     { expiresIn: '1d' }
@@ -38,9 +39,7 @@ exports.signup = async (req, res, next) => {
       where: { email: email.toLowerCase() },
     });
 
-    if (existing) {
-      return res.status(409).json({ message: 'User already exists' });
-    }
+    if (existing) return res.status(409).json({ message: 'User already exists' });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -57,6 +56,7 @@ exports.signup = async (req, res, next) => {
       id: user.id,
       email: user.email,
       role: user.role,
+      program: user.program || null,
       type: 'user',
     });
 
@@ -73,45 +73,38 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // USER LOGIN
     const user = await User.findOne({
       where: { email: email.toLowerCase() },
     });
 
     if (user) {
       const match = await bcrypt.compare(password, user.passwordHash);
-      if (!match) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
+      if (!match) return res.status(401).json({ message: 'Invalid credentials' });
 
       const token = signToken({
         id: user.id,
         email: user.email,
         role: user.role,
+        program: user.program || null,
         type: 'user',
       });
 
       return res.json({ token });
     }
 
-    // COMPANY / HTE LOGIN
     const company = await Company.findOne({
       where: { email: email.toLowerCase() },
     });
 
-    if (!company) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    if (!company) return res.status(401).json({ message: 'Invalid credentials' });
 
     const match = await bcrypt.compare(password, company.password);
-    if (!match) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    if (!match) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = signToken({
       id: company.id,
       email: company.email,
-      role: 'supervisor', // map HTE → supervisor
+      role: 'supervisor',
       type: 'company',
     });
 
@@ -136,9 +129,7 @@ exports.addCoordinator = async (req, res, next) => {
       where: { email: email.toLowerCase() },
     });
 
-    if (existing) {
-      return res.status(409).json({ message: 'Email already exists' });
-    }
+    if (existing) return res.status(409).json({ message: 'Email already exists' });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -205,9 +196,7 @@ exports.addAdviser = async (req, res, next) => {
       where: { email: email.toLowerCase() },
     });
 
-    if (existing) {
-      return res.status(409).json({ message: 'Email already exists' });
-    }
+    if (existing) return res.status(409).json({ message: 'Email already exists' });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -278,9 +267,7 @@ exports.addIntern = async (req, res, next) => {
       where: { email: email.toLowerCase() },
     });
 
-    if (existingUser) {
-      return res.status(409).json({ message: 'Email already exists' });
-    }
+    if (existingUser) return res.status(409).json({ message: 'Email already exists' });
 
     const passwordHash = await bcrypt.hash(initialPassword, 10);
 
@@ -307,12 +294,51 @@ exports.addIntern = async (req, res, next) => {
   }
 };
 
+exports.updateIntern = async (req, res, next) => {
+  try {
+    const intern = await Intern.findByPk(req.params.id, { include: User });
+    if (!intern) return res.status(404).json({ message: 'Intern not found' });
+
+    if (req.body.user) {
+      await intern.User.update(req.body.user);
+    }
+
+    await intern.update(req.body.intern || {});
+    res.json({ message: 'Intern updated successfully', intern });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteIntern = async (req, res, next) => {
+  try {
+    const intern = await Intern.findByPk(req.params.id);
+    if (!intern) return res.status(404).json({ message: 'Intern not found' });
+
+    await InternDocs.destroy({ where: { user_id: intern.user_id } });
+    await intern.destroy();
+    await User.destroy({ where: { id: intern.user_id } });
+
+    res.json({ message: 'Intern deleted successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getInterns = async (req, res, next) => {
   try {
     const interns = await Intern.findAll({
-      include: [{ model: User }, { model: Company, required: false }],
+      include: [
+        {
+          model: User,
+          attributes: ['studentId', 'firstName', 'lastName', 'mi', 'email', 'program'],
+          include: [{ model: InternDocs, required: false }],
+        },
+        { model: Company, required: false },
+      ],
       order: [['created_at', 'DESC']],
     });
+
     res.json(interns);
   } catch (err) {
     next(err);
@@ -334,6 +360,10 @@ exports.addCompany = async (req, res, next) => {
       moaEnd,
       initialPassword,
     } = req.body;
+
+    if (!name || !email || !initialPassword) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
 
     const passwordHash = await bcrypt.hash(initialPassword, 10);
 
@@ -369,9 +399,7 @@ exports.getHTE = async (req, res, next) => {
 exports.updateCompany = async (req, res, next) => {
   try {
     const company = await Company.findByPk(req.params.id);
-    if (!company) {
-      return res.status(404).json({ message: 'HTE not found' });
-    }
+    if (!company) return res.status(404).json({ message: 'HTE not found' });
 
     await company.update({
       ...req.body,
@@ -388,9 +416,7 @@ exports.updateCompany = async (req, res, next) => {
 exports.deleteHTE = async (req, res, next) => {
   try {
     const company = await Company.findByPk(req.params.id);
-    if (!company) {
-      return res.status(404).json({ message: 'HTE not found' });
-    }
+    if (!company) return res.status(404).json({ message: 'HTE not found' });
 
     await company.destroy();
     res.json({ message: 'HTE deleted successfully' });
@@ -407,7 +433,10 @@ exports.me = async (req, res, next) => {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['passwordHash'] },
     });
-    res.json(user);
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({ user });
   } catch (err) {
     next(err);
   }
@@ -429,9 +458,7 @@ exports.changePassword = async (req, res, next) => {
     const user = await User.findByPk(req.user.id);
     const match = await bcrypt.compare(currentPassword, user.passwordHash);
 
-    if (!match) {
-      return res.status(401).json({ message: 'Wrong current password' });
-    }
+    if (!match) return res.status(401).json({ message: 'Wrong current password' });
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
     await user.save();
