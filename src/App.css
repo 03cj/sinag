@@ -25,8 +25,6 @@ body,
    SCREEN VIEW — NORMAL WEB MODE
    --------------------------------------------
    NOTHING should look like a document here!
-   Make sure no .print-container has borders,
-   shadows, margins, or fixed widths on screen.
    ============================================ */
 
 .print-container {
@@ -39,7 +37,7 @@ body,
   background: transparent !important;
 }
 
-/* Optional – disable centering utility */
+/* Disable centering utilities */
 .mx-auto,
 .max-w-screen-lg,
 .max-w-4xl,
@@ -53,13 +51,12 @@ body,
    ============================================ */
 
 @media print {
-  /* Set LONG BOND PAPER size */
+  /* Long Bond Paper */
   @page {
     size: 8.5in 13in;
     margin: 1in;
   }
 
-  /* Ensure print is clean */
   html,
   body {
     background: white !important;
@@ -68,7 +65,7 @@ body,
     overflow: visible !important;
   }
 
-  /* Only this container becomes a long paper */
+  /* Only this container becomes a paper */
   .print-container {
     background: white !important;
     width: 8.5in !important;
@@ -79,11 +76,37 @@ body,
     box-shadow: none !important;
   }
 
-  /* Hide UI elements that shouldn’t print */
+  /* Hide UI elements */
   .no-print,
   button,
   nav,
   footer {
     display: none !important;
   }
+}
+
+/* ============================================
+   ICON TOOLTIP — STATUS COLUMN (HOVER ONLY)
+   ============================================ */
+
+.tooltip {
+  position: absolute;
+  top: -32px;                 /* tooltip above icon */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #111827;  /* dark gray */
+  color: #ffffff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 9999;
+}
+
+/* Show tooltip only when hovering icon */
+.group:hover .tooltip {
+  opacity: 1;
 }

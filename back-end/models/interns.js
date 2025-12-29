@@ -40,15 +40,14 @@ Intern.init(
     },
 
     status: {
-      type: DataTypes.ENUM(
-        'Pending',
-        'Endorsed',
-        'Accepted',
-        'Completed',
-        'Rejected',
-      ),
-      defaultValue: 'Pending',
-    },
+  type: DataTypes.ENUM(
+    'Pending',
+    'Approved',
+    'Declined'
+  ),
+  defaultValue: 'Pending',
+},
+
 
     start_date: DataTypes.DATEONLY,
     end_date: DataTypes.DATEONLY,

@@ -80,6 +80,11 @@ router.put(
   authMiddleware(['adviser', 'coordinator']),
   authController.updateIntern
 );
+router.put(
+  '/interns/:id/status',
+  authMiddleware(['adviser', 'coordinator']),
+  authController.updateInternStatus
+);
 
 router.delete(
   '/interns/:id',

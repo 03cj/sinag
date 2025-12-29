@@ -20,7 +20,22 @@ const getAdviserProgramFromToken = () => {
   }
 };
 
-const InternAinDashboardA = () => {
+/* =========================
+   STATUS STYLE (MATCH InternA)
+========================= */
+const getStatusStyle = (status) => {
+  switch (status) {
+    case 'Approved':
+      return 'bg-green-600 text-white';
+    case 'Disapproved':
+      return 'bg-red-600 text-white';
+    case 'Pending':
+    default:
+      return 'bg-yellow-500 text-white';
+  }
+};
+
+const InternA_in_dashboardA = () => {
   const [interns, setInterns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -85,7 +100,7 @@ const InternAinDashboardA = () => {
           email: intern.User?.email ?? 'N/A',
           company: intern.Company?.name ?? 'NA',
           supervisor: intern.Company?.supervisorName ?? 'NA',
-          status: intern.status ?? 'NA',
+          status: intern.status ?? 'Pending',
         }));
 
         setInterns(normalized);
@@ -136,43 +151,43 @@ const InternAinDashboardA = () => {
      RENDER
   ========================= */
   return (
-    <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-300">
+    <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
+      <table className="min-w-full border-collapse divide-y divide-gray-300">
         <thead className="bg-red-800 text-white">
           <tr>
-            <th onClick={() => handleSort('studNo')} className="px-6 py-3 cursor-pointer">
-              Stud. No. {renderArrow('studNo')}
+            <th onClick={() => handleSort('studNo')} className="px-6 py-3 cursor-pointer text-xs font-bold uppercase">
+              Stud No {renderArrow('studNo')}
             </th>
-            <th onClick={() => handleSort('lastname')} className="px-6 py-3 cursor-pointer">
+            <th onClick={() => handleSort('lastname')} className="px-6 py-3 cursor-pointer text-xs font-bold uppercase">
               Lastname {renderArrow('lastname')}
             </th>
-            <th onClick={() => handleSort('firstname')} className="px-6 py-3 cursor-pointer">
+            <th onClick={() => handleSort('firstname')} className="px-6 py-3 cursor-pointer text-xs font-bold uppercase">
               Firstname {renderArrow('firstname')}
             </th>
-            <th className="px-6 py-3">MI.</th>
-            <th className="px-6 py-3">Email</th>
-            <th className="px-6 py-3">Company</th>
-            <th className="px-6 py-3">Supervisor</th>
-            <th className="px-6 py-3">Status</th>
+            <th className="px-6 py-3 text-xs font-bold uppercase">MI</th>
+            <th className="px-6 py-3 text-xs font-bold uppercase">Email</th>
+            <th className="px-6 py-3 text-xs font-bold uppercase">Company</th>
+            <th className="px-6 py-3 text-xs font-bold uppercase">Supervisor</th>
+            <th className="px-6 py-3 text-xs font-bold uppercase">Status</th>
           </tr>
         </thead>
 
-        <tbody>
+        <tbody className="divide-y divide-gray-200 text-sm">
           {loading ? (
             <tr>
-              <td colSpan="8" className="text-center p-4 text-gray-500">
+              <td colSpan="8" className="text-center py-4 text-gray-500">
                 Loading interns...
               </td>
             </tr>
           ) : error ? (
             <tr>
-              <td colSpan="8" className="text-center p-4 text-red-500">
+              <td colSpan="8" className="text-center py-4 text-red-500">
                 {error}
               </td>
             </tr>
           ) : processedInterns.length === 0 ? (
             <tr>
-              <td colSpan="8" className="text-center p-4 text-gray-500">
+              <td colSpan="8" className="text-center py-4 text-gray-500">
                 No interns found for your program.
               </td>
             </tr>
@@ -186,7 +201,13 @@ const InternAinDashboardA = () => {
                 <td className="px-6 py-4">{i.email}</td>
                 <td className="px-6 py-4">{i.company}</td>
                 <td className="px-6 py-4">{i.supervisor}</td>
-                <td className="px-6 py-4">{i.status}</td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${getStatusStyle(i.status)}`}
+                  >
+                    {i.status}
+                  </span>
+                </td>
               </tr>
             ))
           )}
@@ -196,4 +217,4 @@ const InternAinDashboardA = () => {
   );
 };
 
-export default InternAinDashboardA;
+export default InternA_in_dashboardA;

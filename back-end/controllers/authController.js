@@ -249,15 +249,7 @@ exports.deleteAdviser = async (req, res, next) => {
 ========================= */
 exports.addIntern = async (req, res, next) => {
   try {
-    const {
-      firstName,
-      lastName,
-      mi,
-      email,
-      studentId,
-      program,
-      initialPassword,
-    } = req.body;
+    const { firstName, lastName, mi, email, studentId, program, initialPassword } = req.body;
 
     if (!firstName || !lastName || !email || !studentId || !program || !initialPassword) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -294,17 +286,33 @@ exports.addIntern = async (req, res, next) => {
   }
 };
 
+/* =========================
+   UPDATE INTERN (✅ FIXED)
+========================= */
 exports.updateIntern = async (req, res, next) => {
   try {
     const intern = await Intern.findByPk(req.params.id, { include: User });
     if (!intern) return res.status(404).json({ message: 'Intern not found' });
 
-    if (req.body.user) {
-      await intern.User.update(req.body.user);
-    }
+    const { firstName, lastName, mi, email, studentId, program } = req.body;
 
-    await intern.update(req.body.intern || {});
-    res.json({ message: 'Intern updated successfully', intern });
+    // ✅ Update USER fields
+    await intern.User.update({
+      firstName,
+      lastName,
+      mi,
+      email: email?.toLowerCase(),
+      studentId,
+      program,
+    });
+
+    // ✅ Update INTERN fields if needed
+    await intern.update({ program });
+
+    res.json({
+      message: 'Intern updated successfully',
+      intern,
+    });
   } catch (err) {
     next(err);
   }
@@ -344,22 +352,53 @@ exports.getInterns = async (req, res, next) => {
     next(err);
   }
 };
+/* =========================
+   UPDATE INTERN STATUS
+========================= */
+exports.updateInternStatus = async (req, res, next) => {
+  try {
+    const { status, remarks } = req.body;
+
+    // ✅ Match ENUM exactly
+    const allowedStatus = [
+      'Pending',
+      'Approved',
+      'Declined',
+    ];
+
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({
+        message: 'Invalid status value',
+      });
+    }
+
+    const intern = await Intern.findByPk(req.params.id);
+
+    if (!intern) {
+      return res.status(404).json({ message: 'Intern not found' });
+    }
+
+    intern.status = status;
+
+    if (remarks !== undefined) {
+      intern.remarks = remarks;
+    }
+
+    await intern.save();
+
+    res.json(intern);
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 /* =========================
    COMPANY / HTE
 ========================= */
 exports.addCompany = async (req, res, next) => {
   try {
-    const {
-      name,
-      email,
-      address,
-      natureOfBusiness,
-      supervisorName,
-      moaStart,
-      moaEnd,
-      initialPassword,
-    } = req.body;
+    const { name, email, address, natureOfBusiness, supervisorName, moaStart, moaEnd, initialPassword } = req.body;
 
     if (!name || !email || !initialPassword) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -434,13 +473,31 @@ exports.me = async (req, res, next) => {
       attributes: { exclude: ['passwordHash'] },
     });
 
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    res.json({ user });
+    const normalizedUser = {
+      id: user.id,
+      email: user.email,
+      role: user.role.toLowerCase(),
+      program: user.program,
+      firstName: user.firstName, // ✅ REQUIRED
+      lastName: user.lastName,   // ✅ REQUIRED
+      mi: user.mi || '',         // ✅ OPTIONAL
+    };
+
+    // ✅ SUPPORT BOTH ADD INTERN + PROFILE
+    res.json({
+      ...normalizedUser,   // flat
+      user: normalizedUser // nested
+    });
   } catch (err) {
     next(err);
   }
 };
+
+
 
 exports.updateProfile = async (req, res, next) => {
   try {

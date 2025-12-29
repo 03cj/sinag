@@ -32,7 +32,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
 
         const user = await res.json();
 
-        if (user.role !== 'Adviser') {
+if (user.role?.toLowerCase() !== 'adviser') {
           setError('Only advisers can add interns.');
           return;
         }
