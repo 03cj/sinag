@@ -43,8 +43,8 @@ exports.getPrograms = async (req, res, next) => {
       .filter(Boolean);
 
     let whereCondition = {
-      status: ['Pending', 'Endorsed', 'Accepted', 'Completed'],
-      program: { [Op.in]: adviserPrograms },
+status: ['Pending', 'Approved', 'Declined'],      
+program: { [Op.in]: adviserPrograms },
     };
 
     // Adviser restriction
@@ -80,7 +80,7 @@ exports.getPrograms = async (req, res, next) => {
 exports.getCompanies = async (req, res, next) => {
   try {
     let whereCondition = {
-      status: ['Pending', 'Endorsed', 'Accepted', 'Completed'],
+      status: ['Pending', 'Approved', 'Declined'],
     };
 
     // Adviser restriction
@@ -123,7 +123,7 @@ exports.getCompanies = async (req, res, next) => {
 exports.getKpis = async (req, res, next) => {
   try {
     let internWhere = {
-      status: ['Pending', 'Endorsed', 'Accepted'],
+      status: ['Pending', 'Approved', 'Declined'],
     };
 
     // Adviser restriction
@@ -180,7 +180,7 @@ exports.getAdviserKpis = async (req, res, next) => {
     const activeInterns = await Intern.count({
       where: {
         program: req.user.program,
-        status: ['Pending', 'Endorsed', 'Accepted'],
+        status: ['Pending', 'Approved', 'Declined'],
       },
     });
 

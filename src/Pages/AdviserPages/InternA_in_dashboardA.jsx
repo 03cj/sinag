@@ -93,15 +93,16 @@ const InternA_in_dashboardA = () => {
            NORMALIZE DATA
         ========================= */
         const normalized = filtered.map((intern) => ({
-          studNo: intern.User?.studentId ?? 'N/A',
-          lastname: intern.User?.lastName ?? 'N/A',
-          firstname: intern.User?.firstName ?? 'N/A',
-          mi: intern.User?.mi ?? '',
-          email: intern.User?.email ?? 'N/A',
-          company: intern.Company?.name ?? 'NA',
-          supervisor: intern.Company?.supervisorName ?? 'NA',
-          status: intern.status ?? 'Pending',
-        }));
+  studNo: intern.User?.studentId ?? 'N/A',
+  lastname: intern.User?.lastName ?? 'N/A',
+  firstname: intern.User?.firstName ?? 'N/A',
+  mi: intern.User?.mi ?? '',
+  email: intern.User?.email ?? 'N/A',
+  company: intern.Company?.name ?? 'N/A',
+  companyEmail: intern.Company?.email ?? 'N/A', 
+  supervisor: intern.Company?.supervisorName ?? 'NA',
+}));
+
 
         setInterns(normalized);
       } catch (err) {
@@ -168,7 +169,7 @@ const InternA_in_dashboardA = () => {
             <th className="px-6 py-3 text-xs font-bold uppercase">Email</th>
             <th className="px-6 py-3 text-xs font-bold uppercase">Company</th>
             <th className="px-6 py-3 text-xs font-bold uppercase">Supervisor</th>
-            <th className="px-6 py-3 text-xs font-bold uppercase">Status</th>
+            <th className="px-6 py-3 text-xs font-bold uppercase">Company Email</th>
           </tr>
         </thead>
 
@@ -201,13 +202,8 @@ const InternA_in_dashboardA = () => {
                 <td className="px-6 py-4">{i.email}</td>
                 <td className="px-6 py-4">{i.company}</td>
                 <td className="px-6 py-4">{i.supervisor}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${getStatusStyle(i.status)}`}
-                  >
-                    {i.status}
-                  </span>
-                </td>
+                <td className="px-6 py-4">{i.companyEmail}</td>
+
               </tr>
             ))
           )}

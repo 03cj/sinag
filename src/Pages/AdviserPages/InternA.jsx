@@ -60,7 +60,7 @@ const StatusIcons = ({ intern, onApprove, onPending, onDecline }) => {
         title="Declined"
         onClick={() => onDecline(intern)}
         className={`${
-          intern.status === 'Disapproved'
+          intern.status === 'Declined'
             ? 'text-red-600'
             : 'text-gray-400 hover:text-red-600'
         }`}
@@ -185,20 +185,24 @@ const InternA = () => {
 
     if (!res.ok) throw new Error('Approval failed');
 
-    const updatedIntern = await res.json();
+    // ✅ USE THE INTERN FROM TABLE (HAS NAME)
+    setInternForEndorsement({
+      ...intern,
+      status: 'Approved',
+    });
 
+    // update table UI
     setInterns((prev) =>
       prev.map((i) =>
-        i.id === updatedIntern.id ? updatedIntern : i
+        i.id === intern.id ? { ...i, status: 'Approved' } : i
       )
     );
-
-    setInternForEndorsement(updatedIntern);
   } catch (err) {
     console.error(err);
     alert('Failed to approve intern');
   }
 };
+
 
 
   const handlePending = async (intern) => {
@@ -217,11 +221,9 @@ const InternA = () => {
 
     if (!res.ok) throw new Error('Failed to update status');
 
-    const updatedIntern = await res.json();
-
     setInterns((prev) =>
       prev.map((i) =>
-        i.id === updatedIntern.id ? updatedIntern : i
+        i.id === intern.id ? { ...i, status: 'Pending' } : i
       )
     );
   } catch (err) {
@@ -229,6 +231,7 @@ const InternA = () => {
     alert('Failed to update status');
   }
 };
+
 
 
   const handleDecline = (intern) => {
@@ -286,7 +289,7 @@ const InternA = () => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          status: 'Disapproved',
+          status: 'Declined',
           remarks: declineReason,
         }),
       }
@@ -294,12 +297,11 @@ const InternA = () => {
 
     if (!res.ok) throw new Error('Decline failed');
 
-    const updatedIntern = await res.json();
-
-    // ✅ update UI using DB response
     setInterns((prev) =>
       prev.map((i) =>
-        i.id === updatedIntern.id ? updatedIntern : i
+        i.id === internToDecline.id
+          ? { ...i, status: 'Declined', remarks: declineReason }
+          : i
       )
     );
 

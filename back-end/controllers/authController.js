@@ -359,38 +359,68 @@ exports.updateInternStatus = async (req, res, next) => {
   try {
     const { status, remarks } = req.body;
 
-    // ✅ Match ENUM exactly
-    const allowedStatus = [
-      'Pending',
-      'Approved',
-      'Declined',
-    ];
-
-    if (!allowedStatus.includes(status)) {
-      return res.status(400).json({
-        message: 'Invalid status value',
-      });
-    }
+    const allowedStatus = ['Pending', 'Approved', 'Declined'];
 
     const intern = await Intern.findByPk(req.params.id);
-
     if (!intern) {
       return res.status(404).json({ message: 'Intern not found' });
     }
 
-    intern.status = status;
+    // 🔒 DO NOT TOUCH STATUS IF NOT PROVIDED
+    if (typeof status !== 'undefined') {
+      if (!allowedStatus.includes(status)) {
+        return res.status(400).json({ message: 'Invalid status value' });
+      }
+      intern.status = status;
+    }
 
-    if (remarks !== undefined) {
+    // 🔒 remarks can be updated independently
+    if (typeof remarks !== 'undefined') {
       intern.remarks = remarks;
     }
 
     await intern.save();
 
-    res.json(intern);
+    return res.json({
+      id: intern.id,
+      status: intern.status,
+      remarks: intern.remarks,
+    });
+  } catch (err) {
+    console.error('updateInternStatus error:', err);
+    next(err);
+  }
+};
+
+exports.assignHTE = async (req, res, next) => {
+  try {
+    const { companyId, startDate } = req.body;
+
+    if (!companyId || !startDate) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const intern = await Intern.findByPk(req.params.id);
+    if (!intern) {
+      return res.status(404).json({ message: 'Intern not found' });
+    }
+
+    intern.company_id = companyId;
+    intern.start_date = startDate;
+    intern.status = 'Approved';
+
+    await intern.save();
+
+    res.json({
+      message: 'HTE assigned successfully',
+      intern,
+    });
   } catch (err) {
     next(err);
   }
 };
+
+
 
 
 /* =========================

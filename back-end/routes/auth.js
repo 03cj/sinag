@@ -85,6 +85,11 @@ router.put(
   authMiddleware(['adviser', 'coordinator']),
   authController.updateInternStatus
 );
+router.put(
+  '/interns/:id/assign-hte',
+  authMiddleware(['adviser', 'coordinator']),
+  authController.assignHTE
+);
 
 router.delete(
   '/interns/:id',

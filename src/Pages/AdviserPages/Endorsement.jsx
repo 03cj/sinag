@@ -1,169 +1,230 @@
 // Endorsement.jsx
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import { useRef, useState } from 'react';
-import EndorsementLetter from '../../Forms/endorsementLetter';
+import { useEffect, useState } from 'react';
 
 const Endorsement = ({ intern, onClose }) => {
+  /* =========================
+     STATE
+  ========================= */
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+
   const [companyName, setCompanyName] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
   const [hrName, setHrName] = useState('');
   const [position, setPosition] = useState('');
   const [startDate, setStartDate] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [letterData, setLetterData] = useState(null);
 
-  const printRef = useRef();
+  if (!intern) return null;
 
-  const handleGeneratePDF = async () => {
-    const element = printRef.current;
+  /* =========================
+     INTERN NAME
+  ========================= */
+  const internFullName =
+    intern?.firstname && intern?.lastname
+      ? `${intern.firstname} ${intern.lastname}`
+      : intern?.User?.firstName && intern?.User?.lastName
+      ? `${intern.User.firstName} ${intern.User.lastName}`
+      : 'Selected Intern';
 
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-    });
+  /* =========================
+     FETCH COMPANIES (HTE)
+  ========================= */
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/HTE', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
 
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+        if (!res.ok) throw new Error('Failed to fetch companies');
 
-    pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeight);
+        const data = await res.json();
+        setCompanies(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-    const pdfBlob = pdf.output('blob');
-    const fileName = `Endorsement_Letter_${intern.firstname}_${intern.lastname}.pdf`;
+    fetchCompanies();
+  }, []);
 
-    const formData = new FormData();
-    formData.append('file', pdfBlob, fileName);
-    formData.append('uploadedatabasey', `${intern.firstname} ${intern.lastname}`);
+  /* =========================
+     HANDLE COMPANY SELECT
+  ========================= */
+  const handleCompanyChange = (e) => {
+    const companyId = e.target.value;
+    setSelectedCompanyId(companyId);
 
-    const response = await fetch('http://localhost:5001/api/documents/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    const selected = companies.find((c) => String(c.id) === companyId);
 
-    response.ok ? alert('🎉 PDF successfully saved to the Library!') : alert('❌ Error saving PDF. Please try again.');
+    if (selected) {
+      setCompanyName(selected.name || '');
+      setCompanyAddress(selected.address || '');
+      setHrName(selected.supervisorName || '');
+    }
   };
 
-  const handleSubmit = (e) => {
+  /* =========================
+     SAVE TO DB (NO PDF)
+  ========================= */
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!companyName || !companyAddress || !hrName || !position || !startDate) {
+    if (!selectedCompanyId || !position || !startDate) {
       setErrorMessage('⚠ Please fill out all required fields.');
       return;
     }
 
-    setLetterData({
-      intern,
-      companyDetails: { companyName, companyAddress, position, startDate },
-      hrDetails: { hrName },
-    });
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/auth/interns/${intern.id}/assign-hte`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            companyId: selectedCompanyId,
+            position,
+            startDate,
+          }),
+        }
+      );
 
-    setErrorMessage('');
+      if (!res.ok) throw new Error('Failed to save');
+
+      alert('✅ HTE successfully assigned');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setErrorMessage('❌ Failed to save endorsement');
+    }
   };
 
   return (
-    <>
-      {!letterData ? (
-        // FORM MODAL
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-xl border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Endorsement Letter Setup</h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-xl">
+        <h2 className="text-2xl font-bold mb-1">
+          Assign Host Training Establishment (HTE)
+        </h2>
 
-            <p className="text-sm text-gray-600 mb-6">
-              Enter the company details to generate an endorsement letter for{' '}
-              <span className="font-semibold text-red-700">
-                {intern.firstname} {intern.lastname}
-              </span>
-              .
-            </p>
+        <p className="text-sm text-gray-600 mb-6">
+          Placement for:{' '}
+          <span className="font-semibold text-red-700">
+            {internFullName}
+          </span>
+        </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {[
-                { label: 'Company Name', value: companyName, set: setCompanyName },
-                { label: 'Company Address', value: companyAddress, set: setCompanyAddress },
-                { label: 'HR / Contact Person', value: hrName, set: setHrName },
-                { label: 'Intern Position', value: position, set: setPosition },
-              ].map((field, i) => (
-                <div key={i}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
-                  <input
-                    className="w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-red-800/50 focus:outline-none"
-                    value={field.value}
-                    onChange={(e) => field.set(e.target.value)}
-                    required
-                  />
-                </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* COMPANY DROPDOWN */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Select Company / HTE
+            </label>
+            <select
+              value={selectedCompanyId}
+              onChange={handleCompanyChange}
+              className="w-full px-4 py-2 border rounded-lg"
+              required
+            >
+              <option value="">-- Select Company --</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Internship Start Date</label>
-                <input
-                  type="date"
-                  className="w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-red-800/50 focus:outline-none"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  required
-                />
-              </div>
-
-              {errorMessage && (
-                <div className="text-red-700 bg-red-100 border border-red-300 rounded-md py-2 px-3 text-sm">
-                  {errorMessage}
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 pt-3">
-                <button
-                  type="button"
-                  className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-                  onClick={onClose}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-lg bg-red-800 text-white font-medium hover:bg-red-700 transition shadow-md"
-                >
-                  Generate Letter
-                </button>
-              </div>
-            </form>
+            </select>
           </div>
-        </div>
-      ) : (
-        // PREVIEW + ACTIONS
-        <div className="fixed inset-0 bg-gray-100 overflow-auto z-50 p-6 flex justify-center">
-          <div className="max-w-4xl w-full bg-white rounded-lg shadow-lg p-6">
-            <div ref={printRef} className="p-4">
-              <EndorsementLetter
-                supervisor={letterData.hrDetails.hrName}
-                company={letterData.companyDetails}
-                students={[`${letterData.intern.firstname} ${letterData.intern.lastname}`]}
-                startDate={letterData.companyDetails.startDate}
-              />
-            </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition text-gray-700"
-                onClick={() => setLetterData(null)}
-              >
-                Back
-              </button>
-              <button
-                className="px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 transition text-white shadow-md"
-                onClick={handleGeneratePDF}
-              >
-                Save to Library
-              </button>
-            </div>
+          {/* COMPANY NAME (READ ONLY) */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Company Name
+            </label>
+            <input
+              value={companyName}
+              readOnly
+              className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+            />
           </div>
-        </div>
-      )}
-    </>
+
+          {/* ADDRESS */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Company Address
+            </label>
+            <input
+              value={companyAddress}
+              readOnly
+              className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+            />
+          </div>
+
+          {/* HR */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              HR / Supervisor
+            </label>
+            <input
+              value={hrName}
+              readOnly
+              className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+            />
+          </div>
+
+          {/* POSITION */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Intern Position
+            </label>
+            <input
+              value={position}
+              onChange={(e) => setPosition(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+          </div>
+
+          {/* DATE */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Internship Start Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+          </div>
+
+          {errorMessage && (
+            <div className="text-red-600 text-sm">{errorMessage}</div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border bg-gray-200 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-red-800 text-white rounded-lg"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 

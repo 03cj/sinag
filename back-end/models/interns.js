@@ -39,21 +39,17 @@ Intern.init(
       allowNull: false,
     },
 
-    status: {
-  type: DataTypes.ENUM(
-    'Pending',
-    'Approved',
-    'Declined'
-  ),
-  defaultValue: 'Pending',
+  status: {
+  type: DataTypes.ENUM('Pending', 'Approved', 'Declined'),
+  allowNull: false,
+  defaultValue: 'Pending',   
 },
 
 
     start_date: DataTypes.DATEONLY,
     end_date: DataTypes.DATEONLY,
-    hours_required: DataTypes.INTEGER,
-    hours_completed: DataTypes.INTEGER,
     remarks: DataTypes.STRING(255),
+
   },
   {
     sequelize,
