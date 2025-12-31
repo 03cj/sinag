@@ -16,7 +16,7 @@ Intern.init(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       references: {
-        model: 'users', // 👈 MUST MATCH TABLE NAME
+        model: 'users',
         key: 'id',
       },
       onDelete: 'CASCADE',
@@ -39,17 +39,26 @@ Intern.init(
       allowNull: false,
     },
 
-  status: {
-  type: DataTypes.ENUM('Pending', 'Approved', 'Declined'),
-  allowNull: false,
-  defaultValue: 'Pending',   
-},
+    status: {
+      type: DataTypes.ENUM('Pending', 'Approved', 'Declined'),
+      allowNull: false,
+      defaultValue: 'Pending',
+    },
 
+    start_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
 
-    start_date: DataTypes.DATEONLY,
-    end_date: DataTypes.DATEONLY,
-    remarks: DataTypes.STRING(255),
+    end_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
 
+    remarks: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
   },
   {
     sequelize,
@@ -61,5 +70,25 @@ Intern.init(
     underscored: true,
   },
 );
+
+/* =========================
+   ASSOCIATIONS (CRITICAL)
+========================= */
+const User = require('./user');
+const Company = require('./company');
+const InternDocuments = require('./internDocuments');
+
+// Intern ↔ User
+Intern.belongsTo(User, { foreignKey: 'user_id' });
+User.hasOne(Intern, { foreignKey: 'user_id' });
+
+// Intern ↔ Documents
+// ✅ CORRECT
+Intern.hasMany(InternDocuments, { foreignKey: 'intern_id' });
+InternDocuments.belongsTo(Intern, { foreignKey: 'intern_id' });
+
+// Intern ↔ Company (HTE)
+Intern.belongsTo(Company, { foreignKey: 'company_id' });
+Company.hasMany(Intern, { foreignKey: 'company_id' });
 
 module.exports = Intern;

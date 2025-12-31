@@ -3,9 +3,13 @@ const router = express.Router();
 
 const authMiddleware = require('../middleware/authMiddleware');
 const dashboardController = require('../controllers/dashboardController');
+const internDashboardController = require('../controllers/internDashboardController');
 
-// 🔐 Protect all dashboard routes
+// 🔐 Protect ALL dashboard routes (MUST BE FIRST)
 router.use(authMiddleware());
+
+// 👨‍💼 Intern Dashboard
+router.get('/intern', internDashboardController.getInternDashboard);
 
 // 📊 Coordinator / Shared
 router.get('/programs', dashboardController.getPrograms);

@@ -13,8 +13,8 @@ function authMiddleware(allowedRoles = []) {
   const roles = Array.isArray(allowedRoles)
     ? allowedRoles.map((r) => r.toLowerCase())
     : typeof allowedRoles === 'string'
-    ? [allowedRoles.toLowerCase()]
-    : [];
+      ? [allowedRoles.toLowerCase()]
+      : [];
 
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -48,9 +48,10 @@ function authMiddleware(allowedRoles = []) {
       req.user = {
         id: payload.id,
         email: payload.email,
-        role: payload.role.toLowerCase(), // ✅ normalize
-        program: payload.department || payload.program || null,
-        type: payload.type || 'user',
+        role: payload.role.toLowerCase(),
+        program: payload.program || null,
+        firstName: payload.firstName || null, // ✅ ADD
+        lastName: payload.lastName || null, // ✅ ADD
       };
 
       /* =========================
@@ -76,4 +77,3 @@ function authMiddleware(allowedRoles = []) {
 }
 
 module.exports = authMiddleware;
- 

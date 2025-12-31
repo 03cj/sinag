@@ -5,7 +5,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
 
-const { uploadInternDoc, getInternDocs } = require('../controllers/internDocsController');
+const { uploadInternDoc, getInternDocuments } = require('../controllers/internDocsController');
 
 /* =========================
    PROTECTED ROUTES
@@ -20,6 +20,6 @@ router.use(authMiddleware());
 router.post('/intern-docs/upload', upload.single('document'), uploadInternDoc);
 
 // Get intern documents by user ID
-router.get('/intern-docs/:userId', getInternDocs);
+router.get('/intern-docs/:userId', getInternDocuments);
 
 module.exports = router; // ✅ MUST export router ONLY

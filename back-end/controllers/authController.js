@@ -6,7 +6,7 @@ const { literal } = require('sequelize');
 const User = require('../models/user');
 const Intern = require('../models/interns');
 const Company = require('../models/company');
-const InternDocs = require('../models/interndocs');
+const InternDocuments = require('../models/internDocuments');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -20,7 +20,7 @@ const signToken = (payload) => {
       role: payload.role.toLowerCase(),
     },
     JWT_SECRET,
-    { expiresIn: '1d' }
+    { expiresIn: '1d' },
   );
 };
 
@@ -56,8 +56,9 @@ exports.signup = async (req, res, next) => {
       id: user.id,
       email: user.email,
       role: user.role,
-      program: user.program || null,
-      type: 'user',
+      program: user.program,
+      firstName: user.firstName, // ✅
+      lastName: user.lastName, // ✅
     });
 
     res.status(201).json({ token });
@@ -85,8 +86,9 @@ exports.login = async (req, res, next) => {
         id: user.id,
         email: user.email,
         role: user.role,
-        program: user.program || null,
-        type: 'user',
+        program: user.program,
+        firstName: user.firstName, // ✅ ADD
+        lastName: user.lastName, // ✅ ADD
       });
 
       return res.json({ token });
@@ -323,7 +325,11 @@ exports.deleteIntern = async (req, res, next) => {
     const intern = await Intern.findByPk(req.params.id);
     if (!intern) return res.status(404).json({ message: 'Intern not found' });
 
-    await InternDocs.destroy({ where: { user_id: intern.user_id } });
+    // ✅ FIX: use intern.id (NOT user_id)
+    await InternDocuments.destroy({
+      where: { intern_id: intern.id },
+    });
+
     await intern.destroy();
     await User.destroy({ where: { id: intern.user_id } });
 
@@ -333,25 +339,36 @@ exports.deleteIntern = async (req, res, next) => {
   }
 };
 
-exports.getInterns = async (req, res, next) => {
+exports.getInterns = async (req, res) => {
   try {
     const interns = await Intern.findAll({
       include: [
         {
           model: User,
           attributes: ['studentId', 'firstName', 'lastName', 'mi', 'email', 'program'],
-          include: [{ model: InternDocs, required: false }],
         },
-        { model: Company, required: false },
+        {
+          model: InternDocuments,
+          required: false, // ✅ no crash if no documents
+        },
+        {
+          model: Company,
+          required: false, // ✅ no crash if no company
+        },
       ],
       order: [['created_at', 'DESC']],
     });
 
-    res.json(interns);
+    // ✅ ALWAYS ARRAY
+    return res.status(200).json(interns);
   } catch (err) {
-    next(err);
+    console.error('❌ getInterns ERROR:', err);
+    return res.status(500).json({
+      message: 'Failed to fetch interns',
+    });
   }
 };
+
 /* =========================
    UPDATE INTERN STATUS
 ========================= */
@@ -391,7 +408,9 @@ exports.updateInternStatus = async (req, res, next) => {
     next(err);
   }
 };
-
+/* =========================
+   ASSIGN HTE TO INTERN
+========================= */
 exports.assignHTE = async (req, res, next) => {
   try {
     const { companyId, startDate } = req.body;
@@ -419,9 +438,6 @@ exports.assignHTE = async (req, res, next) => {
     next(err);
   }
 };
-
-
-
 
 /* =========================
    COMPANY / HTE
@@ -513,21 +529,19 @@ exports.me = async (req, res, next) => {
       role: user.role.toLowerCase(),
       program: user.program,
       firstName: user.firstName, // ✅ REQUIRED
-      lastName: user.lastName,   // ✅ REQUIRED
-      mi: user.mi || '',         // ✅ OPTIONAL
+      lastName: user.lastName, // ✅ REQUIRED
+      mi: user.mi || '', // ✅ OPTIONAL
     };
 
     // ✅ SUPPORT BOTH ADD INTERN + PROFILE
     res.json({
-      ...normalizedUser,   // flat
-      user: normalizedUser // nested
+      ...normalizedUser, // flat
+      user: normalizedUser, // nested
     });
   } catch (err) {
     next(err);
   }
 };
-
-
 
 exports.updateProfile = async (req, res, next) => {
   try {

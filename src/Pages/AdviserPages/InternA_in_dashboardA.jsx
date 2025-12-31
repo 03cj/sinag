@@ -11,27 +11,10 @@ const getAdviserProgramFromToken = () => {
     const payloadBase64 = token.split('.')[1];
     const payload = JSON.parse(atob(payloadBase64));
 
-    return payload?.program
-      ? payload.program.trim().toLowerCase()
-      : null;
+    return payload?.program ? payload.program.trim().toLowerCase() : null;
   } catch (err) {
     console.error('❌ Failed to decode token:', err);
     return null;
-  }
-};
-
-/* =========================
-   STATUS STYLE (MATCH InternA)
-========================= */
-const getStatusStyle = (status) => {
-  switch (status) {
-    case 'Approved':
-      return 'bg-green-600 text-white';
-    case 'Disapproved':
-      return 'bg-red-600 text-white';
-    case 'Pending':
-    default:
-      return 'bg-yellow-500 text-white';
   }
 };
 
@@ -43,10 +26,7 @@ const InternA_in_dashboardA = () => {
   /* =========================
      ADVISER PROGRAM
   ========================= */
-  const adviserProgram = useMemo(
-    () => getAdviserProgramFromToken(),
-    []
-  );
+  const adviserProgram = useMemo(() => getAdviserProgramFromToken(), []);
 
   /* =========================
      SORTING
@@ -76,38 +56,46 @@ const InternA_in_dashboardA = () => {
         const data = await res.json();
 
         /* =========================
+           🔒 SAFETY CHECK (CRITICAL)
+        ========================= */
+        if (!Array.isArray(data)) {
+          console.error('Expected array but got:', data);
+          setInterns([]);
+          setError('Failed to load interns.');
+          setLoading(false);
+          return;
+        }
+
+        /* =========================
            FILTER BY PROGRAM
         ========================= */
         const filtered = data.filter((intern) => {
-          const internProgram =
-            intern.User?.program || intern.program;
+          const internProgram = intern.User?.program || intern.program;
 
           if (!internProgram || !adviserProgram) return false;
 
-          return (
-            internProgram.trim().toLowerCase() === adviserProgram
-          );
+          return internProgram.trim().toLowerCase() === adviserProgram;
         });
 
         /* =========================
            NORMALIZE DATA
         ========================= */
         const normalized = filtered.map((intern) => ({
-  studNo: intern.User?.studentId ?? 'N/A',
-  lastname: intern.User?.lastName ?? 'N/A',
-  firstname: intern.User?.firstName ?? 'N/A',
-  mi: intern.User?.mi ?? '',
-  email: intern.User?.email ?? 'N/A',
-  company: intern.Company?.name ?? 'N/A',
-  companyEmail: intern.Company?.email ?? 'N/A', 
-  supervisor: intern.Company?.supervisorName ?? 'NA',
-}));
-
+          studNo: intern.User?.studentId ?? 'N/A',
+          lastname: intern.User?.lastName ?? 'N/A',
+          firstname: intern.User?.firstName ?? 'N/A',
+          mi: intern.User?.mi ?? '',
+          email: intern.User?.email ?? 'N/A',
+          company: intern.Company?.name ?? 'N/A',
+          companyEmail: intern.Company?.email ?? 'N/A',
+          supervisor: intern.Company?.supervisorName ?? 'N/A',
+        }));
 
         setInterns(normalized);
       } catch (err) {
         console.error('❌ Failed to fetch interns:', err);
         setError(err.message || 'Failed to load interns.');
+        setInterns([]);
       } finally {
         setLoading(false);
       }
@@ -162,7 +150,10 @@ const InternA_in_dashboardA = () => {
             <th onClick={() => handleSort('lastname')} className="px-6 py-3 cursor-pointer text-xs font-bold uppercase">
               Lastname {renderArrow('lastname')}
             </th>
-            <th onClick={() => handleSort('firstname')} className="px-6 py-3 cursor-pointer text-xs font-bold uppercase">
+            <th
+              onClick={() => handleSort('firstname')}
+              className="px-6 py-3 cursor-pointer text-xs font-bold uppercase"
+            >
               Firstname {renderArrow('firstname')}
             </th>
             <th className="px-6 py-3 text-xs font-bold uppercase">MI</th>
@@ -203,7 +194,6 @@ const InternA_in_dashboardA = () => {
                 <td className="px-6 py-4">{i.company}</td>
                 <td className="px-6 py-4">{i.supervisor}</td>
                 <td className="px-6 py-4">{i.companyEmail}</td>
-
               </tr>
             ))
           )}

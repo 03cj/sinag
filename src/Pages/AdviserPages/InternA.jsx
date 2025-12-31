@@ -1,11 +1,4 @@
-import {
-  CheckCircle,
-  Clock,
-  Pencil,
-  Search,
-  Trash2,
-  XCircle,
-} from 'lucide-react';
+import { CheckCircle, Clock, Pencil, Search, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import AddIntern from './AddIntern';
 import EditIntern from './EditIntern';
@@ -35,11 +28,7 @@ const StatusIcons = ({ intern, onApprove, onPending, onDecline }) => {
       <button
         title="Pending"
         onClick={() => onPending(intern)}
-        className={`${
-          intern.status === 'Pending'
-            ? 'text-yellow-500'
-            : 'text-gray-400 hover:text-yellow-500'
-        }`}
+        className={`${intern.status === 'Pending' ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'}`}
       >
         <Clock size={18} />
       </button>
@@ -47,11 +36,7 @@ const StatusIcons = ({ intern, onApprove, onPending, onDecline }) => {
       <button
         title="Approved"
         onClick={() => onApprove(intern)}
-        className={`${
-          intern.status === 'Approved'
-            ? 'text-green-600'
-            : 'text-gray-400 hover:text-green-600'
-        }`}
+        className={`${intern.status === 'Approved' ? 'text-green-600' : 'text-gray-400 hover:text-green-600'}`}
       >
         <CheckCircle size={18} />
       </button>
@@ -59,11 +44,7 @@ const StatusIcons = ({ intern, onApprove, onPending, onDecline }) => {
       <button
         title="Declined"
         onClick={() => onDecline(intern)}
-        className={`${
-          intern.status === 'Declined'
-            ? 'text-red-600'
-            : 'text-gray-400 hover:text-red-600'
-        }`}
+        className={`${intern.status === 'Declined' ? 'text-red-600' : 'text-gray-400 hover:text-red-600'}`}
       >
         <XCircle size={18} />
       </button>
@@ -118,23 +99,16 @@ const InternA = () => {
         const data = await res.json();
 
         const normalized = data
-          .filter((i) =>
-            adviserProgram
-              ? i.User?.program?.toLowerCase() === adviserProgram
-              : true
-          )
+          .filter((i) => (adviserProgram ? i.User?.program?.toLowerCase() === adviserProgram : true))
           .filter((i) =>
             searchTerm
-              ? `${i.User.firstName} ${i.User.lastName}`
-                  .toLowerCase()
-                  .includes(searchTerm.toLowerCase())
-              : true
+              ? `${i.User.firstName} ${i.User.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+              : true,
           )
           .map((i) => {
-            const docs = {};
-            i.User?.InternDocs?.forEach((d) => {
-              docs[d.docType] = `http://localhost:5000/uploads/${d.filePath}`;
-            });
+            const d = i.InternDocuments?.[0] || {};
+
+            const file = (f) => (f ? `http://localhost:5000/uploads/${f}` : null);
 
             return {
               id: i.id,
@@ -144,11 +118,15 @@ const InternA = () => {
               mi: i.User.mi || '',
               email: i.User.email,
               program: i.User.program,
-              goodMoral: docs.goodMoral,
-              cor: docs.cor,
-              medical: docs.medicalClearance,
-              insurance: docs.insurance,
-              resume: docs.resume,
+
+              // 📄 DOCUMENTS
+              consentForm: file(d.consent_form),
+              notarizedAgreement: file(d.notarized_agreement),
+              portfolio: file(d.portfolio),
+              cor: file(d.cor),
+              insurance: file(d.insurance),
+              medical: file(d.medical_cert),
+
               status: i.status,
               remarks: i.remarks,
             };
@@ -167,72 +145,63 @@ const InternA = () => {
   }, [searchTerm]);
 
   /* =========================
+     HELPERS
+  ========================= */
+
+  const getFileName = (url) => {
+    if (!url) return '';
+    return decodeURIComponent(url.split('/').pop());
+  };
+
+  /* =========================
      STATUS HANDLERS
   ========================= */
   const handleApprove = async (intern) => {
-  try {
-    const res = await fetch(
-      `http://localhost:5000/api/auth/interns/${intern.id}/status`,
-      {
+    try {
+      const res = await fetch(`http://localhost:5000/api/auth/interns/${intern.id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ status: 'Approved' }),
-      }
-    );
+      });
 
-    if (!res.ok) throw new Error('Approval failed');
+      if (!res.ok) throw new Error('Approval failed');
 
-    // ✅ USE THE INTERN FROM TABLE (HAS NAME)
-    setInternForEndorsement({
-      ...intern,
-      status: 'Approved',
-    });
+      // ✅ USE THE INTERN FROM TABLE (HAS NAME)
+      setInternForEndorsement({
+        ...intern,
+        status: 'Approved',
+      });
 
-    // update table UI
-    setInterns((prev) =>
-      prev.map((i) =>
-        i.id === intern.id ? { ...i, status: 'Approved' } : i
-      )
-    );
-  } catch (err) {
-    console.error(err);
-    alert('Failed to approve intern');
-  }
-};
-
-
+      // update table UI
+      setInterns((prev) => prev.map((i) => (i.id === intern.id ? { ...i, status: 'Approved' } : i)));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to approve intern');
+    }
+  };
 
   const handlePending = async (intern) => {
-  try {
-    const res = await fetch(
-      `http://localhost:5000/api/auth/interns/${intern.id}/status`,
-      {
+    try {
+      const res = await fetch(`http://localhost:5000/api/auth/interns/${intern.id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ status: 'Pending' }),
-      }
-    );
+      });
 
-    if (!res.ok) throw new Error('Failed to update status');
+      if (!res.ok) throw new Error('Failed to update status');
 
-    setInterns((prev) =>
-      prev.map((i) =>
-        i.id === intern.id ? { ...i, status: 'Pending' } : i
-      )
-    );
-  } catch (err) {
-    console.error(err);
-    alert('Failed to update status');
-  }
-};
-
-
+      setInterns((prev) => prev.map((i) => (i.id === intern.id ? { ...i, status: 'Pending' } : i)));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update status');
+    }
+  };
 
   const handleDecline = (intern) => {
     setInternToDecline(intern);
@@ -255,21 +224,16 @@ const InternA = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/auth/interns/${internToDelete.id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
+      const res = await fetch(`http://localhost:5000/api/auth/interns/${internToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
 
       if (!res.ok) throw new Error('Delete failed');
 
-      setInterns((prev) =>
-        prev.filter((i) => i.id !== internToDelete.id)
-      );
+      setInterns((prev) => prev.filter((i) => i.id !== internToDelete.id));
 
       setShowDeleteConfirm(false);
       setInternToDelete(null);
@@ -279,10 +243,8 @@ const InternA = () => {
     }
   };
   const submitDecline = async () => {
-  try {
-    const res = await fetch(
-      `http://localhost:5000/api/auth/interns/${internToDecline.id}/status`,
-      {
+    try {
+      const res = await fetch(`http://localhost:5000/api/auth/interns/${internToDecline.id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -292,28 +254,22 @@ const InternA = () => {
           status: 'Declined',
           remarks: declineReason,
         }),
-      }
-    );
+      });
 
-    if (!res.ok) throw new Error('Decline failed');
+      if (!res.ok) throw new Error('Decline failed');
 
-    setInterns((prev) =>
-      prev.map((i) =>
-        i.id === internToDecline.id
-          ? { ...i, status: 'Declined', remarks: declineReason }
-          : i
-      )
-    );
+      setInterns((prev) =>
+        prev.map((i) => (i.id === internToDecline.id ? { ...i, status: 'Declined', remarks: declineReason } : i)),
+      );
 
-    setShowDeclineModal(false);
-    setDeclineReason('');
-    setInternToDecline(null);
-  } catch (err) {
-    console.error(err);
-    alert('Failed to decline intern');
-  }
-};
-
+      setShowDeclineModal(false);
+      setDeclineReason('');
+      setInternToDecline(null);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to decline intern');
+    }
+  };
 
   /* =========================
      UI
@@ -324,12 +280,8 @@ const InternA = () => {
       <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Intern Documents
-            </h1>
-            <p className="text-gray-600 text-sm">
-              Review intern submission documents
-            </p>
+            <h1 className="text-2xl font-bold text-gray-800">Intern Documents</h1>
+            <p className="text-gray-600 text-sm">Review intern submission documents</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -367,17 +319,15 @@ const InternA = () => {
                 'Lastname',
                 'Firstname',
                 'MI',
-                'Good Moral',
+                'Consent Form',
+                'Notarized Agreement',
+                'Portfolio',
                 'COR',
-                'Medical',
                 'Insurance',
-                'Resume',
+                'Medical',
                 'Status',
               ].map((h, i) => (
-                <th
-                  key={i}
-                  className="px-6 py-3 text-xs font-bold text-white uppercase"
-                >
+                <th key={i} className="px-6 py-3 text-xs font-bold text-white uppercase">
                   {h}
                 </th>
               ))}
@@ -389,16 +339,10 @@ const InternA = () => {
               <tr key={i.id}>
                 <td className="px-6 py-4 text-center">
                   <div className="flex justify-center gap-3">
-                    <button
-                      onClick={() => handleEditClick(i)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
+                    <button onClick={() => handleEditClick(i)} className="text-blue-600 hover:text-blue-900">
                       <Pencil size={16} />
                     </button>
-                    <button
-                      onClick={() => handleDeleteClick(i)}
-                      className="text-red-600 hover:text-red-900"
-                    >
+                    <button onClick={() => handleDeleteClick(i)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -409,24 +353,23 @@ const InternA = () => {
                 <td className="px-6 py-4">{i.firstname}</td>
                 <td className="px-6 py-4">{i.mi}</td>
 
-                {['goodMoral', 'cor', 'medical', 'insurance', 'resume'].map(
-                  (d) => (
-                    <td key={d} className="px-6 py-4">
-                      {i[d] ? (
-                        <a
-                          href={i[d]}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          .pdf
-                        </a>
-                      ) : (
-                        'N/A'
-                      )}
-                    </td>
-                  )
-                )}
+                {['consentForm', 'notarizedAgreement', 'portfolio', 'cor', 'insurance', 'medical'].map((d) => (
+                  <td key={d} className="px-6 py-4">
+                    {i[d] ? (
+                      <a
+                        href={i[d]}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:underline"
+                        title={getFileName(i[d])}
+                      >
+                        {getFileName(i[d])}
+                      </a>
+                    ) : (
+                      'N/A'
+                    )}
+                  </td>
+                ))}
 
                 <td className="px-6 py-4">
                   <StatusIcons
@@ -443,40 +386,34 @@ const InternA = () => {
       </div>
 
       {/* DELETE CONFIRM */}
-{showDeleteConfirm && internToDelete && (
-  <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50">
-    <div className="bg-red-900 rounded-lg shadow-lg p-6 w-96">
-      <h2 className="text-lg font-bold text-yellow-500 mb-4">
-        Delete Intern
-      </h2>
+      {showDeleteConfirm && internToDelete && (
+        <div className="fixed inset-0 bg-red-400/20 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-red-900 rounded-lg shadow-lg p-6 w-96">
+            <h2 className="text-lg font-bold text-yellow-500 mb-4">Delete Intern</h2>
 
-      <p className="text-white mb-4">
-        Are you sure you want to delete{' '}
-        <span className="font-semibold">
-          {internToDelete.firstname} {internToDelete.lastname}
-        </span>
-        ?
-      </p>
+            <p className="text-white mb-4">
+              Are you sure you want to delete{' '}
+              <span className="font-semibold">
+                {internToDelete.firstname} {internToDelete.lastname}
+              </span>
+              ?
+            </p>
 
-      <div className="flex justify-end gap-3">
-        <button
-          onClick={() => setShowDeleteConfirm(false)}
-          className="px-4 py-2 bg-gray-300 rounded-md"
-        >
-          Cancel
-        </button>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 bg-gray-300 rounded-md">
+                Cancel
+              </button>
 
-        <button
-          onClick={handleConfirmDelete}
-          className="px-4 py-2 bg-yellow-500 rounded-md text-black font-semibold"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-yellow-500 rounded-md text-black font-semibold"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DECLINE MODAL */}
       {showDeclineModal && internToDecline && (
@@ -494,63 +431,45 @@ const InternA = () => {
             />
 
             <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeclineModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded-md"
-              >
+              <button onClick={() => setShowDeclineModal(false)} className="px-4 py-2 bg-gray-300 rounded-md">
                 Cancel
               </button>
               <button
-  disabled={!declineReason.trim()}
-  onClick={submitDecline}
-  className="px-4 py-2 bg-yellow-500 rounded-md disabled:opacity-50"
->
-  Send
-</button>
-
+                disabled={!declineReason.trim()}
+                onClick={submitDecline}
+                className="px-4 py-2 bg-yellow-500 rounded-md disabled:opacity-50"
+              >
+                Send
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {/* ADD / EDIT / ENDORSEMENT */}
-     {showAddInternForm && (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-
-      <AddIntern
-        onAddSuccess={() => setShowAddInternForm(false)}
-        onCancel={() => setShowAddInternForm(false)}
-      />
-    
-  </div>
-)}
-
+      {showAddInternForm && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <AddIntern onAddSuccess={() => setShowAddInternForm(false)} onCancel={() => setShowAddInternForm(false)} />
+        </div>
+      )}
 
       {showEditInternForm && internToEdit && (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg max-w-xl w-full mx-4">
-      <EditIntern
-        intern={internToEdit}
-        onUpdate={(updatedIntern) => {
-          setInterns((prev) =>
-            prev.map((i) =>
-              i.id === updatedIntern.id ? updatedIntern : i
-            )
-          );
-          setShowEditInternForm(false);
-        }}
-        onCancel={() => setShowEditInternForm(false)}
-      />
-    </div>
-  </div>
-)}
-
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-xl w-full mx-4">
+            <EditIntern
+              intern={internToEdit}
+              onUpdate={(updatedIntern) => {
+                setInterns((prev) => prev.map((i) => (i.id === updatedIntern.id ? updatedIntern : i)));
+                setShowEditInternForm(false);
+              }}
+              onCancel={() => setShowEditInternForm(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {internForEndorsement && (
-        <Endorsement
-          intern={internForEndorsement}
-          onClose={() => setInternForEndorsement(null)}
-        />
+        <Endorsement intern={internForEndorsement} onClose={() => setInternForEndorsement(null)} />
       )}
     </>
   );

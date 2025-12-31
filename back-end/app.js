@@ -13,63 +13,49 @@ const path = require('path');
 const sequelize = require('./config/database');
 
 // =========================
-// LOAD MODELS FIRST (REQUIRED)
+// LOAD MODELS
+// (NO associations inside model files)
 // =========================
 const User = require('./models/user');
 const Company = require('./models/company');
 const Intern = require('./models/interns');
-const InternDocs = require('./models/interndocs');
+const InternDocuments = require('./models/internDocuments');
 
 // =========================
-// DEFINE ASSOCIATIONS (🔥 CRITICAL 🔥)
+// DEFINE ASSOCIATIONS (ONLY HERE)
 // =========================
 
 // Intern ↔ User
 Intern.belongsTo(User, {
-  foreignKey: {
-    name: 'user_id',
-    allowNull: false,
-  },
-  constraints: true,
+  foreignKey: 'user_id',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
 
 User.hasOne(Intern, {
   foreignKey: 'user_id',
-  constraints: true,
 });
 
 // Intern ↔ Company (HTE)
 Intern.belongsTo(Company, {
-  foreignKey: {
-    name: 'company_id',
-    allowNull: true,
-  },
-  constraints: true,
+  foreignKey: 'company_id',
   onDelete: 'SET NULL',
   onUpdate: 'CASCADE',
 });
 
 Company.hasMany(Intern, {
   foreignKey: 'company_id',
-  constraints: true,
 });
 
-// InternDocs ↔ User
-InternDocs.belongsTo(User, {
-  foreignKey: {
-    name: 'user_id',
-    allowNull: false,
-  },
-  constraints: true,
+// Intern ↔ Documents
+Intern.hasOne(InternDocuments, {
+  foreignKey: 'intern_id',
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
 
-User.hasMany(InternDocs, {
-  foreignKey: 'user_id',
-  constraints: true,
+InternDocuments.belongsTo(Intern, {
+  foreignKey: 'intern_id',
 });
 
 // =========================
@@ -128,7 +114,7 @@ app.use((err, req, res, next) => {
 console.log('🚀 Starting backend and syncing database...');
 
 sequelize
-  .sync() // ❗ Safe for dev | use migrations in prod
+  .sync()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`✅ Backend running at http://localhost:${PORT}`);

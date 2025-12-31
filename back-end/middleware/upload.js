@@ -6,12 +6,28 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
   },
+
   filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${file.originalname}`;
-    cb(null, uniqueName);
+    try {
+      const lastName = (req.user?.lastName || 'UNKNOWN').toUpperCase().replace(/\s+/g, '_');
+
+      const originalName = path
+        .basename(file.originalname, path.extname(file.originalname))
+        .toUpperCase()
+        .replace(/\s+/g, '_');
+
+      const ext = path.extname(file.originalname);
+
+      // 🔥 ADD IT HERE
+      const filename = `${lastName}_${originalName}_${Date.now()}${ext}`;
+
+      cb(null, filename);
+    } catch (err) {
+      cb(err);
+    }
   },
 });
 
 const upload = multer({ storage });
 
-module.exports = upload; // 🔥 THIS LINE IS CRITICAL
+module.exports = upload;
