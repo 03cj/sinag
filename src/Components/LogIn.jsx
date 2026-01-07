@@ -88,70 +88,73 @@ const LogIn = () => {
   `;
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{ background: `linear-gradient(to right, #FFE066 0%, #FFF2B3 30%, #FFFFFF 50%, #F5F5F0 70%, #EAD1D1 85%, #E0BFBF 100%)` }}>
       {/* LEFT PANEL */}
       <div
-        className="hidden lg:flex w-1/2 items-center justify-center text-[#5E0000] shadow-inner"
-        style={{ background: leftPanelGradient }}
+        className="hidden lg:flex w-full lg:w-1/2 items-center justify-center text-[#5E0000] shadow-inner"
+        style={{ background: 'transparent' }}
       >
-        <div className="max-w-lg mx-auto flex flex-col items-center gap-6 px-6 -translate-y-8">
-          <h2 className="text-lg font-bold text-center whitespace-nowrap">
+        <div className="max-w-lg mx-auto flex flex-col items-center gap-6 px-4 sm:px-6 -translate-y-8">
+          <h2 className="text-base sm:text-lg font-bold text-center whitespace-normal">
             PUP System for Internship Navigation and Guidance
           </h2>
-          <img src={sinagLogo} alt="PUP SINAG Logo" className="w-[380px] h-auto drop-shadow-xl" />
+          <img src={sinagLogo} alt="PUP SINAG Logo" className="w-[200px] sm:w-[280px] lg:w-[380px] h-auto drop-shadow-xl" />
         </div>
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white lg:border-l">
-        <div className="w-full max-w-md px-12">
-          <div className="flex justify-center mb-6">
-            <img src={pupSeal} alt="PUP Seal" className="w-20 h-20" />
-          </div>
-
-          <h1 className="text-xl font-semibold text-center text-gray-700 mb-8">Login your PUP SINAG Account</h1>
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-5 py-3 border-2 border-gray-300 rounded-full focus:ring-2 focus:ring-[#8B0000]"
-              required
-            />
-
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-5 py-3 border-2 border-gray-300 rounded-full focus:ring-2 focus:ring-[#8B0000] pr-20"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-5 flex items-center text-sm text-gray-500 hover:text-[#8B0000]"
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-transparent py-8 sm:py-12 lg:py-0">
+        <div className="w-full max-w-md px-4 sm:px-8 lg:px-12">
+          {/* GLASS EFFECT CONTAINER */}
+          <div className="p-6 sm:p-8 rounded-2xl backdrop-blur-sm bg-white/25 border border-white/30 shadow-lg">
+            <div className="flex justify-center mb-4 sm:mb-6">
+              <img src={pupSeal} alt="PUP Seal" className="w-16 sm:w-20 h-auto" />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#8B0000] text-[#FFD700] text-lg font-bold py-3 rounded-full hover:bg-[#6A0000] transition disabled:opacity-50"
-            >
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
+            <h1 className="text-lg sm:text-xl font-semibold text-center text-gray-700 mb-6 sm:mb-8">Login your PUP SINAG Account</h1>
 
-            {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          </form>
+            <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 sm:px-5 py-2.5 sm:py-3 border-2 border-gray-300 rounded-full focus:ring-2 focus:ring-[#8B0000] bg-white/80 text-sm sm:text-base"
+                required
+              />
 
-          <div className="mt-6 text-center">
-            <button className="text-sm text-gray-700 hover:text-[#8B0000] hover:underline">Forgot Password</button>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 sm:px-5 py-2.5 sm:py-3 border-2 border-gray-300 rounded-full focus:ring-2 focus:ring-[#8B0000] pr-16 sm:pr-20 bg-white/80 text-sm sm:text-base"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 sm:pr-5 flex items-center text-xs sm:text-sm text-gray-500 hover:text-[#8B0000]"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#8B0000] text-[#FFD700] font-bold py-2.5 sm:py-3 text-base sm:text-lg rounded-full hover:bg-[#6A0000] transition disabled:opacity-50"
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+
+              {error && <p className="text-xs sm:text-sm text-red-600 text-center">{error}</p>}
+            </form>
+
+            <div className="mt-4 sm:mt-6 text-center">
+              <button className="text-xs sm:text-sm text-gray-700 hover:text-[#8B0000] hover:underline">Forgot Password</button>
+            </div>
           </div>
         </div>
       </div>
