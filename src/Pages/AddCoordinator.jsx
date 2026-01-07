@@ -106,7 +106,16 @@ const AddCoordinator = ({ onAddSuccess }) => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900">
-      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">Register Coordinator</h2>
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-3xl font-bold text-gray-900">Register Coordinator</h2>
+        <button
+          onClick={() => navigate('/')}
+          className="text-gray-600 hover:text-red-700 text-2xl font-bold transition"
+          title="Go back"
+        >
+          ✕
+        </button>
+      </div>
 
       <p className="text-gray-600 text-center mb-4 mt-2 italic">
         Only Super Admin can create coordinator accounts. All fields marked with (
@@ -203,11 +212,17 @@ const AddCoordinator = ({ onAddSuccess }) => {
         <div className="flex justify-end gap-3 pt-4">
           <button
             type="button"
-            onClick={() => navigate('/pup-sinag')}
+            onClick={() => setFormData({
+              lastname: '',
+              firstname: '',
+              mi: '',
+              email: '',
+              initialPassword: '',
+            })}
             className="px-5 py-2 border rounded-md"
             disabled={submitting}
           >
-            Cancel
+            Clear
           </button>
 
           <button
