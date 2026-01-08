@@ -51,6 +51,7 @@ import ReportsA from './Pages/AdviserPages/ReportsA';
 /* =========================
    INTERN PAGES
 ========================= */
+import ConsentForm from './Forms/ConsentForm';
 import Documents from './Pages/InternPages/Documents';
 import HomeI from './Pages/InternPages/HomeI';
 import HTE_Evaluation from './Pages/InternPages/HTE_Evaluation';
@@ -67,7 +68,7 @@ import ProfileS from './Pages/SupervisorPages/ProfileS';
 
 export default function App() {
   const { user } = useAuth();
-  
+
   // Only enable inactivity logout when user is logged in
   if (user) {
     useInactivityLogout(5); // 5 minutes
@@ -151,6 +152,7 @@ export default function App() {
           <Route path="evaluation" element={<HTE_Evaluation />} />
           <Route path="self-evaluation" element={<SelfEvaluation />} />
           <Route path="supervisor-evaluation" element={<SupervisorEvaluation />} />
+          <Route path="consent-form" element={<ConsentForm />} />
         </Route>
 
         {/* ========== SUPERVISOR ========== */}

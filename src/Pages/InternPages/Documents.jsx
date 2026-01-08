@@ -1,5 +1,7 @@
 import { CheckCircle2, CloudUpload, Eye, FileText, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 const DOCUMENTS = [
   { label: 'Consent Form', column: 'consent_form' },
   { label: 'Notarized Agreement', column: 'notarized_agreement' },
@@ -14,6 +16,7 @@ const Documents = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const fileInputsRef = useRef([]);
+  const navigate = useNavigate();
 
   /* =========================
      FETCH DOCUMENT STATUS
@@ -178,13 +181,23 @@ const Documents = () => {
                   />
 
                   {!doc.uploaded ? (
-                    <button
-                      onClick={() => triggerFileSelect(index)}
-                      className="flex items-center px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700"
-                    >
-                      <CloudUpload className="mr-2" size={16} />
-                      Upload
-                    </button>
+                    doc.column === 'consent_form' ? (
+                      <button
+                        onClick={() => navigate('intern/consent-form')}
+                        className="flex items-center px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700"
+                      >
+                        <FileText className="mr-2" size={16} />
+                        Create Consent Form
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => triggerFileSelect(index)}
+                        className="flex items-center px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700"
+                      >
+                        <CloudUpload className="mr-2" size={16} />
+                        Upload
+                      </button>
+                    )
                   ) : (
                     <button
                       onClick={() => handleDelete(index)}
