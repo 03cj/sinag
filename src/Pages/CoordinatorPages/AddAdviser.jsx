@@ -34,18 +34,17 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
      LASTNAME_PROGRAM_YEAR
   ========================= */
   useEffect(() => {
-    if (formData.lastname && formData.program) {
+    if (formData.lastname) {
       const year = new Date().getFullYear();
 
-      const safeLastName = formData.lastname.replace(/\s+/g, '');
-      const safeProgram = formData.program.replace(/\s+/g, '');
+      const safeLastName = formData.lastname.replace(/\s+/g, '').toUpperCase();
 
       setFormData((prev) => ({
         ...prev,
-        initialPassword: `${safeLastName}_${safeProgram}_${year}`,
+        initialPassword: `${safeLastName}_${year}`,
       }));
     }
-  }, [formData.lastname, formData.program]);
+  }, [formData.lastname]);
 
   /* =========================
      HANDLE SUBMIT
@@ -119,11 +118,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
         <span className="text-red-500">*</span>) are required.
       </p>
 
-      {error && (
-        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* NAME ROW */}
@@ -174,6 +169,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
             <label className="block text-sm font-medium mb-1">
               Program <span className="text-red-500">*</span>
             </label>
+
             <input
               type="text"
               name="program"
@@ -182,6 +178,12 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
               className="w-full px-4 py-2 border rounded-md"
               required
             />
+
+            {/* Instruction */}
+            <p className="mt-1 text-sm text-gray-500">
+              Please enter the complete program name (e.g., <em>Bachelor of Science in Information Technology</em>). Do
+              not use abbreviations (e.g., BSIT, IT).
+            </p>
           </div>
 
           <div>
@@ -200,10 +202,12 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
         </div>
 
         {/* PASSWORD */}
+
         <div>
           <label className="block text-sm font-medium mb-1">
             Initial Password <span className="text-red-500">*</span>
           </label>
+
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -211,6 +215,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
               readOnly
               className="w-full pr-20 px-4 py-2 border rounded-md bg-gray-100"
             />
+
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
@@ -219,24 +224,19 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Default password format: <strong>LASTNAME_CURRENTYEAR</strong>
+          </p>
         </div>
 
         {/* ACTIONS */}
         <div className="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-5 py-2 border rounded-md"
-            disabled={submitting}
-          >
+          <button type="button" onClick={onCancel} className="px-5 py-2 border rounded-md" disabled={submitting}>
             Cancel
           </button>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-5 py-2 bg-red-700 text-white rounded-md"
-          >
+          <button type="submit" disabled={submitting} className="px-5 py-2 bg-red-700 text-white rounded-md">
             {submitting ? 'Adding...' : 'Add Adviser'}
           </button>
         </div>

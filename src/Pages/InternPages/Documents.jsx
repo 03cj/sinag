@@ -1,12 +1,14 @@
 import { CheckCircle2, CloudUpload, Eye, FileText, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../../Components/Modal';
+import ConsentForm from '../../Forms/ConsentForm';
 
 const DOCUMENTS = [
   { label: 'Consent Form', column: 'consent_form' },
   { label: 'Notarized Agreement', column: 'notarized_agreement' },
-  { label: 'Portfolio', column: 'portfolio' },
-  { label: 'Resume', column: 'resume' }, // ✅ ADD THIS
+  { label: 'MOA', column: 'MOA' },
+  { label: 'Resume', column: 'resume' },
   { label: 'Certificate of Registration (COR)', column: 'cor' },
   { label: 'Insurance', column: 'insurance' },
   { label: 'Medical Certificate', column: 'medical_cert' },
@@ -17,6 +19,7 @@ const Documents = () => {
   const [loading, setLoading] = useState(true);
   const fileInputsRef = useRef([]);
   const navigate = useNavigate();
+  const [showFillForm, setShowFillForm] = useState(false);
 
   /* =========================
      FETCH DOCUMENT STATUS
@@ -58,6 +61,9 @@ const Documents = () => {
     fileInputsRef.current[index]?.click();
   };
 
+  /* =========================
+     UPLOAD FILE
+  ========================= */
   const handleFileChange = async (index, event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -99,9 +105,29 @@ const Documents = () => {
     }
   };
 
-  const handleFileView = (filename) => {
-    const url = `http://localhost:5000/uploads/${filename}`;
-    window.open(url, '_blank');
+  const handleFileView = async (filename, isMOA = false) => {
+    try {
+      if (isMOA) {
+        const res = await fetch('http://localhost:5000/api/auth/company/moa', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`MOA fetch failed: ${res.status}`);
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      } else {
+        window.open(`http://localhost:5000/uploads/${filename}`, '_blank');
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   const handleDelete = async (index) => {
@@ -172,33 +198,39 @@ const Documents = () => {
 
                 {/* RIGHT */}
                 <div className="flex gap-2">
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    hidden
-                    ref={(el) => (fileInputsRef.current[index] = el)}
-                    onChange={(e) => handleFileChange(index, e)}
-                  />
+                  {doc.column !== 'MOA' && (
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      hidden
+                      ref={(el) => (fileInputsRef.current[index] = el)}
+                      onChange={(e) => handleFileChange(index, e)}
+                    />
+                  )}
 
-                  {!doc.uploaded ? (
-                    doc.column === 'consent_form' ? (
-                      <button
-                        onClick={() => navigate('intern/consent-form')}
-                        className="flex items-center px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700"
-                      >
-                        <FileText className="mr-2" size={16} />
-                        Create Consent Form
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => triggerFileSelect(index)}
-                        className="flex items-center px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700"
-                      >
-                        <CloudUpload className="mr-2" size={16} />
-                        Upload
-                      </button>
-                    )
-                  ) : (
+                  {/* FILL CONSENT FORM */}
+                  {doc.column === 'consent_form' && (
+                    <button
+                      onClick={() => setShowFillForm(true)}
+                      className="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+                    >
+                      Fill Form
+                    </button>
+                  )}
+
+                  {/* UPLOAD (INCLUDING CONSENT FORM) */}
+                  {!doc.uploaded && doc.column !== 'MOA' && (
+                    <button
+                      onClick={() => triggerFileSelect(index)}
+                      className="flex items-center px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700"
+                    >
+                      <CloudUpload className="mr-2" size={16} />
+                      Upload
+                    </button>
+                  )}
+
+                  {/* DELETE */}
+                  {doc.uploaded && doc.column !== 'MOA' && (
                     <button
                       onClick={() => handleDelete(index)}
                       className="flex items-center px-4 py-2 text-sm text-black bg-yellow-500 rounded-md hover:bg-yellow-600"
@@ -208,9 +240,10 @@ const Documents = () => {
                     </button>
                   )}
 
+                  {/* VIEW */}
                   {doc.uploaded && (
                     <button
-                      onClick={() => handleFileView(doc.file)}
+                      onClick={() => handleFileView(doc.file, doc.column === 'MOA')}
                       className="flex items-center px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-md border"
                     >
                       <Eye className="mr-2" size={16} />
@@ -223,8 +256,14 @@ const Documents = () => {
           ))}
         </ul>
       </div>
+
+      {/* FILL CONSENT FORM MODAL */}
+      {showFillForm && (
+        <Modal>
+          <ConsentForm onClose={() => setShowFillForm(false)} />
+        </Modal>
+      )}
     </div>
   );
 };
-
 export default Documents;

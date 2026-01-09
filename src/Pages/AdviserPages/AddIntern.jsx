@@ -32,7 +32,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
 
         const user = await res.json();
 
-if (user.role?.toLowerCase() !== 'adviser') {
+        if (user.role?.toLowerCase() !== 'adviser') {
           setError('Only advisers can add interns.');
           return;
         }
@@ -56,18 +56,20 @@ if (user.role?.toLowerCase() !== 'adviser') {
   }, []);
 
   /* =========================
-     AUTO-GENERATE PASSWORD
-     WHEN PROGRAM LOADS
-  ========================= */
+   AUTO-GENERATE PASSWORD
+   STUDENTID_LASTNAME
+========================= */
   useEffect(() => {
-    if (formData.id && formData.program) {
+    if (formData.id && formData.lastname) {
+      const safeId = formData.id.replace(/\s+/g, '');
+      const safeLastName = formData.lastname.replace(/\s+/g, '').toUpperCase();
+
       setFormData((prev) => ({
         ...prev,
-        initialPassword: `${prev.id}_${prev.program}`,
+        initialPassword: `${safeId}_${safeLastName}`,
       }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.program]);
+  }, [formData.id, formData.lastname]);
 
   /* =========================
      HANDLE INPUT
@@ -92,9 +94,7 @@ if (user.role?.toLowerCase() !== 'adviser') {
       setFormData((prev) => ({
         ...prev,
         id: idValue,
-        initialPassword: prev.program
-          ? `${idValue}_${prev.program}`
-          : prev.initialPassword,
+        initialPassword: prev.program ? `${idValue}_${prev.program}` : prev.initialPassword,
       }));
       return;
     }
@@ -184,20 +184,14 @@ if (user.role?.toLowerCase() !== 'adviser') {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900">
-      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">
-        Add New Intern
-      </h2>
+      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">Add New Intern</h2>
 
       <p className="text-gray-600 text-center mb-4 mt-2 italic">
         Fill in the details below to add a new intern to the system. All fields marked with an asterisk (
         <span className="text-red-500">*</span>) are required.
       </p>
 
-      {error && (
-        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* --- First Row: Name Fields --- */}
@@ -231,9 +225,7 @@ if (user.role?.toLowerCase() !== 'adviser') {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              M.I.
-            </label>
+            <label className="block text-sm font-medium text-black mb-1">M.I.</label>
             <input
               type="text"
               name="mi"
@@ -294,10 +286,11 @@ if (user.role?.toLowerCase() !== 'adviser') {
               type={showPassword ? 'text' : 'password'}
               name="initialPassword"
               value={formData.initialPassword}
-              onChange={handleChange}
-              className="mt-1 block w-full pr-20 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              readOnly
+              className="mt-1 block w-full pr-20 px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 sm:text-sm"
               required
             />
+
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}

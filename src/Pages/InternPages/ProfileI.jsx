@@ -11,6 +11,7 @@ const ProfileI = () => {
     email: '',
     program: '',
     studentId: '',
+    guardian: '',
   });
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -46,6 +47,7 @@ const ProfileI = () => {
           email: u.email || '',
           program: u.program || '',
           studentId: u.studentId || '',
+          guardian: u.guardian || '',
         });
       } catch (e) {
         setError('Failed to load profile information.');
@@ -69,7 +71,10 @@ const ProfileI = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ program: profileData.program }),
+        body: JSON.stringify({
+          program: profileData.program,
+          guardian: profileData.guardian,
+        }),
       });
 
       if (!res.ok) throw new Error('Failed to update profile');
@@ -148,11 +153,25 @@ const ProfileI = () => {
         {successMessage && <div className="bg-green-100 text-green-700 px-4 py-3 rounded mb-4">{successMessage}</div>}
 
         {/* Personal Info */}
+        {/* Personal Info */}
         <div className="space-y-4 p-4 mb-8 border rounded-md">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Personal Information</h2>
 
           <ReadOnlyField label="Student Number" value={profileData.studentId} />
           <ReadOnlyField label="Name" value={profileData.fullName} />
+
+          {/* ✅ GUARDIAN INPUT (HERE) */}
+          <div className="flex items-center">
+            <label className="w-1/3 text-sm font-medium text-gray-700">Parent / Guardian</label>
+            <input
+              type="text"
+              value={profileData.guardian}
+              onChange={(e) => setProfileData({ ...profileData, guardian: e.target.value })}
+              className={`mt-1 block w-2/3 px-3 py-2 border-2 border-gray-300 rounded-md ${INPUT_FOCUS_RING}`}
+              placeholder="Enter parent or guardian full name"
+            />
+          </div>
+
           <ReadOnlyField label="Program" value={profileData.program} />
           <ReadOnlyField label="Email" value={profileData.email} />
         </div>

@@ -562,6 +562,7 @@ exports.me = async (req, res, next) => {
       lastName: user.lastName,
       mi: user.mi || '',
       studentId: user.studentId || '',
+      guardian: user.guardian || '',
     };
 
     return res.json({

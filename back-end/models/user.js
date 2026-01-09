@@ -51,13 +51,17 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    guardian: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: 'users',
     timestamps: true,
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-  }
+  },
 );
 
 module.exports = User;

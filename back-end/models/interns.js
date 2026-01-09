@@ -55,6 +55,11 @@ Intern.init(
       allowNull: true,
     },
 
+    required_hours: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
     remarks: {
       type: DataTypes.STRING(255),
       allowNull: true,
@@ -76,7 +81,15 @@ Intern.init(
 ========================= */
 const User = require('./user');
 const Company = require('./company');
-const InternDocuments = require('./internDocuments');
+const InternDocuments = require('./InternDocuments');
+
+// Intern ↔ Company (HTE)
+Company.hasMany(Intern, {
+  foreignKey: 'company_id',
+});
+Intern.belongsTo(Company, {
+  foreignKey: 'company_id',
+});
 
 // Intern ↔ User
 Intern.belongsTo(User, { foreignKey: 'user_id' });

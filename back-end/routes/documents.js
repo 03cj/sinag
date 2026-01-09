@@ -19,7 +19,7 @@ router.use(authMiddleware());
 // Upload intern document
 router.post('/intern-docs/upload', upload.single('document'), uploadInternDoc);
 
-// Get intern documents by user ID
-router.get('/intern-docs/:userId', getInternDocuments);
+// Get intern documents by logged-in intern
+router.get('/intern-docs/me', getInternDocuments);
 
 module.exports = router; // ✅ MUST export router ONLY

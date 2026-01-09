@@ -3,33 +3,25 @@ import ProtectedRoute from './Components/ProtectedRoute';
 import { useAuth, useInactivityLogout } from './Context/AuthContext';
 
 /* =========================
-   PUBLIC PAGES (NO HEADER)
+   PUBLIC PAGES
 ========================= */
 import Login from './Components/LogIn';
 import SignUp from './Components/SignUp';
 import NoPageFound from './Pages/NoPageFound';
 
 /* =========================
-   MAIN LAYOUT (WITH HEADER)
-========================= */
-import Layout from './Pages/layout/Layout';
-
-/* =========================
-   ROLE LAYOUTS
+   LAYOUTS
 ========================= */
 import AdviserLayout from './Pages/layout/AdviserLayout';
 import CoordinatorLayout from './Pages/layout/CoordinatorLayout';
 import InternLayout from './Pages/layout/InternLayout';
+import Layout from './Pages/layout/Layout';
 import SupervisorLayout from './Pages/layout/SupervisorLayout';
 
 /* =========================
-   SUPER ADMIN
+   PAGES
 ========================= */
 import AddCoordinator from './Pages/AddCoordinator';
-
-/* =========================
-   COORDINATOR PAGES
-========================= */
 import AddNewCompany from './Pages/CoordinatorPages/AddNewCompany';
 import AdviserC from './Pages/CoordinatorPages/AdviserC';
 import DashboardC from './Pages/CoordinatorPages/DashboardC';
@@ -38,9 +30,6 @@ import InternC from './Pages/CoordinatorPages/InternC';
 import ProfileC from './Pages/CoordinatorPages/ProfileC';
 import ReportsC from './Pages/CoordinatorPages/ReportsC';
 
-/* =========================
-   ADVISER PAGES
-========================= */
 import AddIntern from './Pages/AdviserPages/AddIntern';
 import DashboardA from './Pages/AdviserPages/DashboardA';
 import HTEA from './Pages/AdviserPages/HTEA';
@@ -48,9 +37,6 @@ import InternA from './Pages/AdviserPages/InternA';
 import ProfileA from './Pages/AdviserPages/ProfileA';
 import ReportsA from './Pages/AdviserPages/ReportsA';
 
-/* =========================
-   INTERN PAGES
-========================= */
 import ConsentForm from './Forms/ConsentForm';
 import Documents from './Pages/InternPages/Documents';
 import HomeI from './Pages/InternPages/HomeI';
@@ -59,9 +45,6 @@ import ProfileI from './Pages/InternPages/ProfileI';
 import SelfEvaluation from './Pages/InternPages/Self_Evaluation';
 import SupervisorEvaluation from './Pages/InternPages/Supervisor_Evaluation';
 
-/* =========================
-   SUPERVISOR PAGES
-========================= */
 import DashboardS from './Pages/SupervisorPages/DashboardS';
 import EvaluationS from './Pages/SupervisorPages/EvaluationS';
 import ProfileS from './Pages/SupervisorPages/ProfileS';
@@ -69,10 +52,8 @@ import ProfileS from './Pages/SupervisorPages/ProfileS';
 export default function App() {
   const { user } = useAuth();
 
-  // Only enable inactivity logout when user is logged in
-  if (user) {
-    useInactivityLogout(5); // 5 minutes
-  }
+  // ✅ ALWAYS call hook (no condition)
+  useInactivityLogout(5);
 
   return (
     <Routes>
@@ -99,7 +80,7 @@ export default function App() {
          PROTECTED ROUTES
       ========================= */}
       <Route path="/pup-sinag" element={<Layout />}>
-        {/* ========== COORDINATOR ========== */}
+        {/* COORDINATOR */}
         <Route
           path="coordinator"
           element={
@@ -118,7 +99,7 @@ export default function App() {
           <Route path="profile" element={<ProfileC />} />
         </Route>
 
-        {/* ========== ADVISER ========== */}
+        {/* ADVISER */}
         <Route
           path="adviser"
           element={
@@ -136,7 +117,7 @@ export default function App() {
           <Route path="profile" element={<ProfileA />} />
         </Route>
 
-        {/* ========== INTERN ========== */}
+        {/* INTERN */}
         <Route
           path="intern"
           element={
@@ -155,7 +136,7 @@ export default function App() {
           <Route path="consent-form" element={<ConsentForm />} />
         </Route>
 
-        {/* ========== SUPERVISOR ========== */}
+        {/* SUPERVISOR */}
         <Route
           path="supervisor"
           element={
@@ -171,9 +152,7 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* =========================
-         404
-      ========================= */}
+      {/* 404 */}
       <Route path="*" element={<NoPageFound />} />
     </Routes>
   );

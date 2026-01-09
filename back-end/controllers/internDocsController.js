@@ -2,8 +2,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const InternDocuments = require('../models/internDocuments');
+const InternDocuments = require('../models/InternDocuments');
 const Intern = require('../models/interns');
+const Company = require('../models/company');
 
 /* =========================
    UPLOAD / UPDATE INTERN DOCUMENT
@@ -12,6 +13,11 @@ const Intern = require('../models/interns');
 async function uploadInternDoc(req, res, next) {
   try {
     const file = req.file;
+    if (file.originalname.toLowerCase().includes('moa')) {
+      return res.status(403).json({
+        message: 'MOA is provided by the company and cannot be uploaded by interns',
+      });
+    }
 
     if (!file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -32,7 +38,6 @@ async function uploadInternDoc(req, res, next) {
     const columnMap = {
       consent_form: 'consent_form',
       notarized_agreement: 'notarized_agreement',
-      portfolio: 'portfolio',
       resume: 'resume',
       cor: 'cor',
       insurance: 'insurance',
@@ -89,6 +94,12 @@ async function getInternDocuments(req, res, next) {
   try {
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },
+      include: [
+        {
+          model: Company,
+          attributes: ['moaFile'],
+        },
+      ],
     });
 
     if (!intern) {
@@ -99,7 +110,10 @@ async function getInternDocuments(req, res, next) {
       where: { intern_id: intern.id },
     });
 
-    res.json(docs || {});
+    res.json({
+      ...(docs?.dataValues || {}),
+      MOA: intern.Company?.moaFile || null,
+    });
   } catch (err) {
     console.error('❌ GET INTERN DOCS ERROR:', err);
     next(err);
@@ -114,15 +128,13 @@ async function deleteInternDoc(req, res, next) {
   try {
     const { column } = req.params;
 
-    const allowedColumns = [
-      'consent_form',
-      'notarized_agreement',
-      'portfolio',
-      'resume',
-      'cor',
-      'insurance',
-      'medical_cert',
-    ];
+    if (column === 'MOA') {
+      return res.status(403).json({
+        message: 'MOA cannot be deleted by interns',
+      });
+    }
+
+    const allowedColumns = ['consent_form', 'notarized_agreement', 'resume', 'cor', 'insurance', 'medical_cert'];
 
     if (!allowedColumns.includes(column)) {
       return res.status(400).json({ message: 'Invalid document type' });

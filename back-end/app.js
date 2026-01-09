@@ -19,7 +19,7 @@ const sequelize = require('./config/database');
 const User = require('./models/user');
 const Company = require('./models/company');
 const Intern = require('./models/interns');
-const InternDocuments = require('./models/internDocuments');
+const InternDocuments = require('./models/InternDocuments');
 
 // =========================
 // DEFINE ASSOCIATIONS (ONLY HERE)
@@ -76,7 +76,7 @@ const PORT = process.env.PORT || 5000;
 // =========================
 app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(morgan('dev'));
 
 // =========================

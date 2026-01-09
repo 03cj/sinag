@@ -20,7 +20,7 @@ InternDocuments.init(
 
     consent_form: DataTypes.STRING(255),
     notarized_agreement: DataTypes.STRING(255),
-    portfolio: DataTypes.STRING(255),
+    resume: DataTypes.STRING(255),
     cor: DataTypes.STRING(255),
     insurance: DataTypes.STRING(255),
     medical_cert: DataTypes.STRING(255),
@@ -32,8 +32,8 @@ InternDocuments.init(
   },
   {
     sequelize,
-    modelName: 'InternDocuments',
     tableName: 'intern_documents',
+    modelName: 'InternDocuments',
     timestamps: false,
     underscored: true,
   },

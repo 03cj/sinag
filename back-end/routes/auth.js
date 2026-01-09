@@ -62,6 +62,14 @@ router.put('/interns/:id/status', authMiddleware(['adviser', 'coordinator']), au
 router.put('/interns/:id/assign-hte', authMiddleware(['adviser', 'coordinator']), authController.assignHTE);
 
 router.delete('/interns/:id', authMiddleware(['coordinator']), authController.deleteIntern);
+/* =========================
+   CONSENT DATA
+========================= */
+const consentController = require('../controllers/consentController');
+
+router.get('/consent-data', authMiddleware(['intern']), consentController.getConsentData);
+
+router.post('/consent-save', authMiddleware(['intern']), consentController.saveConsentData);
 
 /* =========================
    INTERN DOCUMENTS
@@ -103,5 +111,7 @@ router.get('/company/interns', authMiddleware(['company']), companyDashboardCont
 
 // 🔹 Upload / update MOA file
 router.put('/company/moa', authMiddleware(['company']), upload.single('moaFile'), companyDashboardController.uploadMoa);
+// 🔹 View / download MOA (Intern or Company)
+router.get('/company/moa', authMiddleware(['intern', 'company']), companyDashboardController.getMoa);
 
 module.exports = router;
