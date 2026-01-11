@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../Components/Modal';
 import ConsentForm from '../../Forms/ConsentForm';
+import NotarizedAgreementForm from '../../Forms/NotarizedAgreementForm';
 
 const DOCUMENTS = [
   { label: 'Consent Form', column: 'consent_form' },
@@ -20,6 +21,7 @@ const Documents = () => {
   const fileInputsRef = useRef([]);
   const navigate = useNavigate();
   const [showFillForm, setShowFillForm] = useState(false);
+  const [showNotarizedForm, setShowNotarizedForm] = useState(false);
 
   /* =========================
      FETCH DOCUMENT STATUS
@@ -209,9 +211,11 @@ const Documents = () => {
                   )}
 
                   {/* FILL CONSENT FORM */}
-                  {doc.column === 'consent_form' && (
+                  {(doc.column === 'consent_form' || doc.column === 'notarized_agreement') && (
                     <button
-                      onClick={() => setShowFillForm(true)}
+                      onClick={() =>
+                        doc.column === 'consent_form' ? setShowFillForm(true) : setShowNotarizedForm(true)
+                      }
                       className="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded-md"
                     >
                       Fill Form
@@ -230,15 +234,19 @@ const Documents = () => {
                   )}
 
                   {/* DELETE */}
-                  {doc.uploaded && doc.column !== 'MOA' && (
-                    <button
-                      onClick={() => handleDelete(index)}
-                      className="flex items-center px-4 py-2 text-sm text-black bg-yellow-500 rounded-md hover:bg-yellow-600"
-                    >
-                      <XCircle className="mr-2" size={16} />
-                      Delete
-                    </button>
-                  )}
+                  {/* DELETE */}
+                  {doc.uploaded &&
+                    doc.column !== 'MOA' &&
+                    doc.column !== 'notarized_agreement' &&
+                    doc.column !== 'consent_form' && (
+                      <button
+                        onClick={() => handleDelete(index)}
+                        className="flex items-center px-4 py-2 text-sm text-black bg-yellow-500 rounded-md hover:bg-yellow-600"
+                      >
+                        <XCircle className="mr-2" size={16} />
+                        Delete
+                      </button>
+                    )}
 
                   {/* VIEW */}
                   {doc.uploaded && (
@@ -257,10 +265,31 @@ const Documents = () => {
         </ul>
       </div>
 
-      {/* FILL CONSENT FORM MODAL */}
+      {/* CONSENT FORM MODAL */}
       {showFillForm && (
         <Modal>
-          <ConsentForm onClose={() => setShowFillForm(false)} />
+          <ConsentForm
+            onClose={() => setShowFillForm(false)}
+            onUploaded={(file) => {
+              setDocuments((prev) =>
+                prev.map((d) => (d.column === 'consent_form' ? { ...d, uploaded: true, file } : d)),
+              );
+            }}
+          />
+        </Modal>
+      )}
+
+      {/* NOTARIZED AGREEMENT MODAL */}
+      {showNotarizedForm && (
+        <Modal>
+          <NotarizedAgreementForm
+            onClose={() => setShowNotarizedForm(false)}
+            onUploaded={(file) => {
+              setDocuments((prev) =>
+                prev.map((d) => (d.column === 'notarized_agreement' ? { ...d, uploaded: true, file } : d)),
+              );
+            }}
+          />
         </Modal>
       )}
     </div>

@@ -69,7 +69,7 @@ const consentController = require('../controllers/consentController');
 
 router.get('/consent-data', authMiddleware(['intern']), consentController.getConsentData);
 
-router.post('/consent-save', authMiddleware(['intern']), consentController.saveConsentData);
+router.post('/consent-save', authMiddleware(['intern']), consentController.saveConsent);
 
 /* =========================
    INTERN DOCUMENTS

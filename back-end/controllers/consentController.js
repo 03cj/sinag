@@ -6,9 +6,8 @@ const generateConsentPDF = require('../utils/generateConsentPDF');
 
 /* =========================
    GET CONSENT DATA
-   (Consent Form only)
 ========================= */
-exports.getConsentData = async (req, res, next) => {
+exports.getConsentData = async (req, res) => {
   try {
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },
@@ -41,30 +40,23 @@ exports.getConsentData = async (req, res, next) => {
       hours: intern.required_hours || '',
     });
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: err.message });
   }
 };
 
 /* =========================
    SAVE + GENERATE PDF
-   (Save & Preview)
 ========================= */
-exports.saveConsentData = async (req, res, next) => {
+exports.saveConsent = async (req, res) => {
   try {
     const { guardianName, hours, endDate } = req.body;
 
-    /* -------------------------
-       VALIDATION
-    ------------------------- */
     if (!guardianName || !hours || !endDate) {
       return res.status(400).json({
         message: 'Guardian name, required hours, and end date are required.',
       });
     }
 
-    /* -------------------------
-       FETCH INTERN DATA
-    ------------------------- */
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },
       include: [{ model: User }, { model: Company }],
@@ -76,9 +68,6 @@ exports.saveConsentData = async (req, res, next) => {
       });
     }
 
-    /* -------------------------
-       SAVE DATA TO DATABASE
-    ------------------------- */
     await intern.update({
       end_date: endDate,
       required_hours: hours,
@@ -88,34 +77,24 @@ exports.saveConsentData = async (req, res, next) => {
       guardian: guardianName,
     });
 
-    /* -------------------------
-       PREPARE PDF DATA
-    ------------------------- */
-    const data = {
-      studentName: `${intern.User.firstName} ${intern.User.lastName}`,
-      guardian: guardianName,
-      program: intern.User.program,
-      hteName: intern.Company.name,
-      hteAddress: intern.Company.address,
-      startDate: intern.start_date,
-      endDate,
-      hours,
-    };
-
     const filename = `CONSENT_${intern.id}_${Date.now()}.pdf`;
 
-    /* -------------------------
-       GENERATE PDF (AWAIT)
-    ------------------------- */
-    await generateConsentPDF(data, filename);
+    await generateConsentPDF(
+      {
+        studentName: `${intern.User.firstName} ${intern.User.lastName}`,
+        guardian: guardianName,
+        program: intern.User.program,
+        hteName: intern.Company.name,
+        hteAddress: intern.Company.address,
+        startDate: intern.start_date,
+        endDate,
+        hours,
+      },
+      filename,
+    );
 
-    /* -------------------------
-       RETURN FILE URL
-    ------------------------- */
-    res.json({
-      fileUrl: `/uploads/${filename}`,
-    });
+    res.json({ fileUrl: `/uploads/${filename}` });
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: err.message });
   }
 };
