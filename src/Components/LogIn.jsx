@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 
+import ForgotPassword from './ForgotPassword';
 import sinagLogo from '/PUP-SINAG.png';
 import pupSeal from '/pup_1904.png';
 
@@ -11,6 +12,7 @@ const LogIn = () => {
   // --- HOOKS ---
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   // --- STATE ---
   const [email, setEmail] = useState('');
@@ -46,6 +48,11 @@ const LogIn = () => {
 
       // ✅ SAVE TOKEN
       login(data.token);
+
+      if (data.forcePasswordChange) {
+        navigate(`${BASE_PATH}/change-password`, { replace: true });
+        return;
+      }
 
       // ✅ DECODE ROLE FROM JWT (THIS IS THE FIX)
       const payload = JSON.parse(atob(data.token.split('.')[1]));
@@ -88,7 +95,12 @@ const LogIn = () => {
   `;
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row" style={{ background: `linear-gradient(to right, #FFE066 0%, #FFF2B3 30%, #FFFFFF 50%, #F5F5F0 70%, #EAD1D1 85%, #E0BFBF 100%)` }}>
+    <div
+      className="min-h-screen flex flex-col lg:flex-row"
+      style={{
+        background: `linear-gradient(to right, #FFE066 0%, #FFF2B3 30%, #FFFFFF 50%, #F5F5F0 70%, #EAD1D1 85%, #E0BFBF 100%)`,
+      }}
+    >
       {/* LEFT PANEL */}
       <div
         className="hidden lg:flex w-full lg:w-1/2 items-center justify-center text-[#5E0000] shadow-inner"
@@ -98,7 +110,11 @@ const LogIn = () => {
           <h2 className="text-base sm:text-lg font-bold text-center whitespace-normal">
             PUP System for Internship Navigation and Guidance
           </h2>
-          <img src={sinagLogo} alt="PUP SINAG Logo" className="w-[200px] sm:w-[280px] lg:w-[380px] h-auto drop-shadow-xl" />
+          <img
+            src={sinagLogo}
+            alt="PUP SINAG Logo"
+            className="w-[200px] sm:w-[280px] lg:w-[380px] h-auto drop-shadow-xl"
+          />
         </div>
       </div>
 
@@ -111,7 +127,9 @@ const LogIn = () => {
               <img src={pupSeal} alt="PUP Seal" className="w-16 sm:w-20 h-auto" />
             </div>
 
-            <h1 className="text-lg sm:text-xl font-semibold text-center text-gray-700 mb-6 sm:mb-8">Login your PUP SINAG Account</h1>
+            <h1 className="text-lg sm:text-xl font-semibold text-center text-gray-700 mb-6 sm:mb-8">
+              Login your PUP SINAG Account
+            </h1>
 
             <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
               <input
@@ -153,11 +171,18 @@ const LogIn = () => {
             </form>
 
             <div className="mt-4 sm:mt-6 text-center">
-              <button className="text-xs sm:text-sm text-gray-700 hover:text-[#8B0000] hover:underline">Forgot Password</button>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs sm:text-sm text-gray-700 hover:text-[#8B0000] hover:underline"
+              >
+                Forgot Password?
+              </button>
             </div>
           </div>
         </div>
       </div>
+      <ForgotPassword isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} />
     </div>
   );
 };

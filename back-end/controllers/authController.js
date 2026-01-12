@@ -6,7 +6,8 @@ const { literal } = require('sequelize');
 const User = require('../models/user');
 const Intern = require('../models/interns');
 const Company = require('../models/company');
-const InternDocuments = require('../models/internDocuments');
+const InternDocuments = require('../models/InternDocuments');
+const sendCredentialsEmail = require('../utils/sendCredentialsEmail');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -188,19 +189,22 @@ exports.getAdvisers = async (req, res, next) => {
 
 exports.addAdviser = async (req, res, next) => {
   try {
-    const { firstName, lastName, mi, email, program, password } = req.body;
+    const { firstName, lastName, mi, email, program } = req.body;
 
-    if (!firstName || !lastName || !email || !program || !password) {
+    if (!firstName || !lastName || !email || !program) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const existing = await User.findOne({
       where: { email: email.toLowerCase() },
     });
-
     if (existing) return res.status(409).json({ message: 'Email already exists' });
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    // 🔑 TEMP PASSWORD
+    const year = new Date().getFullYear();
+    const tempPassword = `${lastName}_${year}`;
+
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     const adviser = await User.create({
       firstName,
@@ -210,9 +214,20 @@ exports.addAdviser = async (req, res, next) => {
       passwordHash,
       role: 'Adviser',
       program,
+      forcePasswordChange: true,
     });
 
-    res.status(201).json(adviser);
+    // 📧 SEND EMAIL
+    await sendCredentialsEmail({
+      email: adviser.email,
+      password: tempPassword,
+      role: 'Adviser',
+    });
+
+    res.status(201).json({
+      message: 'Adviser added and credentials sent',
+      adviser,
+    });
   } catch (err) {
     next(err);
   }
@@ -251,9 +266,9 @@ exports.deleteAdviser = async (req, res, next) => {
 ========================= */
 exports.addIntern = async (req, res, next) => {
   try {
-    const { firstName, lastName, mi, email, studentId, program, initialPassword } = req.body;
+    const { firstName, lastName, mi, email, studentId, program } = req.body;
 
-    if (!firstName || !lastName || !email || !studentId || !program || !initialPassword) {
+    if (!firstName || !lastName || !email || !studentId || !program) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -261,10 +276,18 @@ exports.addIntern = async (req, res, next) => {
       where: { email: email.toLowerCase() },
     });
 
-    if (existingUser) return res.status(409).json({ message: 'Email already exists' });
+    if (existingUser) {
+      return res.status(409).json({ message: 'Email already exists' });
+    }
 
-    const passwordHash = await bcrypt.hash(initialPassword, 10);
+    // 🔑 TEMP PASSWORD
+    const year = new Date().getFullYear();
+    const tempPassword = `${lastName}_${year}`;
 
+    // 🔐 HASH PASSWORD
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+    // 👤 CREATE USER
     const user = await User.create({
       firstName,
       lastName,
@@ -274,15 +297,26 @@ exports.addIntern = async (req, res, next) => {
       role: 'Intern',
       studentId,
       program,
+      forcePasswordChange: true,
     });
 
+    // 📄 CREATE INTERN RECORD
     await Intern.create({
       user_id: user.id,
       program,
       status: 'Pending',
     });
 
-    res.status(201).json({ message: 'Intern added successfully' });
+    // 📧 SEND EMAIL
+    await sendCredentialsEmail({
+      email: user.email,
+      password: tempPassword,
+      role: 'Intern',
+    });
+
+    res.status(201).json({
+      message: 'Intern added and credentials sent',
+    });
   } catch (err) {
     next(err);
   }
@@ -444,14 +478,20 @@ exports.assignHTE = async (req, res, next) => {
 ========================= */
 exports.addCompany = async (req, res, next) => {
   try {
-    const { name, email, address, natureOfBusiness, supervisorName, moaStart, moaEnd, initialPassword } = req.body;
+    const { name, email, address, natureOfBusiness, supervisorName, moaStart, moaEnd } = req.body;
 
-    if (!name || !email || !initialPassword) {
+    if (!name || !email) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const passwordHash = await bcrypt.hash(initialPassword, 10);
+    // 🔑 TEMP PASSWORD
+    const year = new Date().getFullYear();
+    const tempPassword = `${name.replace(/\s+/g, '')}_${year}`;
 
+    // 🔐 HASH PASSWORD
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+    // 🏢 CREATE COMPANY
     const company = await Company.create({
       name,
       email: email.toLowerCase(),
@@ -462,9 +502,20 @@ exports.addCompany = async (req, res, next) => {
       moaEnd,
       moaFile: req.file?.filename || null,
       password: passwordHash,
+      forcePasswordChange: true, // if you add this field to Company
     });
 
-    res.status(201).json(company);
+    // 📧 SEND EMAIL
+    await sendCredentialsEmail({
+      email: company.email,
+      password: tempPassword,
+      role: 'Supervisor',
+    });
+
+    res.status(201).json({
+      message: 'Company added and credentials sent',
+      company,
+    });
   } catch (err) {
     next(err);
   }

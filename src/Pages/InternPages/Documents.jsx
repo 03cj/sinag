@@ -267,7 +267,7 @@ const Documents = () => {
 
       {/* CONSENT FORM MODAL */}
       {showFillForm && (
-        <Modal>
+        <Modal isOpen={showFillForm} onClose={() => setShowFillForm(false)}>
           <ConsentForm
             onClose={() => setShowFillForm(false)}
             onUploaded={(file) => {
@@ -281,7 +281,7 @@ const Documents = () => {
 
       {/* NOTARIZED AGREEMENT MODAL */}
       {showNotarizedForm && (
-        <Modal>
+        <Modal isOpen={showNotarizedForm} onClose={() => setShowNotarizedForm(false)}>
           <NotarizedAgreementForm
             onClose={() => setShowNotarizedForm(false)}
             onUploaded={(file) => {

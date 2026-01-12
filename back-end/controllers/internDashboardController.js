@@ -2,7 +2,7 @@
 const User = require('../models/user');
 const Intern = require('../models/interns');
 const Company = require('../models/company');
-const InternDocuments = require('../models/internDocuments');
+const InternDocuments = require('../models/InternDocuments');
 
 exports.getInternDashboard = async (req, res, next) => {
   try {

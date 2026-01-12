@@ -101,6 +101,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
+// Forgot Password Routes
+app.use('/api/forgot-password', require('./routes/forgotPasswordRoutes'));
+
 // =========================
 // HEALTH CHECK
 // =========================

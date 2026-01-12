@@ -23,7 +23,7 @@ router.post('/login', authController.login);
 /* =========================
    PROTECTED ROUTES
 ========================= */
-router.use(authMiddleware());
+router.use(authMiddleware(['superadmin', 'coordinator', 'adviser', 'intern', 'company']));
 
 /* =========================
    USER PROFILE

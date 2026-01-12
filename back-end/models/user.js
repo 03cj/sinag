@@ -55,6 +55,21 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+
+    resetCode: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    resetCodeExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    /* FORCE PASSWORD CHANGE */
+    forcePasswordChange: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
   },
   {
     tableName: 'users',

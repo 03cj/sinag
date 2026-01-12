@@ -6,7 +6,6 @@ import { useAuth, useInactivityLogout } from './Context/AuthContext';
    PUBLIC PAGES
 ========================= */
 import Login from './Components/LogIn';
-import SignUp from './Components/SignUp';
 import NoPageFound from './Pages/NoPageFound';
 
 /* =========================
@@ -62,7 +61,6 @@ export default function App() {
       ========================= */}
       <Route path="/" element={<Login />} />
       <Route path="/pup-sinag" element={<Login />} />
-      <Route path="/sign-up" element={<SignUp />} />
 
       {/* =========================
          SUPER ADMIN
