@@ -140,7 +140,7 @@ export default function ForgotPassword({ isOpen, onClose }) {
             />
 
             {/* Keeping "Confirm code" text as per your provided image (3) */}
-            <PUPButton onClick={handleResetPassword}>Confirm code</PUPButton>
+            <PUPButton onClick={handleResetPassword}>Confirm password</PUPButton>
           </div>
         )}
 

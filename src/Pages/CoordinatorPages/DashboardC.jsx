@@ -32,7 +32,19 @@ const gradient = (ctx, top, bottom) => {
   g.addColorStop(1, bottom);
   return g;
 };
+const abbreviateProgram = (program) => {
+  if (!program || program === 'All') return program;
 
+  const ignoreWords = ['OF', 'IN', 'THE', 'AND', 'FOR'];
+
+  return program
+    .toUpperCase()
+    .replace(/-/g, ' ')
+    .split(' ')
+    .filter((word) => !ignoreWords.includes(word))
+    .map((word) => word[0])
+    .join('');
+};
 const DashboardC = () => {
   const [selectedProgram, setSelectedProgram] = useState('All');
   const [programsFilter, setProgramsFilter] = useState(['All']);
@@ -53,21 +65,20 @@ const DashboardC = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const [programRes, companyRes, kpiRes, adviserProgramRes] =
-          await Promise.all([
-            fetch(`${API_BASE}/api/dashboard/programs`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`${API_BASE}/api/dashboard/companies`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`${API_BASE}/api/dashboard/kpis`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`${API_BASE}/api/dashboard/adviser-programs`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-          ]);
+        const [programRes, companyRes, kpiRes, adviserProgramRes] = await Promise.all([
+          fetch(`${API_BASE}/api/dashboard/programs`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE}/api/dashboard/companies`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE}/api/dashboard/kpis`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE}/api/dashboard/adviser-programs`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
         const programData = await programRes.json();
         const companyData = await companyRes.json();
@@ -75,55 +86,39 @@ const DashboardC = () => {
         const adviserPrograms = await adviserProgramRes.json();
 
         /* =========================
-           PROGRAM FILTERS
-        ========================= */
-        setProgramsFilter(['All', ...adviserPrograms]);
+   FILTERED PROGRAMS
+========================= */
+        const filteredPrograms =
+          selectedProgram === 'All' ? programData : programData.filter((p) => p.program === selectedProgram);
+
+        const filteredInternTotal = filteredPrograms.reduce((sum, p) => sum + p.count, 0);
 
         /* =========================
-           FILTER PROGRAM DATA
-        ========================= */
-        const filteredPrograms =
-          selectedProgram === 'All'
-            ? programData
-            : programData.filter((p) => p.program === selectedProgram);
+   PROGRAM FILTER LIST
+========================= */
+        const uniquePrograms = [...new Set(programData.map((p) => p.program))];
 
-        const filteredInternTotal = filteredPrograms.reduce(
-          (sum, p) => sum + p.count,
-          0
-        );
+        setProgramsFilter(['All', ...uniquePrograms]);
 
         const totalProgramsCount = programData.length;
 
         const programPercentages = filteredPrograms.map((p) =>
-          filteredInternTotal
-            ? Math.round((p.count / filteredInternTotal) * 100)
-            : 0
+          filteredInternTotal ? Math.round((p.count / filteredInternTotal) * 100) : 0,
         );
 
-        const totalCompanyCount = companyData.reduce(
-          (sum, c) => sum + c.count,
-          0
-        );
+        const totalCompanyCount = companyData.reduce((sum, c) => sum + c.count, 0);
 
         const companyPercentages = companyData.map((c) =>
-          totalCompanyCount
-            ? Math.round((c.count / totalCompanyCount) * 100)
-            : 0
+          totalCompanyCount ? Math.round((c.count / totalCompanyCount) * 100) : 0,
         );
 
         /* =========================
            KPI UPDATE (FILTER AWARE)
         ========================= */
         setKpiData({
-          activeInterns:
-            selectedProgram === 'All'
-              ? kpis.activeInterns
-              : filteredInternTotal,
+          activeInterns: selectedProgram === 'All' ? kpis.activeInterns : filteredInternTotal,
 
-          activePrograms:
-            selectedProgram === 'All'
-              ? totalProgramsCount
-              : selectedProgram,
+          activePrograms: selectedProgram === 'All' ? totalProgramsCount : abbreviateProgram(selectedProgram),
 
           partnerHTE: kpis.partnerHTE,
         });
@@ -133,6 +128,7 @@ const DashboardC = () => {
         ========================= */
         setProgramChartData({
           labels: filteredPrograms.map((p) => p.program),
+
           datasets: [
             {
               data: filteredPrograms.map((p) => p.count),
@@ -202,8 +198,7 @@ const DashboardC = () => {
       },
       tooltip: {
         callbacks: {
-          label: (ctx) =>
-            `${ctx.label}: ${ctx.parsed} (${ctx.chart.data.percentages?.[ctx.dataIndex]}%)`,
+          label: (ctx) => `${ctx.label}: ${ctx.parsed} (${ctx.chart.data.percentages?.[ctx.dataIndex]}%)`,
         },
       },
     },
@@ -214,21 +209,17 @@ const DashboardC = () => {
       <div className="flex flex-col md:flex-row gap-5">
         {/* FILTER SIDEBAR */}
         <aside className="bg-white rounded-lg shadow-md p-5 w-full md:w-52 border">
-          <div className="bg-red-800 text-white font-bold text-center py-2 mb-4 rounded">
-            Filters
-          </div>
+          <div className="bg-red-800 text-white font-bold text-center py-2 mb-4 rounded">Filters</div>
 
           {programsFilter.map((program) => (
             <div
               key={program}
-              onClick={() => setSelectedProgram(program)}
+              onClick={() => setSelectedProgram(program)} // FULL NAME used internally
               className={`py-2 cursor-pointer ${
-                selectedProgram === program
-                  ? 'font-bold text-red-800'
-                  : 'text-gray-600'
+                selectedProgram === program ? 'font-bold text-red-800' : 'text-gray-600'
               }`}
             >
-              {program}
+              {abbreviateProgram(program)}
             </div>
           ))}
         </aside>
@@ -243,32 +234,16 @@ const DashboardC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="bg-white rounded-lg shadow-md p-5 border">
-              <h3 className="text-center font-semibold mb-4">
-                Number of Interns Per Program
-              </h3>
+              <h3 className="text-center font-semibold mb-4">Number of Interns Per Program</h3>
               <div className="h-64">
-                {programChartData && (
-                  <Pie
-                    data={programChartData}
-                    options={chartOptions}
-                    plugins={[shadowPlugin]}
-                  />
-                )}
+                {programChartData && <Pie data={programChartData} options={chartOptions} plugins={[shadowPlugin]} />}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-5 border">
-              <h3 className="text-center font-semibold mb-4">
-                Number of Interns Per Company
-              </h3>
+              <h3 className="text-center font-semibold mb-4">Number of Interns Per Company</h3>
               <div className="h-64">
-                {companyChartData && (
-                  <Pie
-                    data={companyChartData}
-                    options={chartOptions}
-                    plugins={[shadowPlugin]}
-                  />
-                )}
+                {companyChartData && <Pie data={companyChartData} options={chartOptions} plugins={[shadowPlugin]} />}
               </div>
             </div>
           </div>

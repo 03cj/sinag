@@ -1,311 +1,343 @@
-import { ArrowLeft, Send, X } from 'lucide-react'; // Added ArrowLeft and X
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom'; // Import necessary routing hooks
+import axios from 'axios';
+import { ArrowLeft, Building2, ClipboardCheck, Send, Star, User } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-// Custom Modal Component to replace window.alert() and window.confirm()
-const SimpleModal = ({ isVisible, title, message, onClose }) => {
-  if (!isVisible) return null;
+/* ============================
+   INDICATORS DATA
+============================ */
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-100 border-t-4 border-red-700">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-red-800">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-red-600 transition">
-            <X size={24} />
-          </button>
-        </div>
-        <p className="text-gray-700 mb-6">{message}</p>
-        <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-red-800 text-white font-semibold rounded-lg hover:bg-red-900 transition shadow"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Performance Indicators
-const performanceIndicators = [
-  'Provides comprehensive Internship Plan to student interns (company profile, objectives, job description, knowledge, and competencies, journal/DTR, list of equivalencies, and focal person).',
-  'Orients student-interns on the standard rules and regulations, policies, potential projects, and respective work assignments in the HTE.',
-  'Commits to let student-interns undergo an internship Program compliant with the requirements of the University - Online Training (web-based) or be subjected to Work-from-Home arrangements as selected by the HTE and under the policies of the University.',
-  'Ensures that student-interns are rendering the training hours within the regular working hours.',
-  'Provides free relevant instruction, exposure, and training to the student-intern, consistent with its policies, rules, and regulations.',
-  'Treats the student-interns in a professional manner, and ensures that the student-interns are not exposed to any form of harassment/unethical practices or tasks and work assignments that are unsafe/risky, or unrelated to the purposes of the Internship Program.',
-  'Observes safety measures for the student-interns and ensures quality of training.',
-  'Issues Certificate of Completion to the student-interns not later than two weeks after the completion of internship.',
-  'Attends application dialogue/exit conference/culminating activity conducted by the College/Branch/Satellite Campuses.',
+const CHARACTER_INDICATORS = [
+  { text: 'The intern can be trusted with important and confidential information.', max: 10 },
+  { text: 'The intern shows courtesy and transparency in his/her dealings with superiors and colleagues.', max: 10 },
+  { text: 'The intern displays responsibility and accountability in doing the assigned tasks.', max: 10 },
+  { text: 'The intern manifests resiliency during critical and difficult circumstances.', max: 10 },
+  { text: 'The intern shows commitment and hard work in the workplace.', max: 10 },
 ];
 
-// Rating Scale Legend
-const ratingScale = {
-  5: 'Fully Compliant (91-100%)',
-  4: 'Compliant (76-90%)',
-  3: 'Somewhat Compliant (61%-75%)',
-  2: 'Moderately Compliant (26-60%)',
-  1: 'Fully Not Compliant (0%-10%)',
-};
+const COMPETENCE_INDICATORS = [
+  { text: 'The intern displays thoroughness, accuracy, and completeness in work output.', max: 5 },
+  { text: 'The intern practices timeliness in the completion of assigned tasks.', max: 5 },
+  {
+    text: 'The intern manifests sound decision-making and logical thinking in dealing with simple problems related to his/her tasks.',
+    max: 10,
+  },
+  {
+    text: 'The intern exhibits initiative and perseverance in the performance of duties and responsibilities.',
+    max: 10,
+  },
+  {
+    text: 'The intern meets the technical skills required of the student intern by the HTE.',
+    max: 15,
+    hasDetails: true,
+  },
+  { text: 'The intern shows great potential for employment in the company.', max: 5 },
+];
 
 const EvaluationS = () => {
-  // Get the student number from the URL parameter
-  const { studNo } = useParams();
   const navigate = useNavigate();
+  const { studentId } = useParams();
 
+  // Unified State
+  const [ratings, setRatings] = useState(Array(CHARACTER_INDICATORS.length + COMPETENCE_INDICATORS.length).fill(''));
   const [formData, setFormData] = useState({
-    name: 'DLX BAGS PHILIPPINES INC', // Pre-fill based on image
-    address: 'SFB # 3 LUZON AVENUE FAB, MARIVELES, BATAAN',
-    nature: 'TEXTILE, APPAREL AND ACCESORIES',
-    ratings: performanceIndicators.map(() => '5'), // Default to 'Fully Compliant'
-    remarks: performanceIndicators.map(() => ''),
+    internName: '',
+    section: '',
+    hteName: '',
+    jobDescription: '',
+    technicalDetails: '',
+    recommendations: '',
+    evaluator: '',
+    designation: '',
+    date: '',
+    conforme: '',
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [modal, setModal] = useState({
-    isVisible: false,
-    title: '',
-    message: '',
-  });
 
-  const showMessage = (title, message) => {
-    setModal({ isVisible: true, title, message });
-  };
+  useEffect(() => {
+    if (!studentId) return;
 
-  const closeModal = () => {
-    setModal({ isVisible: false, title: '', message: '' });
-  };
+    const fetchIntern = async () => {
+      try {
+        const token = localStorage.getItem('token');
 
-  const handleRatingChange = (index, value) => {
-    const newRatings = [...formData.ratings];
+        // 1️⃣ Get interns of company
+        const internRes = await fetch('http://localhost:5000/api/auth/company/interns', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const interns = await internRes.json();
+        const intern = interns.find((i) => String(i.studentId) === String(studentId));
+
+        if (!intern) {
+          console.error('Intern not found');
+          return;
+        }
+
+        // 2️⃣ Get company profile (for HTE + supervisor)
+        const companyRes = await fetch('http://localhost:5000/api/auth/company/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const company = await companyRes.json();
+
+        // 3️⃣ Populate form
+        setFormData((prev) => ({
+          ...prev,
+          internName: `${intern.firstName} ${intern.lastName}`,
+          section: intern.program, // ✅ PROGRAM
+          hteName: company.name, // ✅ COMPANY NAME
+          evaluator: company.supervisorName, // ✅ SUPERVISOR NAME
+          designation: 'SUPERVISOR', // ✅ FIXED
+        }));
+      } catch (err) {
+        console.error('Failed to load evaluation data', err);
+      }
+    };
+
+    fetchIntern();
+  }, [studentId]);
+
+  // Auto-calculate Total
+  const totalScore = useMemo(() => {
+    return ratings.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+  }, [ratings]);
+
+  const handleRatingChange = (index, value, max) => {
+    const numValue = parseFloat(value);
+    if (numValue > max) return;
+
+    const newRatings = [...ratings];
     newRatings[index] = value;
-    setFormData({ ...formData, ratings: newRatings });
+    setRatings(newRatings);
   };
 
-  const handleRemarkChange = (index, value) => {
-    const newRemarks = [...formData.remarks];
-    newRemarks[index] = value;
-    setFormData({ ...formData, remarks: newRemarks });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call for submission
-    setTimeout(() => {
-      console.log('Form Data Submitted for Student:', studNo, formData);
-      showMessage('Submission Successful', `Evaluation form for student ${studNo} submitted successfully!`);
+
+    try {
+      await axios.post('http://localhost:5000/api/evaluations', {
+        ...formData,
+        ratings: ratings.map((r) => Number(r) || 0),
+        totalScore: Number(totalScore),
+      });
+
+      alert('Evaluation Submitted Successfully!');
+      navigate(-1); // optional: go back after submit
+    } catch (error) {
+      console.error(error);
+      alert('Failed to submit evaluation');
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
-  // Helper function to render radio buttons for a specific indicator
-  const renderRatingRadios = (index) => {
-    return Object.keys(ratingScale).map((score) => (
-      <label key={score} className="inline-flex items-center mx-2 md:mx-0 justify-center w-8 h-8">
-        <input
-          type="radio"
-          name={`rating-${index}`}
-          value={score}
-          checked={formData.ratings[index] === score}
-          onChange={() => handleRatingChange(index, score)}
-          className="form-radio h-4 w-4 text-red-700 focus:ring-red-500"
-          disabled={isSubmitting}
-        />
-      </label>
-    ));
+  const RenderRow = ({ item, index, offset = 0 }) => {
+    const globalIndex = index + offset;
+    return (
+      <tr className="border-b border-zinc-200 hover:bg-zinc-50 transition-colors">
+        <td className="px-6 py-4 text-sm text-black">
+          <div className="flex gap-3">
+            <span className="font-bold text-zinc-400">{globalIndex + 1}.</span>
+            <div>
+              <span className="font-medium">{item.text}</span>
+              {item.hasDetails && (
+                <textarea
+                  name="technicalDetails"
+                  value={formData.technicalDetails}
+                  onChange={handleInputChange}
+                  placeholder="Specify technical skills here..."
+                  className="mt-2 w-full p-2 text-xs border border-zinc-300 rounded-md bg-white focus:ring-1 focus:ring-red-800 outline-none text-black"
+                  rows="2"
+                />
+              )}
+            </div>
+          </div>
+        </td>
+        <td className="px-6 py-4 text-center font-bold text-black bg-zinc-50/50">{item.max}%</td>
+        <td className="px-6 py-4">
+          <input
+            type="number"
+            min="0"
+            max={item.max}
+            step="0.5"
+            value={ratings[globalIndex]}
+            onChange={(e) => handleRatingChange(globalIndex, e.target.value, item.max)}
+            className="w-20 mx-auto block border-2 border-zinc-300 p-2 rounded-lg text-center text-black font-bold focus:border-red-800 focus:ring-2 focus:ring-red-100 transition-all outline-none"
+            placeholder="0"
+          />
+        </td>
+      </tr>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-red-50 p-4 sm:p-6 lg:p-8">
-      {/* Custom Modal */}
-      <SimpleModal isVisible={modal.isVisible} title={modal.title} message={modal.message} onClose={closeModal} />
-
-      <form onSubmit={handleSubmit} className="max-w-7xl mx-auto space-y-6">
-        {/* Navigation and Header Block */}
-        <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={() => navigate(-1)} // Go back to the previous page (Dashboard)
-            type="button"
-            className="flex items-center text-red-700 hover:text-red-900 font-semibold transition"
-          >
-            <ArrowLeft className="w-5 h-5 mr-1" />
-            Back to Dashboard
+    <div className="min-h-screen bg-zinc-100 pb-12">
+      {/* Top Header/Progress */}
+      <div className="bg-red-950 text-white sticky top-0 z-10 shadow-md">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <button onClick={() => navigate(-1)} className="flex items-center hover:text-yellow-400 transition-colors">
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            <span className="font-bold">Back</span>
           </button>
-          <p className="text-lg font-bold text-gray-700">
-            Evaluating Student No: <span className="text-red-700">{studNo}</span>
-          </p>
-        </div>
-
-        {/* Header/Title Block */}
-        <div className="bg-red-800 text-white p-6 rounded-lg shadow-xl text-center">
-          <h2 className="text-2xl sm:text-3xl font-extrabold italic" style={{ color: 'yellow' }}>
-            Evaluation Instrument for Host Training Establishment
-          </h2>
-          <p className="mt-2 text-sm">Polytechnic University of the Philippines</p>
-        </div>
-
-        {/* Company Details Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-gray-800 space-y-3">
-          <div className="flex flex-col md:flex-row md:space-x-4">
-            <label className="flex-1 block">
-              <span className="font-bold block mb-1">Name of the HTE:</span>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-                required
-                disabled={isSubmitting}
-              />
-            </label>
-            <label className="flex-1 block mt-3 md:mt-0">
-              <span className="font-bold block mb-1">Nature of Business:</span>
-              <input
-                type="text"
-                value={formData.nature}
-                onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-                required
-                disabled={isSubmitting}
-              />
-            </label>
+          <div className="text-right">
+            <span className="text-xs uppercase tracking-widest text-red-200">Total Score</span>
+            <p className="text-xl font-black text-yellow-400">{totalScore.toFixed(2)}%</p>
           </div>
-          <label className="block">
-            <span className="font-bold block mb-1">Address:</span>
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
-              required
-              disabled={isSubmitting}
-            />
-          </label>
         </div>
+      </div>
 
-        {/* Legend/Rating Scale Table (Replicated from image) */}
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-xl font-bold mb-3 text-red-800">Legend:</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 border border-gray-300">
-              <thead className="bg-red-700 text-white">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider w-1/4">Descriptive</th>
-                  <th className="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider w-1/4">Numerical</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider w-1/4">
-                    Weighted Mean
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider w-1/4">
-                    Interpretation
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 text-sm">
-                {/* Descriptive/Numerical/Interpretation Rows */}
-                {Object.entries(ratingScale).map(([score, description], index) => (
-                  <tr key={score} className={`${index % 2 === 0 ? 'bg-white' : 'bg-red-50'}`}>
-                    <td className="px-6 py-3 font-medium">
-                      {score} - {description}
-                    </td>
-                    <td className="px-6 py-3 text-center">{score}</td>
-                    <td className="px-6 py-3">
-                      {index === 0 && '4.51 - 5.00'}
-                      {index === 1 && '3.51 - 4.50'}
-                      {index === 2 && '2.51 - 3.50'}
-                      {index === 3 && '1.51 - 2.50'}
-                      {index === 4 && '1.00 - 1.50'}
-                    </td>
-                    <td className="px-6 py-3">
-                      {index === 0 && 'Fully Compliant'}
-                      {index === 1 && 'Compliant'}
-                      {index === 2 && 'Somewhat Compliant'}
-                      {index === 3 && 'Moderately Compliant'}
-                      {index === 4 && 'Fully Not Compliant'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-4 mt-8 space-y-8">
+        {/* Main Header Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-red-950 to-red-800 p-8 text-center">
+            <h1 className="text-3xl font-black text-white italic tracking-tight">EVALUATION INSTRUMENT</h1>
+            <p className="text-red-100 mt-2 font-bold tracking-wide">Polytechnic University of the Philippines</p>
+            <div className="mt-4 inline-block bg-yellow-400 text-red-950 px-4 py-1 rounded-full text-xs font-black uppercase">
+              Student-Internship Program
+            </div>
+          </div>
+
+          <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
+                <User className="text-red-900 w-5 h-5" />
+                <input value={formData.internName} disabled className="bg-zinc-50" />
+              </div>
+              <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
+                <ClipboardCheck className="text-red-900 w-5 h-5" />
+                <textarea
+                  value={formData.section}
+                  disabled
+                  rows={1}
+                  className="w-full bg-zinc-50 resize-none border-none outline-none font-bold text-black leading-tight"
+                />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
+                <Building2 className="text-red-900 w-5 h-5" />
+                <input value={formData.hteName} disabled className="bg-zinc-50" />
+              </div>
+              <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
+                <Star className="text-red-900 w-5 h-5" />
+                <input
+                  name="jobDescription"
+                  value={formData.jobDescription}
+                  onChange={handleInputChange}
+                  placeholder="Enter intern’s job description"
+                  className="border-b-2 border-zinc-200 py-2 focus:border-red-900 outline-none font-bold text-black"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Evaluation Table */}
-        <div className="bg-white rounded-lg shadow-xl overflow-x-auto border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200">
-            {/* Table Header (Red) */}
-            <thead className="bg-red-800 text-white">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-bold uppercase tracking-wider w-1/2">
-                  Performance Indicators
-                </th>
-                <th className="px-2 py-3 text-center text-sm font-bold uppercase tracking-wider w-[15%]">
-                  5 | 4 | 3 | 2 | 1
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-bold uppercase tracking-wider w-[35%]">Remarks</th>
+        <div className="bg-white rounded-2xl shadow-md border border-zinc-200 overflow-hidden">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-red-950 text-white text-xs uppercase tracking-wider">
+                <th className="px-6 py-5 text-left font-black">Evaluation Criteria</th>
+                <th className="px-6 py-5 text-center font-black w-32">Max %</th>
+                <th className="px-6 py-5 text-center font-black w-32">Rating</th>
               </tr>
             </thead>
-            {/* Table Body (White) */}
-            <tbody className="bg-white divide-y divide-gray-200">
-              {performanceIndicators.map((indicator, index) => (
-                <tr key={index} className="hover:bg-red-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-700 w-1/2">{indicator}</td>
-                  <td className="px-2 py-4 text-center text-sm font-medium w-[15%] flex justify-center space-x-1 md:space-x-0">
-                    {renderRatingRadios(index)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700 w-[35%]">
-                    <input
-                      type="text"
-                      value={formData.remarks[index]}
-                      onChange={(e) => handleRemarkChange(index, e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-red-500 focus:border-red-500"
-                      placeholder="Add remark (optional)"
-                      disabled={isSubmitting}
-                    />
-                  </td>
-                </tr>
+            <tbody>
+              <tr className="bg-red-50">
+                <td colSpan="3" className="px-6 py-3 font-black text-red-950 text-sm border-y border-red-100">
+                  I. CHARACTER (50%)
+                </td>
+              </tr>
+              {CHARACTER_INDICATORS.map((item, i) => (
+                <RenderRow key={i} item={item} index={i} />
               ))}
+
+              <tr className="bg-red-50">
+                <td colSpan="3" className="px-6 py-3 font-black text-red-950 text-sm border-y border-red-100">
+                  II. COMPETENCE (50%)
+                </td>
+              </tr>
+              {COMPETENCE_INDICATORS.map((item, i) => (
+                <RenderRow key={i} item={item} index={i} offset={CHARACTER_INDICATORS.length} />
+              ))}
+
+              {/* Summary Row - MAROON BOX */}
+              <tr className="bg-red-950 text-white">
+                <td className="px-6 py-6 text-right font-black text-lg uppercase">Total Final Rating</td>
+                <td className="px-6 py-6 text-center font-black text-lg bg-red-900">100%</td>
+                <td className="px-6 py-6 text-center">
+                  <span className="text-2xl font-black text-yellow-400">{totalScore.toFixed(1)}%</span>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
 
-        {/* Submit Button */}
-        <div className="pt-4 pb-8">
-          <button
-            type="submit"
-            className={`w-full flex justify-center items-center py-3 rounded-lg font-bold text-lg transition-colors shadow-lg ${
-              isSubmitting ? 'bg-red-400 text-red-100 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-red-800'
-            }`}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Submitting...
-              </>
-            ) : (
-              <>
-                <Send className="w-5 h-5 mr-2" />
-                Submit Evaluation
-              </>
-            )}
-          </button>
+        {/* Recommendations */}
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-zinc-200">
+          <h3 className="font-black text-black mb-4 flex items-center uppercase tracking-tight">
+            <Star className="w-5 h-5 mr-2 text-yellow-500 fill-current" />
+            Further Recommendations for Growth
+          </h3>
+          <textarea
+            name="recommendations"
+            rows="4"
+            value={formData.recommendations}
+            onChange={handleInputChange}
+            placeholder="Enter areas for improvement or positive feedback..."
+            className="w-full border-2 border-zinc-100 p-4 rounded-xl focus:border-red-900 outline-none transition-all bg-zinc-50 text-black font-medium"
+          />
         </div>
+
+        {/* Signatures Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[
+            { label: 'Name of Evaluator', name: 'evaluator' },
+            { label: 'Designation', name: 'designation' },
+            { label: 'Date', name: 'date', type: 'date' },
+            { label: 'Conforme', name: 'conforme' },
+          ].map((field) => (
+            <div key={field.name} className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
+              <label className="block text-xs font-black text-red-900 uppercase mb-2">{field.label}</label>
+              <input
+                type={field.type || 'text'}
+                name={field.name}
+                value={formData[field.name]}
+                onChange={field.name === 'evaluator' || field.name === 'designation' ? undefined : handleInputChange}
+                disabled={field.name === 'evaluator' || field.name === 'designation'}
+                className={`w-full border-b-2 py-2 outline-none font-bold
+    ${
+      field.name === 'evaluator' || field.name === 'designation'
+        ? 'bg-zinc-50 border-zinc-200 text-black'
+        : 'border-zinc-200 focus:border-red-900 text-black'
+    }`}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Action Button - MAROON BOX */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="group w-full bg-red-950 hover:bg-red-900 disabled:bg-zinc-400 text-white py-6 rounded-2xl font-black text-xl shadow-xl transition-all flex items-center justify-center space-x-3 transform active:scale-95"
+        >
+          {isSubmitting ? (
+            <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-white"></div>
+          ) : (
+            <>
+              <Send className="w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              <span>SUBMIT OFFICIAL EVALUATION</span>
+            </>
+          )}
+        </button>
       </form>
     </div>
   );

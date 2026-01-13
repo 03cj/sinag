@@ -1,5 +1,6 @@
 /* eslint-env node */
 require('dotenv').config();
+const Sequelize = require('sequelize');
 
 const express = require('express');
 const cors = require('cors');
@@ -20,6 +21,12 @@ const User = require('./models/user');
 const Company = require('./models/company');
 const Intern = require('./models/interns');
 const InternDocuments = require('./models/InternDocuments');
+
+// =========================
+// LOAD EVALUATION MODELS (FACTORY STYLE)
+// =========================
+const InternEvaluation = require('./models/InternEvaluation')(sequelize, Sequelize.DataTypes);
+const InternEvaluationItem = require('./models/InternEvaluationItem')(sequelize, Sequelize.DataTypes);
 
 // =========================
 // DEFINE ASSOCIATIONS (ONLY HERE)
@@ -58,12 +65,23 @@ InternDocuments.belongsTo(Intern, {
   foreignKey: 'intern_id',
 });
 
+// InternEvaluation ↔ InternEvaluationItem
+InternEvaluation.hasMany(InternEvaluationItem, {
+  foreignKey: 'evaluationId',
+  onDelete: 'CASCADE',
+});
+
+InternEvaluationItem.belongsTo(InternEvaluation, {
+  foreignKey: 'evaluationId',
+});
+
 // =========================
 // LOAD ROUTES
 // =========================
 const authRoutes = require('./routes/auth');
 const documentsRoutes = require('./routes/documents');
 const dashboardRoutes = require('./routes/dashboard');
+const evaluationRoutes = require('./routes/evaluations');
 
 // =========================
 // INIT EXPRESS
@@ -100,6 +118,7 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/evaluations', evaluationRoutes);
 
 // Forgot Password Routes
 app.use('/api/forgot-password', require('./routes/forgotPasswordRoutes'));
@@ -127,7 +146,7 @@ app.use((err, req, res, next) => {
 console.log('🚀 Starting backend and syncing database...');
 
 sequelize
-  .sync()
+  .sync({ alter: true }) // DEV MODE: creates missing tables & FKs
   .then(() => {
     app.listen(PORT, () => {
       console.log(`✅ Backend running at http://localhost:${PORT}`);

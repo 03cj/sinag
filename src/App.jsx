@@ -145,7 +145,7 @@ export default function App() {
         >
           <Route index element={<DashboardS />} />
           <Route path="dashboard" element={<DashboardS />} />
-          <Route path="evaluation/:studNo" element={<EvaluationS />} />
+          <Route path="evaluation/:studentId" element={<EvaluationS />} />
           <Route path="profile" element={<ProfileS />} />
         </Route>
       </Route>

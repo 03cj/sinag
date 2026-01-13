@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
 
     if (!token) {
+      setUser(null);
       setLoading(false);
       return;
     }
@@ -22,10 +23,17 @@ export const AuthProvider = ({ children }) => {
     fetch(`${API_BASE}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setUser(data);
+      .then(async (res) => {
+        if (!res.ok) {
+          // 🔥 Token invalid or expired
+          localStorage.removeItem('token');
+          setUser(null);
+          throw new Error('Unauthorized');
+        }
+        return res.json();
       })
+      .then((data) => setUser(data))
+      .catch(() => {}) // optional logging
       .finally(() => setLoading(false));
   }, []);
 
@@ -39,10 +47,13 @@ export const AuthProvider = ({ children }) => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      setUser(data);
+    if (!res.ok) {
+      localStorage.removeItem('token');
+      throw new Error('Invalid login token');
     }
+
+    const data = await res.json();
+    setUser(data);
   };
 
   const logout = () => {

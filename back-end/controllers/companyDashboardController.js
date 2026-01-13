@@ -41,7 +41,7 @@ exports.getCompanyInterns = async (req, res) => {
 
     const interns = await Intern.findAll({
       where: { company_id: company.id },
-      attributes: ['id', 'user_id', 'status'],
+      attributes: ['id', 'user_id', 'status', 'program'],
     });
 
     const result = [];
@@ -60,6 +60,7 @@ exports.getCompanyInterns = async (req, res) => {
           mi: user.mi,
           email: user.email,
           status: intern.status,
+          program: intern.program, // ✅ ADD THIS
         });
       }
     }
