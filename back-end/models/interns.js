@@ -23,6 +23,17 @@ Intern.init(
       onUpdate: 'CASCADE',
     },
 
+    adviser_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id',
+      },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE',
+    },
+
     company_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: true,
@@ -83,25 +94,26 @@ const User = require('./user');
 const Company = require('./company');
 const InternDocuments = require('./InternDocuments');
 
-// Intern ↔ Company (HTE)
-Company.hasMany(Intern, {
-  foreignKey: 'company_id',
-});
-Intern.belongsTo(Company, {
-  foreignKey: 'company_id',
-});
-
-// Intern ↔ User
+// Intern ↔ User (Student)
 Intern.belongsTo(User, { foreignKey: 'user_id' });
 User.hasOne(Intern, { foreignKey: 'user_id' });
 
-// Intern ↔ Documents
-// ✅ CORRECT
-Intern.hasMany(InternDocuments, { foreignKey: 'intern_id' });
-InternDocuments.belongsTo(Intern, { foreignKey: 'intern_id' });
-
+// Intern ↔ Adviser (User)
+Intern.belongsTo(User, {
+  foreignKey: 'adviser_id',
+  as: 'adviser',
+});
 // Intern ↔ Company (HTE)
 Intern.belongsTo(Company, { foreignKey: 'company_id' });
 Company.hasMany(Intern, { foreignKey: 'company_id' });
+
+// Intern ↔ Documents
+Intern.hasMany(InternDocuments, { foreignKey: 'intern_id' });
+InternDocuments.belongsTo(Intern, { foreignKey: 'intern_id' });
+
+User.hasMany(Intern, {
+  foreignKey: 'adviser_id',
+  as: 'advisees',
+});
 
 module.exports = Intern;

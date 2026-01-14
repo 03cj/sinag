@@ -2,6 +2,12 @@ module.exports = (sequelize, DataTypes) => {
   const InternEvaluation = sequelize.define(
     'InternEvaluation',
     {
+      intern_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        unique: true, // 🔒 PREVENTS DUPLICATES
+      },
+
       internName: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -65,6 +71,11 @@ module.exports = (sequelize, DataTypes) => {
 
   // 🔗 Associations
   InternEvaluation.associate = (models) => {
+    InternEvaluation.belongsTo(models.Intern, {
+      foreignKey: 'intern_id',
+      onDelete: 'CASCADE',
+    });
+
     InternEvaluation.hasMany(models.InternEvaluationItem, {
       foreignKey: 'evaluationId',
       as: 'items',

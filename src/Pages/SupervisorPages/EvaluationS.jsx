@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios from '@/services/axios';
+
 import { ArrowLeft, Building2, ClipboardCheck, Send, Star, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -52,6 +53,8 @@ const EvaluationS = () => {
     date: '',
     conforme: '',
   });
+  const [internId, setInternId] = useState(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -73,6 +76,7 @@ const EvaluationS = () => {
           console.error('Intern not found');
           return;
         }
+        setInternId(intern.id);
 
         // 2️⃣ Get company profile (for HTE + supervisor)
         const companyRes = await fetch('http://localhost:5000/api/auth/company/me', {
@@ -121,15 +125,22 @@ const EvaluationS = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    if (!internId) {
+      alert('Intern data not loaded yet.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      await axios.post('http://localhost:5000/api/evaluations', {
+      await axios.post('/intern-evaluations', {
+        intern_id: internId, // 👈 REQUIRED
         ...formData,
         ratings: ratings.map((r) => Number(r) || 0),
         totalScore: Number(totalScore),
       });
 
       alert('Evaluation Submitted Successfully!');
-      navigate(-1); // optional: go back after submit
+      navigate(-1);
     } catch (error) {
       console.error(error);
       alert('Failed to submit evaluation');

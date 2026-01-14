@@ -1,18 +1,9 @@
-import { ArrowLeft, FileText, Send, X } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/Context/AuthContext';
+import axios from '@/services/axios';
+import { ArrowLeft, Send, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-/* ======================
-   SIMULATED USER CONTEXT
-====================== */
-const useUserContext = () => {
-  const currentUser = {
-    studNo: '2021-00123',
-    name: 'Jane Doe',
-    role: 'intern',
-  };
-  return { user: currentUser };
-};
+import { useNavigate } from 'react-router-dom';
 
 /* ======================
    SIMPLE MODAL
@@ -59,20 +50,19 @@ const performanceIndicators = [
 const ratingScale = [5, 4, 3, 2, 1];
 
 const HTE_Evaluation = () => {
-  const { user } = useUserContext();
-  const studNo = user?.studNo;
+  const { user } = useAuth();
+  const [adviser, setAdviser] = useState('');
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    nature: '',
+    schoolTerm: '',
+    customTerm: '',
+    academicYear: '',
+    evaluationDate: '',
     ratings: performanceIndicators.map(() => '5'),
     remarks: performanceIndicators.map(() => ''),
     strengths: '',
     improvements: '',
     recommendations: '',
-    submittedBy: '',
     notedBy: '',
   });
 
@@ -83,21 +73,46 @@ const HTE_Evaluation = () => {
 
   const closeModal = () => setModal({ isVisible: false, title: '', message: '' });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!studNo) {
-      showMessage('Error', 'Student number is missing.');
-      return;
-    }
+    try {
+      setIsSubmitting(true);
 
-    setIsSubmitting(true);
-    setTimeout(() => {
-      console.log('HTE Evaluation Submitted:', { studNo, formData });
+      await axios.post('/hte-evaluations', {
+        school_term: formData.schoolTerm === 'OTHER' ? formData.customTerm : formData.schoolTerm,
+
+        academic_year: formData.academicYear,
+        evaluation_date: formData.evaluationDate,
+
+        ratings: formData.ratings,
+        remarks: formData.remarks,
+        strengths: formData.strengths,
+        improvements: formData.improvements,
+        recommendations: formData.recommendations,
+        noted_by: adviser,
+      });
+
       showMessage('Success', 'HTE Evaluation submitted successfully.');
+    } catch (error) {
+      showMessage('Error', error.response?.data?.message || 'Failed to submit evaluation');
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
+
+  useEffect(() => {
+    const fetchAdviser = async () => {
+      try {
+        const res = await axios.get('/adviser/my-adviser');
+        setAdviser(res.data.adviserName);
+      } catch (err) {
+        setAdviser('NOT YET ASSIGNED');
+      }
+    };
+
+    fetchAdviser();
+  }, []);
 
   const renderRatingRadios = (index) =>
     ratingScale.map((score) => (
@@ -127,11 +142,8 @@ const HTE_Evaluation = () => {
         <div className="flex justify-between items-center">
           <button type="button" onClick={() => navigate(-1)} className="flex items-center text-red-700 font-semibold">
             <ArrowLeft className="w-5 h-5 mr-1" />
-            Back to Dashboard
+            Back
           </button>
-          <p className="font-bold">
-            Evaluating Student No: <span className="text-red-700">{studNo}</span>
-          </p>
         </div>
 
         {/* Title */}
@@ -141,27 +153,42 @@ const HTE_Evaluation = () => {
           </h2>
           <p className="text-sm mt-1">Polytechnic University of the Philippines</p>
         </div>
-
-        {/* Company Info */}
         <div className="bg-white p-6 rounded-lg shadow space-y-3">
+          <select
+            value={formData.schoolTerm}
+            onChange={(e) => setFormData({ ...formData, schoolTerm: e.target.value, customTerm: '' })}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="">Select School Term</option>
+            <option value="1ST SEMESTER">1st Semester</option>
+            <option value="2ND SEMESTER">2nd Semester</option>
+            <option value="SUMMER">Summer</option>
+            <option value="OTHER">Other</option>
+          </select>
+
+          {formData.schoolTerm === 'OTHER' && (
+            <input
+              placeholder="Specify School Term"
+              value={formData.customTerm}
+              onChange={(e) => setFormData({ ...formData, customTerm: e.target.value.toUpperCase() })}
+              className="w-full p-2 border rounded"
+              required
+            />
+          )}
+
           <input
-            placeholder="Name of HTE"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="Academic Year (e.g., 2025–2026)"
+            value={formData.academicYear}
+            onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })}
             className="w-full p-2 border rounded"
             required
           />
+
           <input
-            placeholder="Nature of Business"
-            value={formData.nature}
-            onChange={(e) => setFormData({ ...formData, nature: e.target.value })}
-            className="w-full p-2 border rounded"
-            required
-          />
-          <input
-            placeholder="Address"
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            type="date"
+            value={formData.evaluationDate}
+            onChange={(e) => setFormData({ ...formData, evaluationDate: e.target.value })}
             className="w-full p-2 border rounded"
             required
           />
@@ -279,19 +306,10 @@ const HTE_Evaluation = () => {
             value={formData.recommendations}
             onChange={(e) => setFormData({ ...formData, recommendations: e.target.value })}
           />
-
-          <input
-            placeholder="Submitted by (Student Intern)"
-            className="w-full border-b p-2 text-center"
-            value={formData.submittedBy}
-            onChange={(e) => setFormData({ ...formData, submittedBy: e.target.value })}
-          />
-          <input
-            placeholder="Noted by (Internship Adviser)"
-            className="w-full border-b p-2 text-center"
-            value={formData.notedBy}
-            onChange={(e) => setFormData({ ...formData, notedBy: e.target.value })}
-          />
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow text-center">
+          <p className="text-sm text-gray-500">Internship Adviser</p>
+          <p className="text-lg font-bold text-red-800">{adviser || 'LOADING...'}</p>
         </div>
 
         {/* Buttons */}
@@ -301,14 +319,6 @@ const HTE_Evaluation = () => {
           disabled={isSubmitting}
         >
           <Send className="inline mr-2" /> Submit HTE Evaluation
-        </button>
-
-        <button
-          type="button"
-          onClick={() => navigate('../self-evaluation')}
-          className="w-full border-2 border-red-700 text-red-700 py-3 rounded-lg font-bold"
-        >
-          <FileText className="inline mr-2" /> View Self Evaluation Instrument
         </button>
       </form>
     </div>

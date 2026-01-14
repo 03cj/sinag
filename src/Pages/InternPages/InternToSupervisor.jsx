@@ -1,5 +1,6 @@
+import axios from '@/services/axios';
 import { ArrowLeft, ClipboardList, UserCheck } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /* ============================
@@ -64,8 +65,25 @@ const ratingLegend = ['5', '4', '3', '2', '1'];
 
 const Supervisor_Evaluation = () => {
   const navigate = useNavigate();
+  const [internInfo, setInternInfo] = useState(null);
 
   const totalIndicators = evaluationSections.reduce((sum, section) => sum + section.indicators.length, 0);
+
+  const [academicYear, setAcademicYear] = useState('');
+  const [semester, setSemester] = useState('Summer');
+  useEffect(() => {
+    const fetchInternInfo = async () => {
+      try {
+        const res = await axios.get('/auth/me');
+
+        setInternInfo(res.data);
+      } catch (error) {
+        console.error('Failed to load intern info', error);
+      }
+    };
+
+    fetchInternInfo();
+  }, []);
 
   const [ratings, setRatings] = useState(Array(totalIndicators).fill('5'));
   const [remarks, setRemarks] = useState(Array(totalIndicators).fill(''));
@@ -79,16 +97,40 @@ const Supervisor_Evaluation = () => {
     }
     return index + indicatorIndex;
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      console.log('Supervisor Evaluation Submitted:', { ratings, remarks, comment });
+    try {
+      const items = evaluationSections.flatMap((section, sIndex) =>
+        section.indicators.map((indicator, iIndex) => {
+          const idx = getIndicatorIndex(sIndex, iIndex);
+          return {
+            section: section.title,
+            indicator,
+            rating: Number(ratings[idx]),
+            remark: remarks[idx],
+          };
+        }),
+      );
+
+      await axios.post('/api/supervisor-evaluations', {
+        intern_id: internInfo.intern.id,
+        company_id: internInfo.intern.company_id,
+        academic_year: academicYear,
+        semester,
+        comment,
+        items,
+      });
+
       alert('Supervisor Evaluation Submitted Successfully!');
+      navigate(-1);
+    } catch (error) {
+      console.error(error);
+      alert('Submission failed. Please try again.');
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -108,22 +150,48 @@ const Supervisor_Evaluation = () => {
           <p className="mt-2 text-sm">Polytechnic University of the Philippines</p>
         </div>
 
-        {/* Student / Term Info */}
         <div className="bg-white p-6 rounded-lg shadow-md border space-y-2 text-sm">
           <p>
-            <strong>Name of the Student:</strong>
+            <strong>Name of the Student:</strong> {internInfo?.intern?.full_name || '—'}
           </p>
+
           <p>
-            <strong>Course/Year and Section:</strong>
+            <strong>Course/Year and Section:</strong>{' '}
+            {internInfo?.intern
+              ? `${internInfo.intern.course} ${internInfo.intern.year}-${internInfo.intern.section}`
+              : '—'}
           </p>
-          <p>
-            <strong>School Term:</strong> Summer Semester
+
+          <p className="flex items-center gap-2">
+            <strong>School Term:</strong>
+            <select
+              value={semester}
+              onChange={(e) => setSemester(e.target.value)}
+              className="border px-2 py-1 rounded text-sm"
+              required
+            >
+              <option value="">Select</option>
+              <option value="1st Semester">1st Semester</option>
+              <option value="2nd Semester">2nd Semester</option>
+              <option value="Summer">Summer</option>
+            </select>
           </p>
-          <p>
-            <strong>Academic Year:</strong> 2024–2025
+
+          <p className="flex items-center gap-2">
+            <strong>Academic Year:</strong>
+            <input
+              type="text"
+              placeholder="e.g. 2024–2025"
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value)}
+              className="border px-2 py-1 rounded text-sm"
+              required
+            />
           </p>
+
           <p>
-            <strong>Name of the Host Training Establishment (HTE) / Nature of Industry:</strong>
+            <strong>Name of the Host Training Establishment (HTE) / Nature of Industry:</strong>{' '}
+            {internInfo?.intern?.Company?.name || '—'}
           </p>
         </div>
 
@@ -263,7 +331,7 @@ const Supervisor_Evaluation = () => {
           <div className="flex justify-between pt-4 text-sm">
             <div className="text-center w-1/2">
               <p className="border-b font-bold">________________________</p>
-              <p>Signature Over Full Name of Student-Intern</p>
+              <p>Full Name of Student-Intern</p>
             </div>
             <div className="text-center w-1/4">
               <p className="border-b font-bold">____________</p>
@@ -275,8 +343,8 @@ const Supervisor_Evaluation = () => {
         {/* Submit */}
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-red-700 text-white py-3 rounded-lg font-bold"
+          disabled={isSubmitting || !academicYear || !semester}
+          className="w-full bg-red-700 text-white py-3 rounded-lg font-bold disabled:opacity-50"
         >
           <UserCheck className="inline mr-2" />
           Submit Supervisor Evaluation

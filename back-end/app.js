@@ -21,6 +21,9 @@ const User = require('./models/user');
 const Company = require('./models/company');
 const Intern = require('./models/interns');
 const InternDocuments = require('./models/InternDocuments');
+const HTEEvaluation = require('./models/HTEEvaluation');
+const SupervisorEvaluation = require('./models/SupervisorEvaluation')(sequelize, Sequelize.DataTypes);
+const SupervisorEvaluationItem = require('./models/SupervisorEvaluationItem')(sequelize, Sequelize.DataTypes);
 
 // =========================
 // LOAD EVALUATION MODELS (FACTORY STYLE)
@@ -31,6 +34,62 @@ const InternEvaluationItem = require('./models/InternEvaluationItem')(sequelize,
 // =========================
 // DEFINE ASSOCIATIONS (ONLY HERE)
 // =========================
+// SupervisorEvaluation ↔ SupervisorEvaluationItem
+SupervisorEvaluation.hasMany(SupervisorEvaluationItem, {
+  foreignKey: 'evaluationId',
+  onDelete: 'CASCADE',
+});
+
+SupervisorEvaluationItem.belongsTo(SupervisorEvaluation, {
+  foreignKey: 'evaluationId',
+});
+
+// SupervisorEvaluation ↔ Intern
+Intern.hasMany(SupervisorEvaluation, {
+  foreignKey: 'intern_id',
+});
+
+SupervisorEvaluation.belongsTo(Intern, {
+  foreignKey: 'intern_id',
+});
+
+// SupervisorEvaluation ↔ Company
+Company.hasMany(SupervisorEvaluation, {
+  foreignKey: 'company_id',
+});
+
+SupervisorEvaluation.belongsTo(Company, {
+  foreignKey: 'company_id',
+});
+
+// SupervisorEvaluation ↔ User (Supervisor)
+User.hasMany(SupervisorEvaluation, {
+  foreignKey: 'supervisor_id',
+});
+
+SupervisorEvaluation.belongsTo(User, {
+  foreignKey: 'supervisor_id',
+});
+
+// HTEEvaluation ↔ Intern
+Intern.hasMany(HTEEvaluation, {
+  foreignKey: 'intern_id',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});
+
+HTEEvaluation.belongsTo(Intern, {
+  foreignKey: 'intern_id',
+});
+
+// HTEEvaluation ↔ Company
+Company.hasMany(HTEEvaluation, {
+  foreignKey: 'company_id',
+});
+
+HTEEvaluation.belongsTo(Company, {
+  foreignKey: 'company_id',
+});
 
 // Intern ↔ User
 Intern.belongsTo(User, {
@@ -81,7 +140,7 @@ InternEvaluationItem.belongsTo(InternEvaluation, {
 const authRoutes = require('./routes/auth');
 const documentsRoutes = require('./routes/documents');
 const dashboardRoutes = require('./routes/dashboard');
-const evaluationRoutes = require('./routes/evaluations');
+const internEvaluationRoutes = require('./routes/InternEvaluations');
 
 // =========================
 // INIT EXPRESS
@@ -93,8 +152,16 @@ const PORT = process.env.PORT || 5000;
 // GLOBAL MIDDLEWARES
 // =========================
 app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+
+app.use(
+  cors({
+    origin: 'http://localhost:5173', // Vite frontend
+    credentials: true, // ✅ REQUIRED
+  }),
+);
+
 app.use(express.json({ limit: '10mb' }));
+
 app.use(morgan('dev'));
 
 // =========================
@@ -118,10 +185,17 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/evaluations', evaluationRoutes);
+app.use('/api/intern-evaluations', internEvaluationRoutes);
+app.use('/api/adviser', require('./routes/adviser'));
 
 // Forgot Password Routes
 app.use('/api/forgot-password', require('./routes/forgotPasswordRoutes'));
+
+// HTE Evaluations Routes
+app.use('/api/hte-evaluations', require('./routes/HTEEvaluations'));
+
+// Supervisor Evaluations Routes
+app.use('/api/supervisor-evaluations', require('./routes/SupervisorEvaluations'));
 
 // =========================
 // HEALTH CHECK

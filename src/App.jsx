@@ -38,11 +38,11 @@ import ReportsA from './Pages/AdviserPages/ReportsA';
 
 import ConsentForm from './Forms/ConsentForm';
 import Documents from './Pages/InternPages/Documents';
+import Evaluation from './Pages/InternPages/Evaluation';
 import HomeI from './Pages/InternPages/HomeI';
-import HTE_Evaluation from './Pages/InternPages/HTE_Evaluation';
+import HTE_Evaluation from './Pages/InternPages/InternToHTE';
+import SupervisorEvaluation from './Pages/InternPages/InternToSupervisor';
 import ProfileI from './Pages/InternPages/ProfileI';
-import SelfEvaluation from './Pages/InternPages/Self_Evaluation';
-import SupervisorEvaluation from './Pages/InternPages/Supervisor_Evaluation';
 
 import DashboardS from './Pages/SupervisorPages/DashboardS';
 import EvaluationS from './Pages/SupervisorPages/EvaluationS';
@@ -128,8 +128,8 @@ export default function App() {
           <Route path="home" element={<HomeI />} />
           <Route path="documents" element={<Documents />} />
           <Route path="profile" element={<ProfileI />} />
-          <Route path="evaluation" element={<HTE_Evaluation />} />
-          <Route path="self-evaluation" element={<SelfEvaluation />} />
+          <Route path="evaluation" element={<Evaluation />} />
+          <Route path="hte-evaluation" element={<HTE_Evaluation />} />
           <Route path="supervisor-evaluation" element={<SupervisorEvaluation />} />
           <Route path="consent-form" element={<ConsentForm />} />
         </Route>
