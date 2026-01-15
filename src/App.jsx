@@ -42,6 +42,7 @@ import Evaluation from './Pages/InternPages/Evaluation';
 import HomeI from './Pages/InternPages/HomeI';
 import HTE_Evaluation from './Pages/InternPages/InternToHTE';
 import SupervisorEvaluation from './Pages/InternPages/InternToSupervisor';
+import Jornal from './Pages/InternPages/Journal';
 import ProfileI from './Pages/InternPages/ProfileI';
 
 import DashboardS from './Pages/SupervisorPages/DashboardS';
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="home" element={<HomeI />} />
           <Route path="documents" element={<Documents />} />
           <Route path="profile" element={<ProfileI />} />
+          <Route path="journal" element={<Jornal />} />
           <Route path="evaluation" element={<Evaluation />} />
           <Route path="hte-evaluation" element={<HTE_Evaluation />} />
           <Route path="supervisor-evaluation" element={<SupervisorEvaluation />} />
