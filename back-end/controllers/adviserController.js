@@ -42,3 +42,40 @@ exports.getAdviserForStudent = async (req, res) => {
     });
   }
 };
+exports.getProgramsForAdviser = async (req, res) => {
+  try {
+    const { role, id } = req.user;
+
+    // 🟢 COORDINATOR: see ALL programs
+    if (role === 'coordinator') {
+      const programs = await User.findAll({
+        where: {
+          role: 'Adviser',
+          program: { [require('sequelize').Op.not]: null },
+        },
+        attributes: ['program'],
+        group: ['program'],
+        order: [['program', 'ASC']],
+      });
+
+      return res.json(programs.map((p) => p.program));
+    }
+
+    // 🟡 ADVISER: see own program only
+    if (role === 'Adviser') {
+      const adviser = await User.findByPk(id, {
+        attributes: ['program'],
+      });
+
+      if (!adviser || !adviser.program) return res.json([]);
+
+      return res.json([adviser.program]);
+    }
+
+    // 🔴 Others: no access
+    return res.status(403).json({ message: 'Not allowed' });
+  } catch (err) {
+    console.error('Program fetch error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

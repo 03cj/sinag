@@ -1,119 +1,74 @@
-/* eslint-env node */
-const { DataTypes, Model } = require('sequelize');
-const sequelize = require('../config/database');
+'use strict';
 
-class Intern extends Model {}
-
-Intern.init(
-  {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-
-    user_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id',
+module.exports = (sequelize, DataTypes) => {
+  const Intern = sequelize.define(
+    'Intern',
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
       },
-      onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
-    },
-
-    adviser_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id',
+      user_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
       },
-      onDelete: 'SET NULL',
-      onUpdate: 'CASCADE',
-    },
-
-    company_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: true,
-      references: {
-        model: 'companies',
-        key: 'id',
+      adviser_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
       },
-      onDelete: 'SET NULL',
-      onUpdate: 'CASCADE',
+      company_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+      },
+      program: DataTypes.STRING(50),
+      status: {
+        type: DataTypes.ENUM('Pending', 'Approved', 'Declined'),
+        defaultValue: 'Pending',
+      },
+      start_date: DataTypes.DATEONLY,
+      end_date: DataTypes.DATEONLY,
+      required_hours: DataTypes.INTEGER,
+      remarks: DataTypes.STRING(255),
     },
-
-    program: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
+    {
+      tableName: 'interns',
+      timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: false,
+      underscored: true,
     },
+  );
 
-    status: {
-      type: DataTypes.ENUM('Pending', 'Approved', 'Declined'),
-      allowNull: false,
-      defaultValue: 'Pending',
-    },
+  Intern.associate = (models) => {
+    Intern.belongsTo(models.User, { foreignKey: 'user_id' });
+    Intern.belongsTo(models.User, { foreignKey: 'adviser_id', as: 'adviser' });
+    Intern.belongsTo(models.Company, { foreignKey: 'company_id' });
 
-    start_date: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
+    Intern.hasOne(models.InternDocuments, { foreignKey: 'intern_id' });
+    Intern.hasOne(models.InternEvaluation, {
+      foreignKey: 'intern_id',
+      as: 'evaluation',
+    });
+  };
+  Intern.associate = (models) => {
+    // Intern ↔ User (Student)
+    Intern.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      as: 'student',
+    });
 
-    end_date: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
+    // Intern ↔ User (Adviser)
+    Intern.belongsTo(models.User, {
+      foreignKey: 'adviser_id',
+      as: 'adviser',
+    });
 
-    required_hours: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
+    // Intern ↔ Company
+    Intern.belongsTo(models.Company, {
+      foreignKey: 'company_id',
+    });
+  };
 
-    remarks: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-  },
-  {
-    sequelize,
-    modelName: 'Intern',
-    tableName: 'interns',
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: false,
-    underscored: true,
-  },
-);
-
-/* =========================
-   ASSOCIATIONS (CRITICAL)
-========================= */
-const User = require('./user');
-const Company = require('./company');
-const InternDocuments = require('./InternDocuments');
-
-// Intern ↔ User (Student)
-Intern.belongsTo(User, { foreignKey: 'user_id' });
-User.hasOne(Intern, { foreignKey: 'user_id' });
-
-// Intern ↔ Adviser (User)
-Intern.belongsTo(User, {
-  foreignKey: 'adviser_id',
-  as: 'adviser',
-});
-// Intern ↔ Company (HTE)
-Intern.belongsTo(Company, { foreignKey: 'company_id' });
-Company.hasMany(Intern, { foreignKey: 'company_id' });
-
-// Intern ↔ Documents
-Intern.hasMany(InternDocuments, { foreignKey: 'intern_id' });
-InternDocuments.belongsTo(Intern, { foreignKey: 'intern_id' });
-
-User.hasMany(Intern, {
-  foreignKey: 'adviser_id',
-  as: 'advisees',
-});
-
-module.exports = Intern;
+  return Intern;
+};

@@ -23,5 +23,10 @@ const Company = sequelize.define(
     updatedAt: false,
   },
 );
+Company.associate = (models) => {
+  Company.hasMany(models.Intern, {
+    foreignKey: 'company_id',
+  });
+};
 
 module.exports = Company;

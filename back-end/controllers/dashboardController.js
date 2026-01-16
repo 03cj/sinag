@@ -1,9 +1,6 @@
 /* eslint-env node */
 const { fn, col, literal, Op } = require('sequelize');
-
-const Intern = require('../models/interns');
-const Company = require('../models/company');
-const User = require('../models/user');
+const { Intern, Company, User } = require('../models');
 
 /* =========================
    GET PROGRAM FILTERS
@@ -17,9 +14,7 @@ exports.getAdviserPrograms = async (req, res, next) => {
       raw: true,
     });
 
-    const programs = advisers
-      .map((a) => a.program)
-      .filter(Boolean);
+    const programs = advisers.map((a) => a.program).filter(Boolean);
 
     res.json(programs);
   } catch (err) {
@@ -38,13 +33,11 @@ exports.getPrograms = async (req, res, next) => {
       raw: true,
     });
 
-    const adviserPrograms = advisers
-      .map((a) => a.program)
-      .filter(Boolean);
+    const adviserPrograms = advisers.map((a) => a.program).filter(Boolean);
 
     let whereCondition = {
-status: ['Pending', 'Approved', 'Declined'],      
-program: { [Op.in]: adviserPrograms },
+      status: ['Pending', 'Approved', 'Declined'],
+      program: { [Op.in]: adviserPrograms },
     };
 
     // Adviser restriction
@@ -67,7 +60,7 @@ program: { [Op.in]: adviserPrograms },
       results.map((r) => ({
         program: r.program,
         count: Number(r.count),
-      }))
+      })),
     );
   } catch (err) {
     next(err);
@@ -109,7 +102,7 @@ exports.getCompanies = async (req, res, next) => {
       results.map((r) => ({
         company: r['Company.name'] || 'Unassigned',
         count: Number(r.count),
-      }))
+      })),
     );
   } catch (err) {
     next(err);

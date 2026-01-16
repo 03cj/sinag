@@ -29,7 +29,6 @@ const User = sequelize.define(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
 
     passwordHash: {
@@ -78,5 +77,23 @@ const User = sequelize.define(
     updatedAt: 'updatedAt',
   },
 );
+User.associate = (models) => {
+  // User ↔ Intern (Student account)
+  User.hasOne(models.Intern, {
+    foreignKey: 'user_id',
+    as: 'internProfile',
+  });
+
+  // User ↔ Intern (Adviser supervises interns)
+  User.hasMany(models.Intern, {
+    foreignKey: 'adviser_id',
+    as: 'advisees',
+  });
+
+  // User ↔ SupervisorEvaluation (Supervisor role)
+  User.hasMany(models.SupervisorEvaluation, {
+    foreignKey: 'supervisor_id',
+  });
+};
 
 module.exports = User;

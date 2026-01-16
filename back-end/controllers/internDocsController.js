@@ -35,23 +35,14 @@ async function uploadInternDoc(req, res, next) {
     // map filename to column based on filename keyword
     const filename = file.filename.toLowerCase();
 
-    const columnMap = {
-      consent_form: 'consent_form',
-      notarized_agreement: 'notarized_agreement',
-      resume: 'resume',
-      cor: 'cor',
-      insurance: 'insurance',
-      medical_cert: 'medical_cert',
-    };
-
     let targetColumn = null;
 
-    for (const key in columnMap) {
-      if (filename.includes(key)) {
-        targetColumn = columnMap[key];
-        break;
-      }
-    }
+    if (filename.includes('notarized')) targetColumn = 'notarized_agreement';
+    else if (filename.includes('medical')) targetColumn = 'medical_cert';
+    else if (filename.includes('insurance')) targetColumn = 'insurance';
+    else if (filename.includes('resume')) targetColumn = 'resume';
+    else if (filename.includes('cor')) targetColumn = 'cor';
+    else if (filename.includes('consent')) targetColumn = 'consent_form';
 
     if (!targetColumn) {
       return res.status(400).json({

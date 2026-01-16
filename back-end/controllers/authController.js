@@ -3,10 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { literal } = require('sequelize');
 
-const User = require('../models/user');
-const Intern = require('../models/interns');
-const Company = require('../models/company');
-const InternDocuments = require('../models/InternDocuments');
+const { User, Intern, Company, InternDocuments } = require('../models');
 const sendCredentialsEmail = require('../utils/sendCredentialsEmail');
 
 const JWT_SECRET = process.env.JWT_SECRET;

@@ -33,7 +33,6 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 
-  // 🔗 Associations
   InternEvaluationItem.associate = (models) => {
     InternEvaluationItem.belongsTo(models.InternEvaluation, {
       foreignKey: 'evaluationId',

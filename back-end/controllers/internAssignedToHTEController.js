@@ -1,0 +1,142 @@
+const PDFDocument = require('pdfkit');
+const path = require('path');
+const fs = require('fs');
+
+const { Intern, Company, User } = require('../models');
+
+exports.generateInternAssignedToHTE = async (req, res) => {
+  let doc;
+
+  try {
+    const { program } = req.body;
+
+    if (!program) {
+      return res.status(400).json({ message: 'Program is required' });
+    }
+
+    /* =============================
+       FETCH DATA
+    ============================== */
+    const interns = await Intern.findAll({
+      where: { program },
+      include: [
+        { model: User, required: true },
+        { model: Company, required: false },
+      ],
+      order: [[User, 'lastName', 'ASC']],
+    });
+
+    const adviser = await User.findOne({
+      where: { role: 'Adviser', program },
+    });
+
+    const adviserName = adviser ? `${adviser.firstName} ${adviser.lastName}`.toUpperCase() : 'N/A';
+
+    /* =============================
+       RESPONSE HEADERS
+    ============================== */
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=interns_assigned_to_hte.pdf');
+
+    doc = new PDFDocument({
+      size: 'Legal',
+      layout: 'landscape',
+      margin: 40,
+    });
+
+    doc.pipe(res);
+
+    const startX = doc.page.margins.left;
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+    /* =============================
+       HEADER
+    ============================== */
+    const logoPath = path.join(process.cwd(), 'pup_1904_flat.png');
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, startX, 35, { width: 50 });
+    }
+
+    doc
+      .fontSize(8)
+      .text('REPUBLIC OF THE PHILIPPINES', startX + 70, 40)
+      .fontSize(10)
+      .font('Helvetica-Bold')
+      .text('POLYTECHNIC UNIVERSITY OF THE PHILIPPINES', startX + 70, 52)
+      .fontSize(8)
+      .font('Helvetica')
+      .text('OFFICE OF THE VICE PRESIDENT FOR CAMPUSES', startX + 70, 66)
+      .fontSize(10)
+      .font('Helvetica-Bold')
+      .text('MARIVELES, BATAAN CAMPUS', startX + 70, 78);
+
+    doc
+      .moveTo(startX, 100)
+      .lineTo(doc.page.width - doc.page.margins.right, 100)
+      .stroke();
+
+    doc.moveDown(2);
+    doc.fontSize(14).font('Helvetica-Bold').text('INTERNS ASSIGNED TO HTE', { align: 'center' });
+
+    doc.moveDown(0.5);
+    doc.fontSize(10).font('Helvetica-Bold').text(`PROGRAM: ${program.toUpperCase()}`, { align: 'center' });
+
+    doc.moveDown(0.3);
+    doc.fontSize(9).font('Helvetica').text(`ADVISER: ${adviserName}`, { align: 'center' });
+
+    doc.moveDown(1);
+
+    /* =============================
+       TABLE HEADER
+    ============================== */
+    let y = doc.y;
+    doc.rect(startX, y, pageWidth, 22).fill('#800000');
+
+    doc.fillColor('white').fontSize(9).font('Helvetica-Bold');
+    doc.text('NO.', startX + 5, y + 6);
+    doc.text('STUDENT NO.', startX + 60, y + 6);
+    doc.text('STUDENT NAME', startX + 170, y + 6);
+    doc.text('EMAIL', startX + 380, y + 6);
+    doc.text('HTE', startX + 650, y + 6);
+
+    y += 22;
+    doc.fillColor('black').font('Helvetica').fontSize(9);
+
+    /* =============================
+       TABLE ROWS
+    ============================== */
+    interns.forEach((intern, index) => {
+      if (y > doc.page.height - 60) {
+        doc.addPage();
+        y = doc.page.margins.top;
+      }
+
+      doc.rect(startX, y, pageWidth, 18).stroke('#CCCCCC');
+
+      doc.text(index + 1, startX + 5, y + 5);
+      doc.text(intern.User.studentId || 'N/A', startX + 60, y + 5);
+      doc.text(
+        `${intern.User.lastName}, ${intern.User.firstName} ${intern.User.middleInitial || ''}`,
+        startX + 170,
+        y + 5,
+        { width: 200 },
+      );
+      doc.text(intern.User.email || 'N/A', startX + 380, y + 5, {
+        width: 250,
+      });
+      doc.text(intern.Company?.name || 'N/A', startX + 650, y + 5, {
+        width: 200,
+      });
+
+      y += 18;
+    });
+
+    doc.end();
+  } catch (err) {
+    console.error('❌ INTERN ASSIGNED TO HTE ERROR:', err);
+    if (doc) doc.end();
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Failed to generate Intern Assigned to HTE report' });
+    }
+  }
+};

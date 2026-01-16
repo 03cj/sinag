@@ -71,14 +71,16 @@ const Supervisor_Evaluation = () => {
 
   const [academicYear, setAcademicYear] = useState('');
   const [semester, setSemester] = useState('Summer');
+  const [evaluationDate, setEvaluationDate] = useState('');
   useEffect(() => {
     const fetchInternInfo = async () => {
       try {
         const res = await axios.get('/auth/me');
-
+        console.log('✅ Intern info loaded:', res.data);
         setInternInfo(res.data);
       } catch (error) {
-        console.error('Failed to load intern info', error);
+        console.error('❌ Failed to load intern info:', error.response?.data || error.message);
+        alert('Error loading intern information. Please refresh the page.');
       }
     };
 
@@ -102,6 +104,19 @@ const Supervisor_Evaluation = () => {
     setIsSubmitting(true);
 
     try {
+      // Validate required fields
+      if (!internInfo?.internId) {
+        alert('Error: Unable to load intern information. Please refresh the page.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!academicYear || !semester) {
+        alert('Please fill in all required fields (Academic Year & Semester)');
+        setIsSubmitting(false);
+        return;
+      }
+
       const items = evaluationSections.flatMap((section, sIndex) =>
         section.indicators.map((indicator, iIndex) => {
           const idx = getIndicatorIndex(sIndex, iIndex);
@@ -114,20 +129,55 @@ const Supervisor_Evaluation = () => {
         }),
       );
 
-      await axios.post('/api/supervisor-evaluations', {
-        intern_id: internInfo.intern.id,
-        company_id: internInfo.intern.company_id,
+      console.log('📤 Submitting supervisor evaluation:', {
+        intern_id: internInfo.internId,
+        company_id: internInfo.intern?.company_id,
         academic_year: academicYear,
         semester,
         comment,
         items,
       });
 
+      // Test endpoint first
+      console.log('🧪 Testing backend connection...');
+      const testRes = await axios.post('/supervisor-evaluations/test');
+      console.log('✅ Test passed:', testRes.data);
+
+      const response = await axios.post(
+        '/supervisor-evaluations',
+        {
+          intern_id: internInfo.internId,
+          company_id: internInfo.intern?.company_id,
+          academic_year: academicYear,
+          semester,
+          comment,
+          items,
+        },
+        {
+          timeout: 10000, // 10 second timeout
+        },
+      );
+
+      console.log('✅ Success:', response.data);
       alert('Supervisor Evaluation Submitted Successfully!');
       navigate(-1);
     } catch (error) {
-      console.error(error);
-      alert('Submission failed. Please try again.');
+      console.error('❌ Error submitting evaluation:', error);
+
+      // Get detailed error info
+      const errorMsg =
+        error.response?.data?.message ||
+        error.response?.statusText ||
+        error.message ||
+        'Submission failed. Please try again.';
+
+      console.error('Error details:', {
+        status: error.response?.status,
+        message: errorMsg,
+        data: error.response?.data,
+      });
+
+      alert(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -150,46 +200,45 @@ const Supervisor_Evaluation = () => {
           <p className="mt-2 text-sm">Polytechnic University of the Philippines</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border space-y-2 text-sm">
-          <p>
-            <strong>Name of the Student:</strong> {internInfo?.intern?.full_name || '—'}
+        <div className="bg-white p-6 rounded-lg shadow-md border space-y-3">
+          <p className="text-sm text-gray-700">
+            <strong>Name of the Student:</strong>{' '}
+            {internInfo?.firstName && internInfo?.lastName ? `${internInfo.firstName} ${internInfo.lastName}` : '—'}
           </p>
 
-          <p>
-            <strong>Course/Year and Section:</strong>{' '}
-            {internInfo?.intern
-              ? `${internInfo.intern.course} ${internInfo.intern.year}-${internInfo.intern.section}`
-              : '—'}
+          <p className="text-sm text-gray-700">
+            <strong>Course/Year and Section:</strong> {internInfo?.program || '—'}
           </p>
 
-          <p className="flex items-center gap-2">
-            <strong>School Term:</strong>
-            <select
-              value={semester}
-              onChange={(e) => setSemester(e.target.value)}
-              className="border px-2 py-1 rounded text-sm"
-              required
-            >
-              <option value="">Select</option>
-              <option value="1st Semester">1st Semester</option>
-              <option value="2nd Semester">2nd Semester</option>
-              <option value="Summer">Summer</option>
-            </select>
-          </p>
+          <select
+            value={semester}
+            onChange={(e) => setSemester(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="">Select School Term</option>
+            <option value="1st Semester">1st Semester</option>
+            <option value="2nd Semester">2nd Semester</option>
+            <option value="Summer">Summer</option>
+          </select>
 
-          <p className="flex items-center gap-2">
-            <strong>Academic Year:</strong>
-            <input
-              type="text"
-              placeholder="e.g. 2024–2025"
-              value={academicYear}
-              onChange={(e) => setAcademicYear(e.target.value)}
-              className="border px-2 py-1 rounded text-sm"
-              required
-            />
-          </p>
+          <input
+            type="text"
+            placeholder="Academic Year (e.g., 2024–2025)"
+            value={academicYear}
+            onChange={(e) => setAcademicYear(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
 
-          <p>
+          <input
+            type="date"
+            value={evaluationDate}
+            onChange={(e) => setEvaluationDate(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+
+          <p className="text-sm text-gray-700">
             <strong>Name of the Host Training Establishment (HTE) / Nature of Industry:</strong>{' '}
             {internInfo?.intern?.Company?.name || '—'}
           </p>
@@ -330,11 +379,17 @@ const Supervisor_Evaluation = () => {
 
           <div className="flex justify-between pt-4 text-sm">
             <div className="text-center w-1/2">
-              <p className="border-b font-bold">________________________</p>
+              <p className="border-b border-gray-300 font-bold min-h-6">
+                {internInfo?.firstName && internInfo?.lastName
+                  ? `${internInfo.firstName} ${internInfo.lastName}`
+                  : '________________________'}
+              </p>
               <p>Full Name of Student-Intern</p>
             </div>
             <div className="text-center w-1/4">
-              <p className="border-b font-bold">____________</p>
+              <p className="border-b border-gray-300 font-bold min-h-6">
+                {evaluationDate ? new Date(evaluationDate).toLocaleDateString() : '____________'}
+              </p>
               <p>Date</p>
             </div>
           </div>

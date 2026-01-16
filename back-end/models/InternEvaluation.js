@@ -82,6 +82,16 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'CASCADE',
     });
   };
+  InternEvaluation.associate = (models) => {
+    InternEvaluation.belongsTo(models.Intern, {
+      foreignKey: 'intern_id',
+    });
+
+    InternEvaluation.hasMany(models.InternEvaluationItem, {
+      foreignKey: 'evaluationId',
+      as: 'items',
+    });
+  };
 
   return InternEvaluation;
 };

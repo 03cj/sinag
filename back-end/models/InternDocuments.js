@@ -1,42 +1,44 @@
 /* eslint-env node */
-const { DataTypes, Model } = require('sequelize');
-const sequelize = require('../config/database');
+module.exports = (sequelize, DataTypes) => {
+  const InternDocuments = sequelize.define(
+    'InternDocuments',
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
 
-class InternDocuments extends Model {}
+      intern_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        unique: true,
+      },
 
-InternDocuments.init(
-  {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true,
+      consent_form: DataTypes.STRING,
+      notarized_agreement: DataTypes.STRING,
+      resume: DataTypes.STRING,
+      cor: DataTypes.STRING,
+      insurance: DataTypes.STRING,
+      medical_cert: DataTypes.STRING,
+
+      uploaded_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
     },
-
-    intern_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
-      unique: true,
+    {
+      tableName: 'intern_documents',
+      timestamps: false,
+      underscored: true,
     },
+  );
 
-    consent_form: DataTypes.STRING(255),
-    notarized_agreement: DataTypes.STRING(255),
-    resume: DataTypes.STRING(255),
-    cor: DataTypes.STRING(255),
-    insurance: DataTypes.STRING(255),
-    medical_cert: DataTypes.STRING(255),
+  InternDocuments.associate = (models) => {
+    InternDocuments.belongsTo(models.Intern, {
+      foreignKey: 'intern_id',
+    });
+  };
 
-    uploaded_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-  },
-  {
-    sequelize,
-    tableName: 'intern_documents',
-    modelName: 'InternDocuments',
-    timestamps: false,
-    underscored: true,
-  },
-);
-
-module.exports = InternDocuments;
+  return InternDocuments;
+};
