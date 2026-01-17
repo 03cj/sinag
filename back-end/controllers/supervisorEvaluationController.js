@@ -1,10 +1,4 @@
-const sequelize = require('../config/database');
-const { DataTypes } = require('sequelize');
-
-// Load models the SAME WAY as app.js
-const SupervisorEvaluation = require('../models/SupervisorEvaluation')(sequelize, DataTypes);
-
-const SupervisorEvaluationItem = require('../models/SupervisorEvaluationItem')(sequelize, DataTypes);
+const { SupervisorEvaluation, SupervisorEvaluationItem } = require('../models');
 
 exports.submitEvaluation = async (req, res) => {
   try {
@@ -40,7 +34,7 @@ exports.submitEvaluation = async (req, res) => {
 
     // 2️⃣ Map evaluation items
     const mappedItems = items.map((item) => ({
-      evaluationId: evaluation.id, // ✅ MUST MATCH FK NAME
+      evaluation_id: evaluation.id,
       section: item.section,
       indicator: item.indicator,
       rating: item.rating,

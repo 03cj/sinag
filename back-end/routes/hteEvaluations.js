@@ -7,10 +7,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 // =========================
 // INTERN → HTE EVALUATION
 // =========================
-router.post(
-  '/',
-  authMiddleware(['intern']), // ✅ MUST BE CALLED
-  createHTEEvaluation,
-);
+router.post('/', authMiddleware('intern'), createHTEEvaluation);
 
 module.exports = router;

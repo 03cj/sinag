@@ -1,29 +1,32 @@
 /* eslint-env node */
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
 
-const InternDocuments = require('../models/InternDocuments');
-const Intern = require('../models/interns');
-const Company = require('../models/company');
+const { Intern, Company, InternDocuments } = require('../models');
 
 /* =========================
    UPLOAD / UPDATE INTERN DOCUMENT
 ========================= */
 // POST /api/auth/intern-docs/upload
-async function uploadInternDoc(req, res, next) {
+async function uploadInternDoc(req, res) {
   try {
     const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
     if (file.originalname.toLowerCase().includes('moa')) {
       return res.status(403).json({
         message: 'MOA is provided by the company and cannot be uploaded by interns',
       });
     }
 
-    if (!file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
-
-    // find intern by logged-in user
+    /* =========================
+       FIND INTERN
+    ========================= */
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },
     });
@@ -32,9 +35,10 @@ async function uploadInternDoc(req, res, next) {
       return res.status(404).json({ message: 'Intern not found' });
     }
 
-    // map filename to column based on filename keyword
+    /* =========================
+       MAP FILENAME → COLUMN
+    ========================= */
     const filename = file.filename.toLowerCase();
-
     let targetColumn = null;
 
     if (filename.includes('notarized')) targetColumn = 'notarized_agreement';
@@ -50,13 +54,17 @@ async function uploadInternDoc(req, res, next) {
       });
     }
 
-    // find or create document row
+    /* =========================
+       FIND OR CREATE DOC ROW
+    ========================= */
     const [docs] = await InternDocuments.findOrCreate({
       where: { intern_id: intern.id },
       defaults: { intern_id: intern.id },
     });
 
-    // overwrite old file if exists
+    /* =========================
+       DELETE OLD FILE (IF ANY)
+    ========================= */
     if (docs[targetColumn]) {
       const oldPath = path.join(__dirname, '..', 'uploads', docs[targetColumn]);
       if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
@@ -66,14 +74,14 @@ async function uploadInternDoc(req, res, next) {
     docs.uploaded_at = new Date();
     await docs.save();
 
-    res.json({
+    return res.json({
       message: 'Document uploaded successfully',
       column: targetColumn,
       file: file.filename,
     });
   } catch (err) {
     console.error('❌ UPLOAD INTERN DOC ERROR:', err);
-    next(err);
+    return res.status(500).json({ message: 'Failed to upload document' });
   }
 }
 
@@ -81,14 +89,16 @@ async function uploadInternDoc(req, res, next) {
    GET INTERN DOCUMENTS
 ========================= */
 // GET /api/auth/intern-docs/me
-async function getInternDocuments(req, res, next) {
+async function getInternDocuments(req, res) {
   try {
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },
       include: [
         {
           model: Company,
+          as: 'company', // ✅ MUST MATCH Intern.associate
           attributes: ['moaFile'],
+          required: false,
         },
       ],
     });
@@ -101,13 +111,13 @@ async function getInternDocuments(req, res, next) {
       where: { intern_id: intern.id },
     });
 
-    res.json({
+    return res.json({
       ...(docs?.dataValues || {}),
-      MOA: intern.Company?.moaFile || null,
+      MOA: intern.company?.moaFile || null,
     });
   } catch (err) {
     console.error('❌ GET INTERN DOCS ERROR:', err);
-    next(err);
+    return res.status(500).json({ message: 'Failed to fetch documents' });
   }
 }
 
@@ -115,7 +125,7 @@ async function getInternDocuments(req, res, next) {
    DELETE INTERN DOCUMENT
 ========================= */
 // DELETE /api/auth/intern-docs/:column
-async function deleteInternDoc(req, res, next) {
+async function deleteInternDoc(req, res) {
   try {
     const { column } = req.params;
 
@@ -155,10 +165,10 @@ async function deleteInternDoc(req, res, next) {
     docs[column] = null;
     await docs.save();
 
-    res.json({ message: 'Document deleted successfully' });
+    return res.json({ message: 'Document deleted successfully' });
   } catch (err) {
     console.error('❌ DELETE INTERN DOC ERROR:', err);
-    next(err);
+    return res.status(500).json({ message: 'Failed to delete document' });
   }
 }
 

@@ -49,9 +49,11 @@ const InternA_in_dashboardA = () => {
       setError(null);
 
       try {
+        const token = localStorage.getItem('token');
+
         const res = await fetch('http://localhost:5000/api/auth/interns', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -60,6 +62,12 @@ const InternA_in_dashboardA = () => {
         }
 
         const data = await res.json();
+
+        console.log('📋 RAW API RESPONSE:', data);
+        if (data.length > 0) {
+          console.log('📋 FIRST INTERN OBJECT:', data[0]);
+          console.log('📋 FIRST INTERN ID:', data[0].id);
+        }
 
         /* =========================
            🔒 SAFETY CHECK (CRITICAL)
@@ -76,26 +84,33 @@ const InternA_in_dashboardA = () => {
            FILTER BY PROGRAM
         ========================= */
         const filtered = data.filter((intern) => {
-          const internProgram = intern.User?.program || intern.program;
+          const internProgram = intern.student?.program || intern.program;
 
           if (!internProgram || !adviserProgram) return false;
 
           return internProgram.trim().toLowerCase() === adviserProgram;
         });
 
+        console.log('📋 FILTERED INTERNS:', filtered);
+
         /* =========================
-           NORMALIZE DATA
+           NORMALIZE DATA - KEEP ID!
         ========================= */
-        const normalized = filtered.map((intern) => ({
-          studNo: intern.User?.studentId ?? 'N/A',
-          lastname: intern.User?.lastName ?? 'N/A',
-          firstname: intern.User?.firstName ?? 'N/A',
-          mi: intern.User?.mi ?? '',
-          email: intern.User?.email ?? 'N/A',
-          company: intern.Company?.name ?? 'N/A',
-          companyEmail: intern.Company?.email ?? 'N/A',
-          supervisor: intern.Company?.supervisorName ?? 'N/A',
-        }));
+        const normalized = filtered.map((intern) => {
+          const normalizedIntern = {
+            id: intern.id,
+            studNo: intern.student?.studentId ?? 'N/A',
+            lastname: intern.student?.lastName ?? 'N/A',
+            firstname: intern.student?.firstName ?? 'N/A',
+            mi: intern.student?.mi ?? '',
+            email: intern.student?.email ?? 'N/A',
+            company: intern.company?.name ?? 'N/A',
+            companyEmail: intern.company?.email ?? 'N/A',
+            supervisor: intern.company?.supervisorName ?? 'N/A',
+          };
+          console.log('📋 NORMALIZED INTERN:', normalizedIntern);
+          return normalizedIntern;
+        });
 
         setInterns(normalized);
       } catch (err) {
@@ -143,6 +158,7 @@ const InternA_in_dashboardA = () => {
   };
 
   const openReportModal = (intern) => {
+    console.log('📋 OPENING MODAL WITH INTERN:', intern);
     setReportModal({ isOpen: true, selectedIntern: intern });
   };
 

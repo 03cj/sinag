@@ -1,60 +1,83 @@
 /* eslint-env node */
-const User = require('../models/user');
-const Intern = require('../models/interns');
-const Company = require('../models/company');
-const InternDocuments = require('../models/InternDocuments');
+'use strict';
 
-exports.getInternDashboard = async (req, res, next) => {
+const { User, Intern, Company, InternDocuments } = require('../models');
+
+exports.getInternDashboard = async (req, res) => {
   try {
+    /* =========================
+       AUTH USER
+    ========================= */
     const userId = req.user.id;
 
+    /* =========================
+       FETCH INTERN + RELATIONS
+    ========================= */
     const intern = await Intern.findOne({
       where: { user_id: userId },
       include: [
-        { model: User, attributes: ['firstName', 'lastName', 'mi', 'studentId'] },
-        { model: Company, required: false, attributes: ['name', 'supervisorName', 'moaStart', 'moaEnd'] },
+        {
+          model: User,
+          as: 'student', // ✅ MUST MATCH Intern.associate
+          attributes: ['firstName', 'lastName', 'mi', 'studentId'],
+        },
+        {
+          model: Company,
+          as: 'company', // ✅ MUST MATCH Intern.associate
+          required: false,
+          attributes: ['name', 'supervisorName', 'moaStart', 'moaEnd'],
+        },
+        {
+          model: InternDocuments,
+          as: 'documents', // ✅ MUST MATCH Intern.associate
+          required: false,
+        },
       ],
     });
 
+    /* =========================
+       VALIDATION
+    ========================= */
     if (!intern) {
       return res.status(404).json({ message: 'Intern record not found' });
     }
 
-    const documents = await InternDocuments.findOne({
-      where: { intern_id: intern.id },
-    });
+    if (!intern.student) {
+      return res.status(500).json({ message: 'Student user record missing' });
+    }
 
-    res.json({
-      firstName: intern.User.firstName,
-      fullName: `${intern.User.lastName}, ${intern.User.firstName} ${intern.User.mi || ''}`,
-      studentId: intern.User.studentId,
+    const docs = intern.documents;
+
+    /* =========================
+       RESPONSE
+    ========================= */
+    return res.json({
+      firstName: intern.student.firstName,
+      fullName: `${intern.student.lastName}, ${intern.student.firstName} ${intern.student.mi || ''}`,
+      studentId: intern.student.studentId,
       status: intern.status,
       remarks: intern.remarks || null,
 
       documents: [
-        { name: 'Consent Form', uploaded: !!documents?.consent_form, file: documents?.consent_form },
-        {
-          name: 'Notarized Agreement',
-          uploaded: !!documents?.notarized_agreement,
-          file: documents?.notarized_agreement,
-        },
-        { name: 'Portfolio', uploaded: !!documents?.portfolio, file: documents?.portfolio },
-        { name: 'COR', uploaded: !!documents?.cor, file: documents?.cor },
-        { name: 'Insurance', uploaded: !!documents?.insurance, file: documents?.insurance },
-        { name: 'Medical Certificate', uploaded: !!documents?.medical_cert, file: documents?.medical_cert },
+        { name: 'Consent Form', uploaded: !!docs?.consent_form, file: docs?.consent_form },
+        { name: 'Notarized Agreement', uploaded: !!docs?.notarized_agreement, file: docs?.notarized_agreement },
+        { name: 'Portfolio', uploaded: !!docs?.portfolio, file: docs?.portfolio },
+        { name: 'COR', uploaded: !!docs?.cor, file: docs?.cor },
+        { name: 'Insurance', uploaded: !!docs?.insurance, file: docs?.insurance },
+        { name: 'Medical Certificate', uploaded: !!docs?.medical_cert, file: docs?.medical_cert },
       ],
 
-      companyDetails: intern.Company
+      companyDetails: intern.company
         ? {
-            companyName: intern.Company.name,
-            supervisor: intern.Company.supervisorName,
-            startDate: intern.Company.moaStart,
-            endDate: intern.Company.moaEnd,
+            companyName: intern.company.name,
+            supervisor: intern.company.supervisorName,
+            startDate: intern.company.moaStart,
+            endDate: intern.company.moaEnd,
           }
         : null,
     });
-  } catch (err) {
-    console.error('❌ INTERN DASHBOARD ERROR:', err);
-    next(err);
+  } catch (error) {
+    console.error('❌ INTERN DASHBOARD ERROR:', error);
+    return res.status(500).json({ message: 'Failed to load intern dashboard' });
   }
 };

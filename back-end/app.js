@@ -50,24 +50,78 @@ app.use(
 );
 
 // =========================
+// HELPER FUNCTION TO SAFELY LOAD ROUTES
+// =========================
+const loadRoute = (filePath, routeName) => {
+  try {
+    const route = require(filePath);
+    if (!route || typeof route !== 'function') {
+      console.warn(`⚠️ WARNING: Route "${routeName}" is not a valid express router. File: ${filePath}`);
+      return null;
+    }
+    return route;
+  } catch (err) {
+    console.warn(`⚠️ WARNING: Failed to load route "${routeName}". File: ${filePath}. Error: ${err.message}`);
+    return null;
+  }
+};
+
+// =========================
 // ROUTES
 // =========================
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/documents', require('./routes/documents'));
-app.use('/api/dashboard', require('./routes/dashboard'));
-app.use('/api/intern-evaluations', require('./routes/InternEvaluations'));
-app.use('/api/adviser', require('./routes/adviser'));
+const authRoute = loadRoute('./routes/auth', 'auth');
+if (authRoute) app.use('/api/auth', authRoute);
 
-app.use('/api/reports', require('./routes/internList'));
-app.use('/api/reports', require('./routes/hteList'));
-app.use('/api/reports', require('./routes/internAssignedToHTE'));
-app.use('/api/reports', require('./routes/internSubmittedDocuments'));
-app.use('/api/reports', require('./routes/adviserList'));
-app.use('/api/reports', require('./routes/internEvaluationReport'));
+const documentsRoute = loadRoute('./routes/documents', 'documents');
+if (documentsRoute) app.use('/api/documents', documentsRoute);
 
-app.use('/api/forgot-password', require('./routes/forgotPasswordRoutes'));
-app.use('/api/hte-evaluations', require('./routes/HTEEvaluations'));
-app.use('/api/supervisor-evaluations', require('./routes/SupervisorEvaluations'));
+const dashboardRoute = loadRoute('./routes/dashboard', 'dashboard');
+if (dashboardRoute) app.use('/api/dashboard', dashboardRoute);
+
+const internEvaluationsRoute = loadRoute('./routes/InternEvaluations', 'InternEvaluations');
+if (internEvaluationsRoute) app.use('/api/intern-evaluations', internEvaluationsRoute);
+
+const adviserRoute = loadRoute('./routes/adviser', 'adviser');
+if (adviserRoute) app.use('/api/adviser', adviserRoute);
+
+const internInDashboardRoute = loadRoute('./routes/internInDashboardRoutes', 'internInDashboardRoutes');
+if (internInDashboardRoute) app.use('/api/auth', internInDashboardRoute);
+
+const internListRoute = loadRoute('./routes/internList', 'internList');
+if (internListRoute) app.use('/api/reports', internListRoute);
+
+const hteListRoute = loadRoute('./routes/hteList', 'hteList');
+if (hteListRoute) app.use('/api/reports', hteListRoute);
+
+const internAssignedRoute = loadRoute('./routes/internAssignedToHTE', 'internAssignedToHTE');
+if (internAssignedRoute) app.use('/api/reports', internAssignedRoute);
+
+const internSubmittedRoute = loadRoute('./routes/internSubmittedDocuments', 'internSubmittedDocuments');
+if (internSubmittedRoute) app.use('/api/reports', internSubmittedRoute);
+
+const adviserListRoute = loadRoute('./routes/adviserList', 'adviserList');
+if (adviserListRoute) app.use('/api/reports', adviserListRoute);
+
+const internEvalReportRoute = loadRoute('./routes/internEvaluationReport', 'internEvaluationReport');
+if (internEvalReportRoute) app.use('/api/reports', internEvalReportRoute);
+
+const forgotPasswordRoute = loadRoute('./routes/forgotPasswordRoutes', 'forgotPasswordRoutes');
+if (forgotPasswordRoute) app.use('/api/forgot-password', forgotPasswordRoute);
+
+const hteEvaluationsRoute = loadRoute('./routes/HTEEvaluations', 'HTEEvaluations');
+if (hteEvaluationsRoute) app.use('/api/hte-evaluations', hteEvaluationsRoute);
+
+const supervisorEvaluationsRoute = loadRoute('./routes/SupervisorEvaluations', 'SupervisorEvaluations');
+if (supervisorEvaluationsRoute) app.use('/api/supervisor-evaluations', supervisorEvaluationsRoute);
+
+// =========================
+// DAILY LOG ROUTE (FORCED LOAD)
+// =========================
+const internDailyLogRoutes = loadRoute(
+  path.join(__dirname, 'routes', 'internDailyLogRoutes.js'),
+  'internDailyLogRoutes',
+);
+if (internDailyLogRoutes) app.use('/api', internDailyLogRoutes);
 
 // =========================
 // HEALTH CHECK

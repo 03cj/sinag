@@ -15,9 +15,13 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
   const fetchInternReports = async () => {
     setLoading(true);
     try {
-      // Fetch using studentId (which is the intern_id in daily logs)
-      const response = await fetch(`http://localhost:5000/api/intern/daily-log/${intern.studNo}`, {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`http://localhost:5000/api/daily-logs/${intern.id}`, {
         credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -25,6 +29,8 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
         // Sort by day_no in descending order (newest first)
         const sorted = data.sort((a, b) => b.day_no - a.day_no);
         setReports(sorted);
+      } else {
+        console.error('Failed to fetch reports:', response.status);
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
@@ -35,9 +41,14 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
 
   const handleApprove = async (reportId, status) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/intern/daily-log/${reportId}/adviser-approve`, {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`http://localhost:5000/api/daily-logs/${reportId}/adviser-approve`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           adviser_status: status,
           adviser_comment: `Approved by Adviser on ${new Date().toLocaleDateString()}`,
