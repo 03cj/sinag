@@ -55,8 +55,8 @@ exports.signup = async (req, res, next) => {
       email: user.email,
       role: user.role,
       program: user.program,
-      firstName: user.firstName, // ✅
-      lastName: user.lastName, // ✅
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
 
     res.status(201).json({ token });
@@ -85,8 +85,8 @@ exports.login = async (req, res, next) => {
         email: user.email,
         role: user.role,
         program: user.program,
-        firstName: user.firstName, // ✅ ADD
-        lastName: user.lastName, // ✅ ADD
+        firstName: user.firstName,
+        lastName: user.lastName,
       });
 
       return res.json({ token });
@@ -324,13 +324,18 @@ exports.addIntern = async (req, res, next) => {
 ========================= */
 exports.updateIntern = async (req, res, next) => {
   try {
-    const intern = await Intern.findByPk(req.params.id, { include: User });
+    const intern = await Intern.findByPk(req.params.id, {
+      include: {
+        model: User,
+        as: 'student', // ✅ FIXED: Added alias
+      },
+    });
     if (!intern) return res.status(404).json({ message: 'Intern not found' });
 
     const { firstName, lastName, mi, email, studentId, program } = req.body;
 
-    // ✅ Update USER fields
-    await intern.User.update({
+    // ✅ Update USER fields (using correct alias)
+    await intern.student.update({
       firstName,
       lastName,
       mi,
@@ -376,15 +381,18 @@ exports.getInterns = async (req, res) => {
       include: [
         {
           model: User,
+          as: 'student', // ✅ FIXED: Added correct alias
           attributes: ['studentId', 'firstName', 'lastName', 'mi', 'email', 'program'],
         },
         {
           model: InternDocuments,
-          required: false, // ✅ no crash if no documents
+          as: 'documents', // ✅ FIXED: Added correct alias
+          required: false,
         },
         {
           model: Company,
-          required: false, // ✅ no crash if no company
+          as: 'company', // ✅ FIXED: Added correct alias
+          required: false,
         },
       ],
       order: [['created_at', 'DESC']],
@@ -499,7 +507,7 @@ exports.addCompany = async (req, res, next) => {
       moaEnd,
       moaFile: req.file?.filename || null,
       password: passwordHash,
-      forcePasswordChange: true, // if you add this field to Company
+      forcePasswordChange: true,
     });
 
     // 📧 SEND EMAIL
@@ -586,7 +594,7 @@ exports.me = async (req, res, next) => {
         moaStart: company.moaStart,
         moaEnd: company.moaEnd,
         moaFile: company.moaFile,
-        company: company, // optional nested
+        company: company,
       });
     }
 

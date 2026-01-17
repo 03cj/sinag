@@ -23,9 +23,12 @@ const Company = sequelize.define(
     updatedAt: false,
   },
 );
+
 Company.associate = (models) => {
+  // ✅ FIXED: Added 'as' alias to match what Intern uses
   Company.hasMany(models.Intern, {
     foreignKey: 'company_id',
+    as: 'interns', // ✅ ADDED: This must match the reverse association
   });
 };
 

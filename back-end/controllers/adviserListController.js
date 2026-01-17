@@ -8,30 +8,33 @@ exports.generateAdviserList = async (req, res) => {
   let doc;
 
   try {
-    /* =============================
+    /* =========================
        FETCH ADVISERS (USERS ONLY)
-    ============================== */
+    ========================= */
     const advisers = await User.findAll({
       where: { role: 'Adviser' },
-      include: [
-        {
-          model: Intern,
-          as: 'advisees', // ✅ MUST MATCH User.hasMany alias
-          required: false,
-          attributes: ['id', 'program'],
-        },
-      ],
-
       order: [['lastName', 'ASC']],
     });
 
-    /* =============================
+    /* =========================
+       COUNT INTERNS PER ADVISER
+    ========================= */
+    for (const adviser of advisers) {
+      const count = await Intern.count({
+        where: {
+          program: adviser.program,
+        },
+      });
+
+      adviser.dataValues.internCount = count;
+    }
+
+    /* =========================
        RESPONSE HEADERS
-    ============================== */
+    ========================= */
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename=list_of_advisers.pdf');
 
-    // ✅ LANDSCAPE
     doc = new PDFDocument({
       size: 'Legal',
       layout: 'landscape',
@@ -43,9 +46,9 @@ exports.generateAdviserList = async (req, res) => {
     const startX = doc.page.margins.left;
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
-    /* =============================
+    /* =========================
        HEADER
-    ============================== */
+    ========================= */
     const logoPath = path.join(process.cwd(), 'pup_1904_flat.png');
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, startX, 35, { width: 50 });
@@ -74,9 +77,9 @@ exports.generateAdviserList = async (req, res) => {
 
     doc.moveDown(1);
 
-    /* =============================
+    /* =========================
        TABLE HEADER
-    ============================== */
+    ========================= */
     let y = doc.y;
     doc.rect(startX, y, pageWidth, 26).fill('#800000');
     doc.fillColor('white').fontSize(9).font('Helvetica-Bold');
@@ -101,39 +104,24 @@ exports.generateAdviserList = async (req, res) => {
     y += 26;
     doc.fillColor('black').font('Helvetica').fontSize(9);
 
-    /* =============================
+    /* =========================
        TABLE ROWS
-    ============================== */
+    ========================= */
     advisers.forEach((adviser, index) => {
       if (y > doc.page.height - 60) {
         doc.addPage();
         y = doc.page.margins.top;
       }
 
-      const internCount = adviser.advisees
-        ? adviser.advisees.filter(
-            (intern) =>
-              intern.program &&
-              adviser.program &&
-              intern.program.trim().toLowerCase() === adviser.program.trim().toLowerCase(),
-          ).length
-        : 0;
+      const internCount = adviser.dataValues.internCount || adviser.internCount || 0;
 
       doc.rect(startX, y, pageWidth, 18).stroke('#CCCCCC');
 
       doc.text(index + 1, cols.no.x, y + 5, { width: cols.no.w });
-
       doc.text(`${adviser.lastName}, ${adviser.firstName}`, cols.name.x, y + 5, { width: cols.name.w });
-
-      doc.text(adviser.email || 'N/A', cols.email.x, y + 5, {
-        width: cols.email.w,
-      });
-
-      doc.text(adviser.program || 'N/A', cols.program.x, y + 5, {
-        width: cols.program.w,
-      });
-
-      doc.text(internCount, cols.count.x, y + 5, {
+      doc.text(adviser.email || 'N/A', cols.email.x, y + 5, { width: cols.email.w });
+      doc.text(adviser.program || 'N/A', cols.program.x, y + 5, { width: cols.program.w });
+      doc.text(String(internCount), cols.count.x, y + 5, {
         width: cols.count.w,
         align: 'center',
       });

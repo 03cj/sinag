@@ -12,7 +12,7 @@ exports.generateHTEList = async (req, res) => {
       include: [
         {
           model: Intern,
-          as: 'Interns',
+          as: 'interns', // ✅ FIXED: Changed to lowercase (match your model association)
           required: false,
         },
       ],
@@ -34,6 +34,42 @@ exports.generateHTEList = async (req, res) => {
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
     const tableWidth = pageWidth;
+
+    /* =============================
+       HELPER: CALCULATE MOA VALIDITY
+    ============================== */
+    const calculateMOAValidity = (moaEnd) => {
+      if (!moaEnd) return 'N/A';
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(moaEnd);
+      endDate.setHours(0, 0, 0, 0);
+
+      const diffTime = endDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        return 'Expired';
+      } else if (diffDays === 0) {
+        return 'Expires Today';
+      } else if (diffDays === 1) {
+        return '1 day';
+      } else if (diffDays <= 30) {
+        return `${diffDays} days`;
+      } else if (diffDays <= 365) {
+        const months = Math.floor(diffDays / 30);
+        return months === 1 ? '1 month' : `${months} months`;
+      } else {
+        const years = Math.floor(diffDays / 365);
+        const remainingMonths = Math.floor((diffDays % 365) / 30);
+        if (remainingMonths === 0) {
+          return years === 1 ? '1 year' : `${years} years`;
+        }
+        return `${years}y ${remainingMonths}m`;
+      }
+    };
 
     /* =============================
        HEADER + LOGO
@@ -128,9 +164,14 @@ exports.generateHTEList = async (req, res) => {
       doc.text(company.address || 'N/A', startX + 300, currentY + 6, { width: addressWidth });
       doc.text(company.supervisorName || 'N/A', startX + 470, currentY + 6, { width: 100 });
       doc.text(company.natureOfBusiness || 'N/A', startX + 580, currentY + 6, { width: natureWidth });
-      doc.text(company.moaValidity || 'N/A', startX + 710, currentY + 6, { width: 80, align: 'center' });
 
-      const internCount = Array.isArray(company.Interns) ? company.Interns.length : 0;
+      // ✅ FIXED: Calculate remaining time until MOA expires
+      const moaValidity = calculateMOAValidity(company.moaEnd);
+
+      doc.text(moaValidity, startX + 710, currentY + 6, { width: 80, align: 'center' });
+
+      // ✅ FIXED: Changed Interns to interns (lowercase)
+      const internCount = Array.isArray(company.interns) ? company.interns.length : 0;
       doc.text(internCount, startX + 795, currentY + 6, { width: 60, align: 'center' });
 
       currentY += rowHeight;

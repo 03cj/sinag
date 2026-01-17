@@ -89,18 +89,19 @@ exports.getCompanies = async (req, res, next) => {
       include: [
         {
           model: Company,
+          as: 'company', // ✅ FIXED: Added correct alias
           attributes: ['name'],
         },
       ],
       where: whereCondition,
-      group: ['company_id', 'Company.id'],
+      group: ['company_id', 'company.id'], // ✅ FIXED: Changed Company.id to company.id
       order: [[literal('count'), 'DESC']],
       raw: true,
     });
 
     res.json(
       results.map((r) => ({
-        company: r['Company.name'] || 'Unassigned',
+        company: r['company.name'] || 'Unassigned', // ✅ FIXED: Changed Company.name to company.name
         count: Number(r.count),
       })),
     );

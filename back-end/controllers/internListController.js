@@ -21,7 +21,8 @@ exports.generateInternList = async (req, res) => {
     ============================== */
     const interns = await Intern.findAll({
       where: { program },
-      include: [{ model: User, required: true }],
+      include: [{ model: User, as: 'student', required: true }],
+
       order: [['id', 'ASC']],
     });
 
@@ -127,7 +128,8 @@ exports.generateInternList = async (req, res) => {
     doc.fillColor('black').font('Helvetica');
 
     interns.forEach((intern, index) => {
-      const u = intern.User || {};
+      const u = intern.student || {};
+
       const fullName = `${u.lastName || ''}, ${u.firstName || ''} ${u.middleInitial || ''}`.trim().toUpperCase();
 
       doc.rect(startX, currentY, 515, 18).stroke();

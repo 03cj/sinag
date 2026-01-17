@@ -40,17 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 
-  Intern.associate = (models) => {
-    Intern.belongsTo(models.User, { foreignKey: 'user_id' });
-    Intern.belongsTo(models.User, { foreignKey: 'adviser_id', as: 'adviser' });
-    Intern.belongsTo(models.Company, { foreignKey: 'company_id' });
-
-    Intern.hasOne(models.InternDocuments, { foreignKey: 'intern_id' });
-    Intern.hasOne(models.InternEvaluation, {
-      foreignKey: 'intern_id',
-      as: 'evaluation',
-    });
-  };
+  // ✅ ONLY ONE associate function (do not duplicate)
   Intern.associate = (models) => {
     // Intern ↔ User (Student)
     Intern.belongsTo(models.User, {
@@ -67,6 +57,19 @@ module.exports = (sequelize, DataTypes) => {
     // Intern ↔ Company
     Intern.belongsTo(models.Company, {
       foreignKey: 'company_id',
+      as: 'company',
+    });
+
+    // Intern ↔ Documents
+    Intern.hasOne(models.InternDocuments, {
+      foreignKey: 'intern_id',
+      as: 'documents',
+    });
+
+    // Intern ↔ Evaluation
+    Intern.hasOne(models.InternEvaluation, {
+      foreignKey: 'intern_id',
+      as: 'evaluation',
     });
   };
 

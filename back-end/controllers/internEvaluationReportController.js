@@ -21,10 +21,12 @@ exports.generateInternEvaluationReport = async (req, res) => {
       include: [
         {
           model: User,
+          as: 'student', // ✅ FIXED: Correct alias is 'student'
           required: true,
         },
         {
           model: Company,
+          as: 'company', // ✅ FIXED: Added correct alias
           required: false,
         },
         {
@@ -40,8 +42,7 @@ exports.generateInternEvaluationReport = async (req, res) => {
           ],
         },
       ],
-
-      order: [[{ model: User }, 'lastName', 'ASC']],
+      order: [[{ model: User, as: 'student' }, 'lastName', 'ASC']], // ✅ FIXED: Correct alias is 'student'
     });
 
     /* =============================
@@ -134,15 +135,21 @@ exports.generateInternEvaluationReport = async (req, res) => {
         doc.addPage();
         y = doc.page.margins.top;
 
-        // Redraw Header on new page if necessary
+        // Redraw Header on new page
         doc.rect(startX, y, pageWidth, 26).fill('#800000');
-        doc.fillColor('white').font('Helvetica-Bold');
+        doc.fillColor('white').fontSize(9).font('Helvetica-Bold');
         doc.text('NO.', cols.no.x, y + 8, { width: cols.no.w, align: 'center' });
         doc.text('STUDENT NAME', cols.name.x + 10, y + 8, { width: cols.name.w - 10 });
-        // ... (Repeat headers if you want them on every page)
-        doc.fillColor('black').font('Helvetica');
+        doc.text('CHARACTER', cols.character.x, y + 8, { width: cols.character.w, align: 'center' });
+        doc.text('COMPETENCE', cols.competence.x, y + 8, { width: cols.competence.w, align: 'center' });
+        doc.text('SUPERVISOR', cols.supervisor.x, y + 8, { width: cols.supervisor.w, align: 'center' });
+        doc.text('COMPANY / HTE', cols.company.x, y + 8, { width: cols.company.w, align: 'center' });
+        doc.text('OVERALL MEAN', cols.mean.x, y + 8, { width: cols.mean.w, align: 'center' });
+
         y += 26;
+        doc.fillColor('black').font('Helvetica').fontSize(9);
       }
+
       const evaluation = intern.evaluation;
       const items = evaluation?.items || [];
 
@@ -178,11 +185,11 @@ exports.generateInternEvaluationReport = async (req, res) => {
       doc.rect(startX, y, pageWidth, 20).stroke('#CCCCCC');
 
       // Row Data
-      // Row Data
       doc.text(index + 1, cols.no.x, y + 6, { width: cols.no.w, align: 'center' });
 
+      // ✅ FIXED: Changed to intern.student (correct alias)
       doc.text(
-        `${intern.User.lastName.toUpperCase()}, ${intern.User.firstName.toUpperCase()}`,
+        `${intern.student.lastName.toUpperCase()}, ${intern.student.firstName.toUpperCase()}`,
         cols.name.x + 10,
         y + 6,
         { width: cols.name.w - 10, ellipsis: true },
@@ -198,17 +205,19 @@ exports.generateInternEvaluationReport = async (req, res) => {
         align: 'center',
       });
 
-      const supervisorName = intern.Company?.supervisorName || 'N/A';
-      const companyName = intern.Company?.name || 'N/A';
+      const supervisorName = intern.company?.supervisorName || 'N/A';
+      const companyName = intern.company?.name || 'N/A';
 
       doc.text(supervisorName.toUpperCase(), cols.supervisor.x, y + 6, {
         width: cols.supervisor.w,
         align: 'center',
+        ellipsis: true,
       });
 
       doc.text(companyName.toUpperCase(), cols.company.x, y + 6, {
         width: cols.company.w,
         align: 'center',
+        ellipsis: true,
       });
 
       doc.text(mean, cols.mean.x, y + 6, { width: cols.mean.w, align: 'center' });

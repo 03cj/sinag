@@ -64,24 +64,21 @@ const InternC = () => {
         const data = await res.json();
 
         const normalized = data.map((intern) => {
-          const internProgram = intern.User?.program || intern.program;
+          // ✅ FIXED: Changed User to student, Company to company (lowercase)
+          const internProgram = intern.student?.program || intern.program;
 
-          const matchedAdviser = advisers.find(
-            (adv) => adv.program === internProgram
-          );
+          const matchedAdviser = advisers.find((adv) => adv.program === internProgram);
 
           return {
-            studNo: intern.User?.studentId || 'N/A',
-            lastname: intern.User?.lastName || 'N/A',
-            firstname: intern.User?.firstName || 'N/A',
-            mi: intern.User?.mi || '',
-            email: intern.User?.email || 'N/A',
+            studNo: intern.student?.studentId || 'N/A',
+            lastname: intern.student?.lastName || 'N/A',
+            firstname: intern.student?.firstName || 'N/A',
+            mi: intern.student?.mi || '',
+            email: intern.student?.email || 'N/A',
             program: internProgram || 'N/A',
-            adviser: matchedAdviser
-              ? `${matchedAdviser.firstName} ${matchedAdviser.lastName}`
-              : 'N/A',
-            company: intern.Company?.name || 'NA',
-            supervisor: intern.Company?.supervisorName || 'NA',
+            adviser: matchedAdviser ? `${matchedAdviser.firstName} ${matchedAdviser.lastName}` : 'N/A',
+            company: intern.company?.name || 'NA',
+            supervisor: intern.company?.supervisorName || 'NA',
             status: intern.status || 'NA',
           };
         });
@@ -130,11 +127,7 @@ const InternC = () => {
 
   const SortArrow = ({ active }) => {
     if (!active) return <span className="ml-1 text-gray-300">↕</span>;
-    return (
-      <span className="ml-1 font-bold">
-        {sortOrder === 'asc' ? '↑' : '↓'}
-      </span>
-    );
+    return <span className="ml-1 font-bold">{sortOrder === 'asc' ? '↑' : '↓'}</span>;
   };
 
   const sortedInterns = [...filteredInterns].sort((a, b) => {
@@ -168,12 +161,7 @@ const InternC = () => {
               className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-red-500 text-sm"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

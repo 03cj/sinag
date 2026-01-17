@@ -20,10 +20,11 @@ exports.generateInternAssignedToHTE = async (req, res) => {
     const interns = await Intern.findAll({
       where: { program },
       include: [
-        { model: User, required: true },
-        { model: Company, required: false },
+        { model: User, as: 'student', required: true },
+        { model: Company, as: 'company', required: false },
       ],
-      order: [[User, 'lastName', 'ASC']],
+      // order by student's last name
+      order: [[{ model: User, as: 'student' }, 'lastName', 'ASC']],
     });
 
     const adviser = await User.findOne({
@@ -111,22 +112,21 @@ exports.generateInternAssignedToHTE = async (req, res) => {
         y = doc.page.margins.top;
       }
 
+      const student = intern.student || {};
+      const company = intern.company || null;
+
       doc.rect(startX, y, pageWidth, 18).stroke('#CCCCCC');
 
       doc.text(index + 1, startX + 5, y + 5);
-      doc.text(intern.User.studentId || 'N/A', startX + 60, y + 5);
+      doc.text(student.studentId || 'N/A', startX + 60, y + 5);
       doc.text(
-        `${intern.User.lastName}, ${intern.User.firstName} ${intern.User.middleInitial || ''}`,
+        `${student.lastName || ''}, ${student.firstName || ''} ${student.middleInitial || ''}`.trim(),
         startX + 170,
         y + 5,
         { width: 200 },
       );
-      doc.text(intern.User.email || 'N/A', startX + 380, y + 5, {
-        width: 250,
-      });
-      doc.text(intern.Company?.name || 'N/A', startX + 650, y + 5, {
-        width: 200,
-      });
+      doc.text(student.email || 'N/A', startX + 380, y + 5, { width: 250 });
+      doc.text(company?.name || 'N/A', startX + 650, y + 5, { width: 200 });
 
       y += 18;
     });
