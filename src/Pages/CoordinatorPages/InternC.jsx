@@ -62,19 +62,20 @@ const InternC = () => {
         }
 
         const data = await res.json();
+        console.log('📦 Raw intern data:', data[0]); // Debug: Check what we're getting
+        console.log('📦 Company object:', data[0]?.company); // Debug: Check company data
 
         const normalized = data.map((intern) => {
-          // ✅ FIXED: Changed User to student, Company to company (lowercase)
-          const internProgram = intern.student?.program || intern.program;
+          const internProgram = intern.User?.program || intern.program;
 
           const matchedAdviser = advisers.find((adv) => adv.program === internProgram);
 
           return {
-            studNo: intern.student?.studentId || 'N/A',
-            lastname: intern.student?.lastName || 'N/A',
-            firstname: intern.student?.firstName || 'N/A',
-            mi: intern.student?.mi || '',
-            email: intern.student?.email || 'N/A',
+            studNo: intern.User?.studentId || 'N/A',
+            lastname: intern.User?.lastName || 'N/A',
+            firstname: intern.User?.firstName || 'N/A',
+            mi: intern.User?.mi || '',
+            email: intern.User?.email || 'N/A',
             program: internProgram || 'N/A',
             adviser: matchedAdviser ? `${matchedAdviser.firstName} ${matchedAdviser.lastName}` : 'N/A',
             company: intern.company?.name || 'NA',

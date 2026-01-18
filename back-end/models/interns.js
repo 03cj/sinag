@@ -1,37 +1,83 @@
-'use strict';
-
+/* eslint-env node */
 module.exports = (sequelize, DataTypes) => {
-  const Intern = sequelize.define(
-    'Intern',
+  const { Model } = require('sequelize');
+
+  class Intern extends Model {}
+
+  Intern.init(
     {
       id: {
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
       },
+
       user_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       },
-      adviser_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: true,
-      },
-      company_id: {
-        type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: true,
-      },
-      program: DataTypes.STRING(50),
+
       status: {
         type: DataTypes.ENUM('Pending', 'Approved', 'Declined'),
         defaultValue: 'Pending',
       },
-      start_date: DataTypes.DATEONLY,
-      end_date: DataTypes.DATEONLY,
-      required_hours: DataTypes.INTEGER,
-      remarks: DataTypes.STRING(255),
+
+      remarks: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      adviser_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      },
+
+      company_id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        references: {
+          model: 'companies',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      },
+
+      program: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
+
+      start_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+
+      end_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+
+      required_hours: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
+      sequelize,
+      modelName: 'Intern',
       tableName: 'interns',
       timestamps: true,
       createdAt: 'created_at',
@@ -40,37 +86,61 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 
-  // ✅ ONLY ONE associate function (do not duplicate)
+  // ✅ ASSOCIATIONS - ONLY DEFINE ONCE
   Intern.associate = (models) => {
-    // Intern ↔ User (Student)
-    Intern.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'student',
-    });
+    // Intern belongs to User (the intern student)
+    if (models.User) {
+      Intern.belongsTo(models.User, {
+        foreignKey: 'user_id',
+        as: 'User',
+        onDelete: 'CASCADE',
+      });
+    }
 
-    // Intern ↔ User (Adviser)
-    Intern.belongsTo(models.User, {
-      foreignKey: 'adviser_id',
-      as: 'adviser',
-    });
+    // Intern has an Adviser (User)
+    if (models.User) {
+      Intern.belongsTo(models.User, {
+        foreignKey: 'adviser_id',
+        as: 'Adviser',
+        onDelete: 'SET NULL',
+      });
+    }
 
-    // Intern ↔ Company
-    Intern.belongsTo(models.Company, {
-      foreignKey: 'company_id',
-      as: 'company',
-    });
+    // Intern can have many InternDocuments
+    if (models.InternDocuments) {
+      Intern.hasMany(models.InternDocuments, {
+        foreignKey: 'intern_id',
+        as: 'InternDocuments',
+        onDelete: 'CASCADE',
+      });
+    }
 
-    // Intern ↔ Documents
-    Intern.hasOne(models.InternDocuments, {
-      foreignKey: 'intern_id',
-      as: 'documents',
-    });
+    // Intern can have many InternDailyLogs
+    if (models.InternDailyLog) {
+      Intern.hasMany(models.InternDailyLog, {
+        foreignKey: 'intern_id',
+        as: 'DailyLogs',
+        onDelete: 'CASCADE',
+      });
+    }
 
-    // Intern ↔ Evaluation
-    Intern.hasOne(models.InternEvaluation, {
-      foreignKey: 'intern_id',
-      as: 'evaluation',
-    });
+    // Intern belongs to Company (previously called HTE)
+    if (models.Company) {
+      Intern.belongsTo(models.Company, {
+        foreignKey: 'company_id',
+        as: 'company',
+        onDelete: 'SET NULL',
+      });
+    }
+
+    // Intern can have many InternEvaluations
+    if (models.InternEvaluation) {
+      Intern.hasMany(models.InternEvaluation, {
+        foreignKey: 'intern_id',
+        as: 'Evaluations',
+        onDelete: 'CASCADE',
+      });
+    }
   };
 
   return Intern;

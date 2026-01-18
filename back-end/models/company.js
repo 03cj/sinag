@@ -1,35 +1,83 @@
 /* eslint-env node */
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+module.exports = (sequelize, DataTypes) => {
+  const { Model } = require('sequelize');
 
-const Company = sequelize.define(
-  'Company',
-  {
-    id: { type: DataTypes.INTEGER.UNSIGNED, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING(255), allowNull: false },
-    email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
-    address: { type: DataTypes.STRING(255), allowNull: false },
-    natureOfBusiness: { type: DataTypes.STRING(255), allowNull: false },
-    supervisorName: { type: DataTypes.STRING(255), allowNull: false },
-    moaStart: { type: DataTypes.DATEONLY, allowNull: false },
-    moaEnd: { type: DataTypes.DATEONLY, allowNull: false },
-    moaFile: { type: DataTypes.STRING(255), allowNull: true },
-    password: { type: DataTypes.STRING(255), allowNull: false },
-  },
-  {
-    tableName: 'companies',
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: false,
-  },
-);
+  class Company extends Model {}
 
-Company.associate = (models) => {
-  // ✅ FIXED: Added 'as' alias to match what Intern uses
-  Company.hasMany(models.Intern, {
-    foreignKey: 'company_id',
-    as: 'interns', // ✅ ADDED: This must match the reverse association
-  });
+  Company.init(
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+
+      name: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+
+      email: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+
+      address: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+
+      natureOfBusiness: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      supervisorName: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      moaStart: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+
+      moaEnd: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+
+      moaFile: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      password: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+    },
+    {
+      sequelize,
+      modelName: 'Company',
+      tableName: 'companies',
+      timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: false,
+    },
+  );
+
+  // ✅ ASSOCIATIONS - DEFINE ONLY ONCE
+  Company.associate = (models) => {
+    // Company has many Interns
+    if (models.Intern) {
+      Company.hasMany(models.Intern, {
+        foreignKey: 'company_id',
+        as: 'AssignedInterns',
+        onDelete: 'SET NULL',
+      });
+    }
+  };
+
+  return Company;
 };
-
-module.exports = Company;

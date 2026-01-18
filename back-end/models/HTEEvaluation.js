@@ -14,11 +14,17 @@ const HTEEvaluation = sequelize.define(
     intern_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
+      references: { model: 'interns', key: 'id' },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
 
     company_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
+      references: { model: 'companies', key: 'id' },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
 
     student_name: {
@@ -75,6 +81,10 @@ const HTEEvaluation = sequelize.define(
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: false,
+    indexes: [
+      // Prevent duplicate HTE evaluations per intern per school term
+      { name: 'uniq_hte_eval', unique: true, fields: ['intern_id', 'academic_year', 'school_term'] },
+    ],
   },
 );
 

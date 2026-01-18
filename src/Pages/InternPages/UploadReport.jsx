@@ -1,4 +1,4 @@
-import { Award, Calendar, Camera, Clock, Send, Target } from 'lucide-react';
+import { Award, Calendar, Camera, Clock, Send, Target, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const UploadReport = () => {
@@ -19,6 +19,8 @@ const UploadReport = () => {
 
   const [totalHours, setTotalHours] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null); // ✅ Track selected file
+  const [filePreview, setFilePreview] = useState(null); // ✅ Show preview
 
   /* =========================
      AUTO CALCULATE TOTAL HOURS
@@ -48,6 +50,42 @@ const UploadReport = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ✅ Handle file selection
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type (image only)
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setFilePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ✅ Clear selected file
+  const clearFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async () => {
     // Validate required fields
     if (!form.date || !form.timeIn || !form.timeOut || !form.tasks) {
@@ -58,34 +96,36 @@ const UploadReport = () => {
     setIsSubmitting(true);
 
     try {
-      // Try different possible token keys
       let token =
         localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('auth_token');
 
       if (!token) {
-        console.log('Available localStorage keys:', Object.keys(localStorage));
         alert('No authentication token found. Please log in again.');
         setIsSubmitting(false);
         return;
       }
 
-      console.log('Token found:', token.substring(0, 20) + '...'); // Debug log
+      // ✅ Use FormData to send file + data
+      const formData = new FormData();
+      formData.append('log_date', form.date);
+      formData.append('time_in', form.timeIn);
+      formData.append('time_out', form.timeOut);
+      formData.append('tasks_accomplished', form.tasks);
+      formData.append('skills_enhanced', form.skills);
+      formData.append('learning_applied', form.learning);
+
+      // ✅ Append file if selected
+      if (selectedFile) {
+        formData.append('photo', selectedFile);
+      }
 
       const response = await fetch('/api/daily-log', {
         method: 'POST',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify({
-          log_date: form.date,
-          time_in: form.timeIn,
-          time_out: form.timeOut,
-          tasks_accomplished: form.tasks,
-          skills_enhanced: form.skills,
-          learning_applied: form.learning,
-        }),
+        body: formData, // ✅ Send FormData instead of JSON
       });
 
       const data = await response.json();
@@ -112,6 +152,7 @@ const UploadReport = () => {
         learning: '',
       });
       setTotalHours('');
+      clearFile();
       setIsSubmitting(false);
     } catch (err) {
       alert('Network error: ' + err.message);
@@ -248,14 +289,37 @@ const UploadReport = () => {
           />
         </div>
 
-        {/* PHOTO UPLOAD */}
-        <input type="file" ref={fileInputRef} className="hidden" />
-        <div
-          onClick={() => fileInputRef.current.click()}
-          className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border-2 border-dashed cursor-pointer"
-        >
-          <Camera size={22} />
-          <span className="text-xs font-black uppercase text-slate-600">Browse Library</span>
+        {/* ✅ PHOTO UPLOAD - FIXED */}
+        <div className="space-y-4">
+          {filePreview ? (
+            <div className="relative">
+              <img
+                src={filePreview}
+                alt="Preview"
+                className="w-full h-64 object-cover rounded-2xl border-2 border-[#800000]"
+              />
+              <button
+                onClick={clearFile}
+                className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+              >
+                <X size={18} />
+              </button>
+              <p className="text-xs text-slate-600 mt-2">
+                📎 {selectedFile?.name} ({(selectedFile?.size / 1024).toFixed(0)} KB)
+              </p>
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center justify-center p-8 bg-slate-50 rounded-2xl border-2 border-dashed border-[#800000] cursor-pointer hover:bg-slate-100 transition-colors"
+            >
+              <Camera size={32} className="text-[#800000] mb-3" />
+              <span className="text-xs font-black uppercase text-slate-600">Click to upload photo (Optional)</span>
+              <span className="text-[10px] text-slate-500 mt-1">Max 5MB • Images only</span>
+            </div>
+          )}
+
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
         </div>
       </div>
     </div>

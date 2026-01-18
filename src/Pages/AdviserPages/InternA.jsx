@@ -5,6 +5,11 @@ import EditIntern from './EditIntern';
 import Endorsement from './Endorsement';
 
 /* =========================
+   ENVIRONMENT CONFIGURATION
+========================= */
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+/* =========================
    HELPER: GET ADVISER PROGRAM
 ========================= */
 const getAdviserProgramFromToken = () => {
@@ -87,16 +92,34 @@ const InternA = () => {
 
       try {
         const adviserProgram = getAdviserProgramFromToken();
+        const token = localStorage.getItem('token');
 
-        const res = await fetch('http://localhost:5000/api/auth/interns', {
+        if (!token) {
+          setError('No authentication token found. Please log in.');
+          setLoading(false);
+          return;
+        }
+
+        console.log('🔗 API URL:', API_BASE_URL);
+        console.log('🔗 Fetching from:', `${API_BASE_URL}/api/auth/interns`);
+
+        const res = await fetch(`${API_BASE_URL}/api/auth/interns`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
 
-        if (!res.ok) throw new Error('Failed to fetch interns');
+        console.log('📊 Response status:', res.status);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('❌ Error response:', errorText);
+          throw new Error(`Failed to fetch interns: ${res.status}`);
+        }
 
         const data = await res.json();
+        console.log('✅ Fetched data:', data);
 
         const normalized = data
           .filter((i) => (adviserProgram ? i.User?.program?.toLowerCase() === adviserProgram : true))
@@ -108,7 +131,7 @@ const InternA = () => {
           .map((i) => {
             const d = i.InternDocuments?.[0] || {};
 
-            const file = (f) => (f ? `http://localhost:5000/uploads/${f}` : null);
+            const file = (f) => (f ? `${API_BASE_URL}/uploads/${f}` : null);
 
             return {
               id: i.id,
@@ -135,8 +158,8 @@ const InternA = () => {
 
         setInterns(normalized);
       } catch (err) {
-        console.error(err);
-        setError('Failed to load intern documents.');
+        console.error('❌ Error:', err.message);
+        setError(err.message || 'Failed to load intern documents.');
       } finally {
         setLoading(false);
       }
@@ -159,24 +182,24 @@ const InternA = () => {
   ========================= */
   const handleApprove = async (intern) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/interns/${intern.id}/status`, {
+      const token = localStorage.getItem('token');
+
+      const res = await fetch(`${API_BASE_URL}/api/auth/interns/${intern.id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: 'Approved' }),
       });
 
       if (!res.ok) throw new Error('Approval failed');
 
-      // ✅ USE THE INTERN FROM TABLE (HAS NAME)
       setInternForEndorsement({
         ...intern,
         status: 'Approved',
       });
 
-      // update table UI
       setInterns((prev) => prev.map((i) => (i.id === intern.id ? { ...i, status: 'Approved' } : i)));
     } catch (err) {
       console.error(err);
@@ -186,11 +209,13 @@ const InternA = () => {
 
   const handlePending = async (intern) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/interns/${intern.id}/status`, {
+      const token = localStorage.getItem('token');
+
+      const res = await fetch(`${API_BASE_URL}/api/auth/interns/${intern.id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: 'Pending' }),
       });
@@ -210,9 +235,6 @@ const InternA = () => {
     setShowDeclineModal(true);
   };
 
-  /* =========================
-     EDIT / DELETE
-  ========================= */
   const handleEditClick = (intern) => {
     setInternToEdit(intern);
     setShowEditInternForm(true);
@@ -225,17 +247,18 @@ const InternA = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/interns/${internToDelete.id}`, {
+      const token = localStorage.getItem('token');
+
+      const res = await fetch(`${API_BASE_URL}/api/auth/interns/${internToDelete.id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (!res.ok) throw new Error('Delete failed');
 
       setInterns((prev) => prev.filter((i) => i.id !== internToDelete.id));
-
       setShowDeleteConfirm(false);
       setInternToDelete(null);
     } catch (err) {
@@ -243,13 +266,16 @@ const InternA = () => {
       alert('Failed to delete intern');
     }
   };
+
   const submitDecline = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/interns/${internToDecline.id}/status`, {
+      const token = localStorage.getItem('token');
+
+      const res = await fetch(`${API_BASE_URL}/api/auth/interns/${internToDecline.id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           status: 'Declined',
@@ -309,85 +335,112 @@ const InternA = () => {
         </div>
       </div>
 
+      {/* ERROR MESSAGE */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <p className="font-bold">⚠️ Error loading interns:</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* LOADING STATE */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-800"></div>
+          </div>
+          <p className="text-gray-600 mt-4">Loading interns...</p>
+        </div>
+      )}
+
       {/* TABLE */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-red-800">
-            <tr>
-              {[
-                'Actions',
-                'Stud No',
-                'Lastname',
-                'Firstname',
-                'MI',
-                'Consent Form',
-                'Notarized Agreement',
-                'Portfolio',
-                'Resume',
-                'COR',
-                'Insurance',
-                'Medical',
-                'Status',
-              ].map((h, i) => (
-                <th key={i} className="px-6 py-3 text-xs font-bold text-white uppercase">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-200 text-sm">
-            {interns.map((i) => (
-              <tr key={i.id}>
-                <td className="px-6 py-4 text-center">
-                  <div className="flex justify-center gap-3">
-                    <button onClick={() => handleEditClick(i)} className="text-blue-600 hover:text-blue-900">
-                      <Pencil size={16} />
-                    </button>
-                    <button onClick={() => handleDeleteClick(i)} className="text-red-600 hover:text-red-900">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4">{i.studNo}</td>
-                <td className="px-6 py-4">{i.lastname}</td>
-                <td className="px-6 py-4">{i.firstname}</td>
-                <td className="px-6 py-4">{i.mi}</td>
-
-                {['consentForm', 'notarizedAgreement', 'portfolio', 'resume', 'cor', 'insurance', 'medical'].map(
-                  (d) => (
-                    <td key={d} className="px-6 py-4">
-                      {i[d] ? (
-                        <a
-                          href={i[d]}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-600 hover:underline"
-                          title={getFileName(i[d])}
-                        >
-                          {getFileName(i[d])}
-                        </a>
-                      ) : (
-                        'N/A'
-                      )}
-                    </td>
-                  ),
-                )}
-
-                <td className="px-6 py-4">
-                  <StatusIcons
-                    intern={i}
-                    onApprove={handleApprove}
-                    onPending={handlePending}
-                    onDecline={handleDecline}
-                  />
-                </td>
+      {!loading && interns.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-red-800">
+              <tr>
+                {[
+                  'Actions',
+                  'Stud No',
+                  'Lastname',
+                  'Firstname',
+                  'MI',
+                  'Consent Form',
+                  'Notarized Agreement',
+                  'Portfolio',
+                  'Resume',
+                  'COR',
+                  'Insurance',
+                  'Medical',
+                  'Status',
+                ].map((h, i) => (
+                  <th key={i} className="px-6 py-3 text-xs font-bold text-white uppercase">
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+
+            <tbody className="divide-y divide-gray-200 text-sm">
+              {interns.map((i) => (
+                <tr key={i.id}>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex justify-center gap-3">
+                      <button onClick={() => handleEditClick(i)} className="text-blue-600 hover:text-blue-900">
+                        <Pencil size={16} />
+                      </button>
+                      <button onClick={() => handleDeleteClick(i)} className="text-red-600 hover:text-red-900">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4">{i.studNo}</td>
+                  <td className="px-6 py-4">{i.lastname}</td>
+                  <td className="px-6 py-4">{i.firstname}</td>
+                  <td className="px-6 py-4">{i.mi}</td>
+
+                  {['consentForm', 'notarizedAgreement', 'portfolio', 'resume', 'cor', 'insurance', 'medical'].map(
+                    (d) => (
+                      <td key={d} className="px-6 py-4">
+                        {i[d] ? (
+                          <a
+                            href={i[d]}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:underline"
+                            title={getFileName(i[d])}
+                          >
+                            {getFileName(i[d])}
+                          </a>
+                        ) : (
+                          'N/A'
+                        )}
+                      </td>
+                    ),
+                  )}
+
+                  <td className="px-6 py-4">
+                    <StatusIcons
+                      intern={i}
+                      onApprove={handleApprove}
+                      onPending={handlePending}
+                      onDecline={handleDecline}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* NO INTERNS */}
+      {!loading && interns.length === 0 && !error && (
+        <div className="text-center py-12 bg-white rounded-lg border border-gray-300">
+          <p className="text-gray-600">No interns found.</p>
+        </div>
+      )}
 
       {/* DELETE CONFIRM */}
       {showDeleteConfirm && internToDelete && (
@@ -459,7 +512,7 @@ const InternA = () => {
 
       {showEditInternForm && internToEdit && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-xl w-full mx-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 my-8">
             <EditIntern
               intern={internToEdit}
               onUpdate={(updatedIntern) => {

@@ -53,13 +53,9 @@ const DashboardA = () => {
         /* =========================
            FILTER BY ADVISER PROGRAM
         ========================= */
-        const adviserProgramData = programData.find(
-          (p) => p.program === adviserProgram
-        );
+        const adviserProgramData = programData.find((p) => p.program === adviserProgram);
 
-        const activeInterns = adviserProgramData
-          ? adviserProgramData.count
-          : 0;
+        const activeInterns = adviserProgramData ? adviserProgramData.count : 0;
 
         /* =========================
            KPI UPDATE

@@ -2,12 +2,11 @@ import jsPDF from 'jspdf';
 import { AlertCircle, CheckCircle2, Clock, Download, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const AdviserReportModal = ({ isOpen, onClose, intern }) => {
+const SupervisorReportModal = ({ isOpen, onClose, intern }) => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ Use environment variable or config for API URL
   const API_BASE_URL = 'http://localhost:5000';
 
   useEffect(() => {
@@ -22,18 +21,15 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
     try {
       const token = localStorage.getItem('token');
 
-      console.log('📌 Intern object:', intern);
-      console.log('📌 Intern ID:', intern?.id);
-
-      const internId = intern?.id || intern?.intern_id || intern?.user_id;
+      const internId = intern?.id || intern?.intern_id;
 
       if (!internId) {
-        setError('Invalid intern ID - unable to determine intern ID from object');
+        setError('Invalid intern ID');
         console.error('Missing intern ID. Intern object:', intern);
         return;
       }
 
-      const apiUrl = `${API_BASE_URL}/api/daily-logs/${internId}`;
+      const apiUrl = `${API_BASE_URL}/api/company/daily-logs/${internId}`;
       console.log('🔗 Fetching from:', apiUrl);
 
       const response = await fetch(apiUrl, {
@@ -43,19 +39,15 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
         },
       });
 
-      console.log('📊 Response status:', response.status);
-
       if (response.ok) {
         const data = await response.json();
         console.log('✅ Fetched reports:', data);
 
-        // Sort by log_date in descending order (newest first)
         const sorted = Array.isArray(data) ? data.sort((a, b) => new Date(b.log_date) - new Date(a.log_date)) : [];
-
         setReports(sorted);
       } else {
         const errorData = await response.text();
-        setError(`Failed to fetch reports: ${response.status} - ${errorData}`);
+        setError(`Failed to fetch reports: ${response.status}`);
         console.error('❌ Failed response:', response.status, errorData);
       }
     } catch (error) {
@@ -70,15 +62,15 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`${API_BASE_URL}/api/daily-logs/${reportId}/adviser-approve`, {
+      const response = await fetch(`${API_BASE_URL}/api/daily-logs/${reportId}/supervisor-approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          adviser_status: status,
-          adviser_comment: `Approved by Adviser on ${new Date().toLocaleDateString()}`,
+          supervisor_status: status,
+          supervisor_comment: `Approved by Supervisor on ${new Date().toLocaleDateString()}`,
         }),
         credentials: 'include',
       });
@@ -116,9 +108,9 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
       doc.setFont('helvetica', 'normal');
 
       // Student Info
-      doc.text(`Student: ${intern.firstname} ${intern.lastname}`, 10, yPosition);
+      doc.text(`Student: ${intern.firstName} ${intern.lastName}`, 10, yPosition);
       yPosition += 7;
-      doc.text(`Student No.: ${intern.studNo}`, 10, yPosition);
+      doc.text(`Student No.: ${intern.studentId}`, 10, yPosition);
       yPosition += 7;
       doc.text(`Date: ${report.log_date}`, 10, yPosition);
       yPosition += 7;
@@ -169,65 +161,11 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
       doc.setFont('helvetica', 'normal');
       doc.text(`Report Generated: ${new Date().toLocaleString()}`, pageWidth / 2, yPosition, { align: 'center' });
 
-      doc.save(`Daily_Report_Day_${report.day_no}_${intern.studNo}.pdf`);
+      doc.save(`Daily_Report_Day_${report.day_no}_${intern.studentId}.pdf`);
       console.log('✅ PDF generated successfully');
     } catch (error) {
       console.error('❌ Error generating PDF:', error);
       setError('Failed to generate PDF');
-    }
-  };
-
-  const generateEndorsement = (report) => {
-    try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-      let y = 20;
-
-      const internName = `${intern.firstname || ''} ${intern.lastname || ''}`.trim() || 'Student';
-      const studentNo = intern.studNo || 'N/A';
-      const program = intern.program || intern.course || 'Program';
-      const today = new Date().toLocaleDateString();
-      const totalHours = Array.isArray(reports)
-        ? reports.reduce((sum, r) => sum + (Number(r.total_hours) || 0), 0)
-        : report?.total_hours || 0;
-      const lastDay = report?.day_no || 'N/A';
-      const lastDate = report?.log_date || 'N/A';
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.text('ENDORSEMENT LETTER', pageWidth / 2, y, { align: 'center' });
-
-      y += 15;
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Date: ${today}`, 20, y);
-
-      y += 15;
-      doc.text('To Whom It May Concern,', 20, y);
-
-      y += 12;
-      const body = [
-        `This is to formally endorse ${internName} (Student No.: ${studentNo}), currently enrolled in ${program}, for on-the-job training/practicum placement/continuation.`,
-        `Based on submitted daily activity reports up to Day ${lastDay} dated ${lastDate}, the student has recorded a cumulative ${totalHours} training hours.`,
-        'The student remains in good standing and is recommended to proceed with industry engagement to further develop practical skills and professional readiness.',
-        'We request your consideration and support for hosting the student during the required training period.',
-      ];
-
-      const bodyLines = doc.splitTextToSize(body.join(' '), pageWidth - 40);
-      doc.text(bodyLines, 20, y);
-
-      y += bodyLines.length * 6 + 12;
-      doc.text('Thank you for your support.', 20, y);
-
-      y += 18;
-      doc.setFont('helvetica', 'bold');
-      doc.text('Adviser', 20, y);
-
-      doc.save(`Endorsement_${studentNo || 'student'}_Day${lastDay}.pdf`);
-      console.log('✅ Endorsement PDF generated');
-    } catch (err) {
-      console.error('❌ Error generating endorsement PDF:', err);
-      setError('Failed to generate endorsement');
     }
   };
 
@@ -240,9 +178,11 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
         <div className="sticky top-0 bg-gradient-to-r from-red-700 to-red-900 text-white px-8 py-6 flex justify-between items-center border-b border-red-800">
           <div>
             <h2 className="text-2xl font-bold">
-              {intern?.firstname || 'Unknown'} {intern?.lastname || 'Student'}
+              {intern?.firstName || 'Unknown'} {intern?.lastName || 'Student'}
             </h2>
-            <p className="text-red-100 text-sm mt-1">Daily Activity Reports · Student ID: {intern?.studNo || 'N/A'}</p>
+            <p className="text-red-100 text-sm mt-1">
+              Daily Activity Reports · Student ID: {intern?.studentId || 'N/A'}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -306,7 +246,7 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
                     <div className="flex gap-2 flex-wrap justify-end">
                       {/* APPROVAL STATUS */}
                       <div className="flex items-center gap-2">
-                        {report.adviser_status === 'Pending' ? (
+                        {report.supervisor_status === 'Pending' ? (
                           <>
                             <span className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-200">
                               ⏳ PENDING
@@ -319,7 +259,7 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
                               Approve
                             </button>
                           </>
-                        ) : report.adviser_status === 'Approved' ? (
+                        ) : report.supervisor_status === 'Approved' ? (
                           <span className="bg-green-100 text-green-800 px-3 py-1.5 rounded-full text-xs font-bold border border-green-200 flex items-center gap-1">
                             <CheckCircle2 size={16} /> APPROVED
                           </span>
@@ -337,15 +277,6 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
                       >
                         <Download size={16} />
                         PDF
-                      </button>
-
-                      {/* ENDORSEMENT LETTER */}
-                      <button
-                        onClick={() => generateEndorsement(report)}
-                        className="flex items-center gap-2 px-4 py-1.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-all duration-200 text-xs font-bold shadow-sm hover:shadow-md"
-                      >
-                        <Download size={16} />
-                        Endorsement
                       </button>
                     </div>
                   </div>
@@ -414,12 +345,12 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
                     </div>
                   </div>
 
-                  {/* ADVISER COMMENT */}
-                  {report.adviser_comment && (
+                  {/* SUPERVISOR COMMENT */}
+                  {report.supervisor_comment && (
                     <div className="mt-5 pt-5 border-t border-gray-200">
-                      <label className="font-bold text-gray-800 text-sm block mb-2">Adviser Comment:</label>
+                      <label className="font-bold text-gray-800 text-sm block mb-2">Supervisor Comment:</label>
                       <p className="text-gray-700 text-sm bg-blue-50 p-3 rounded border border-blue-200">
-                        {report.adviser_comment}
+                        {report.supervisor_comment}
                       </p>
                     </div>
                   )}
@@ -433,4 +364,4 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
   );
 };
 
-export default AdviserReportModal;
+export default SupervisorReportModal;

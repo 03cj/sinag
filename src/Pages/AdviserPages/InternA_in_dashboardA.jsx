@@ -10,9 +10,7 @@ const getAdviserProgramFromToken = () => {
   if (!token) return null;
 
   try {
-    const payloadBase64 = token.split('.')[1];
-    const payload = JSON.parse(atob(payloadBase64));
-
+    const payload = JSON.parse(atob(token.split('.')[1]));
     return payload?.program ? payload.program.trim().toLowerCase() : null;
   } catch (err) {
     console.error('❌ Failed to decode token:', err);
@@ -24,6 +22,7 @@ const InternA_in_dashboardA = () => {
   const [interns, setInterns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [reportModal, setReportModal] = useState({
     isOpen: false,
     selectedIntern: null,
@@ -44,91 +43,77 @@ const InternA_in_dashboardA = () => {
      FETCH INTERNS
   ========================= */
   useEffect(() => {
-    const fetchInterns = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const token = localStorage.getItem('token');
-
-        const res = await fetch('http://localhost:5000/api/auth/interns', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        console.log('📋 RAW API RESPONSE:', data);
-        if (data.length > 0) {
-          console.log('📋 FIRST INTERN OBJECT:', data[0]);
-          console.log('📋 FIRST INTERN ID:', data[0].id);
-        }
-
-        /* =========================
-           🔒 SAFETY CHECK (CRITICAL)
-        ========================= */
-        if (!Array.isArray(data)) {
-          console.error('Expected array but got:', data);
-          setInterns([]);
-          setError('Failed to load interns.');
-          setLoading(false);
-          return;
-        }
-
-        /* =========================
-           FILTER BY PROGRAM
-        ========================= */
-        const filtered = data.filter((intern) => {
-          const internProgram = intern.student?.program || intern.program;
-
-          if (!internProgram || !adviserProgram) return false;
-
-          return internProgram.trim().toLowerCase() === adviserProgram;
-        });
-
-        console.log('📋 FILTERED INTERNS:', filtered);
-
-        /* =========================
-           NORMALIZE DATA - KEEP ID!
-        ========================= */
-        const normalized = filtered.map((intern) => {
-          const normalizedIntern = {
-            id: intern.id,
-            studNo: intern.student?.studentId ?? 'N/A',
-            lastname: intern.student?.lastName ?? 'N/A',
-            firstname: intern.student?.firstName ?? 'N/A',
-            mi: intern.student?.mi ?? '',
-            email: intern.student?.email ?? 'N/A',
-            company: intern.company?.name ?? 'N/A',
-            companyEmail: intern.company?.email ?? 'N/A',
-            supervisor: intern.company?.supervisorName ?? 'N/A',
-          };
-          console.log('📋 NORMALIZED INTERN:', normalizedIntern);
-          return normalizedIntern;
-        });
-
-        setInterns(normalized);
-      } catch (err) {
-        console.error('❌ Failed to fetch interns:', err);
-        setError(err.message || 'Failed to load interns.');
-        setInterns([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (!adviserProgram) {
       setError('Unable to determine adviser program.');
       setLoading(false);
       return;
     }
 
+    const controller = new AbortController();
+
+    const fetchInterns = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Authentication token missing');
+
+        const res = await fetch('/api/adviser/interns', {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch interns (${res.status})`);
+        }
+
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid response format');
+        }
+
+        /* =========================
+           FILTER BY PROGRAM
+        ========================= */
+        const filtered = data.filter((intern) => {
+          const program = intern.User?.program;
+          return program && adviserProgram && program.trim().toLowerCase() === adviserProgram;
+        });
+
+        /* =========================
+           NORMALIZE DATA
+        ========================= */
+        const normalized = filtered.map((intern) => ({
+          id: intern.id,
+          studNo: intern.User?.studentId ?? 'N/A',
+          lastname: intern.User?.lastName ?? 'N/A',
+          firstname: intern.User?.firstName ?? 'N/A',
+          mi: intern.User?.mi ?? '',
+          email: intern.User?.email ?? 'N/A',
+          company: intern.company?.name ?? 'N/A',
+          companyEmail: intern.company?.email ?? 'N/A',
+          supervisor: intern.company?.supervisorName ?? 'N/A',
+        }));
+
+        setInterns(normalized);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('❌ Failed to fetch interns:', err);
+          setError(err.message || 'Failed to load interns.');
+          setInterns([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchInterns();
+
+    return () => controller.abort();
   }, [adviserProgram]);
 
   /* =========================
@@ -158,7 +143,6 @@ const InternA_in_dashboardA = () => {
   };
 
   const openReportModal = (intern) => {
-    console.log('📋 OPENING MODAL WITH INTERN:', intern);
     setReportModal({ isOpen: true, selectedIntern: intern });
   };
 
@@ -167,7 +151,7 @@ const InternA_in_dashboardA = () => {
   };
 
   /* =========================
-     RENDER
+     RENDER (UI UNCHANGED)
   ========================= */
   return (
     <>
@@ -245,7 +229,6 @@ const InternA_in_dashboardA = () => {
         </table>
       </div>
 
-      {/* ADVISER REPORT MODAL */}
       <AdviserReportModal isOpen={reportModal.isOpen} onClose={closeReportModal} intern={reportModal.selectedIntern} />
     </>
   );

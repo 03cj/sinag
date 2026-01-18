@@ -12,7 +12,7 @@ exports.generateHTEList = async (req, res) => {
       include: [
         {
           model: Intern,
-          as: 'interns', // ✅ FIXED: Changed to lowercase (match your model association)
+          as: 'AssignedInterns',
           required: false,
         },
       ],
@@ -170,8 +170,7 @@ exports.generateHTEList = async (req, res) => {
 
       doc.text(moaValidity, startX + 710, currentY + 6, { width: 80, align: 'center' });
 
-      // ✅ FIXED: Changed Interns to interns (lowercase)
-      const internCount = Array.isArray(company.interns) ? company.interns.length : 0;
+      const internCount = Array.isArray(company.AssignedInterns) ? company.AssignedInterns.length : 0;
       doc.text(internCount, startX + 795, currentY + 6, { width: 60, align: 'center' });
 
       currentY += rowHeight;

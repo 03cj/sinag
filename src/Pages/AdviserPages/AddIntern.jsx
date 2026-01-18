@@ -56,30 +56,28 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
   }, []);
 
   /* =========================
-   AUTO-GENERATE PASSWORD
-   STUDENTID_LASTNAME
-========================= */
+     AUTO-GENERATE PASSWORD
+     LASTNAME_YEAR (MATCHES BACKEND)
+  ========================= */
   useEffect(() => {
-    if (formData.id && formData.lastname) {
-      const safeId = formData.id.replace(/\s+/g, '');
+    if (formData.lastname) {
+      const year = new Date().getFullYear();
       const safeLastName = formData.lastname.replace(/\s+/g, '').toUpperCase();
 
       setFormData((prev) => ({
         ...prev,
-        initialPassword: `${safeId}_${safeLastName}`,
+        initialPassword: `${safeLastName}_${year}`,
       }));
     }
-  }, [formData.id, formData.lastname]);
+  }, [formData.lastname]);
 
   /* =========================
      HANDLE INPUT
      - AUTO CAPS
-     - AUTO PASSWORD = ID_PROGRAM
   ========================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Email stays as-is
     if (name === 'email') {
       setFormData((prev) => ({
         ...prev,
@@ -88,27 +86,14 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
       return;
     }
 
-    // Student ID → CAPS + AUTO PASSWORD
     if (name === 'id') {
-      const idValue = value.toUpperCase();
       setFormData((prev) => ({
         ...prev,
-        id: idValue,
-        initialPassword: prev.program ? `${idValue}_${prev.program}` : prev.initialPassword,
+        id: value.toUpperCase(),
       }));
       return;
     }
 
-    // Password can be edited manually
-    if (name === 'initialPassword') {
-      setFormData((prev) => ({
-        ...prev,
-        initialPassword: value,
-      }));
-      return;
-    }
-
-    // All other inputs → CAPS
     setFormData((prev) => ({
       ...prev,
       [name]: value.toUpperCase(),
@@ -121,14 +106,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.lastname ||
-      !formData.firstname ||
-      !formData.id ||
-      !formData.email ||
-      !formData.initialPassword ||
-      !formData.program
-    ) {
+    if (!formData.lastname || !formData.firstname || !formData.id || !formData.email || !formData.program) {
       setError('Please fill out all required fields.');
       return;
     }
@@ -151,7 +129,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
           studentId: formData.id,
           program: formData.program,
           email: formData.email,
-          initialPassword: formData.initialPassword,
+          // ❌ DO NOT SEND PASSWORD (backend generates it)
         }),
       });
 
@@ -162,9 +140,9 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
 
       const newIntern = await response.json();
       onAddSuccess && onAddSuccess(newIntern);
-      alert('Intern added successfully!');
 
-      // Reset form but keep program
+      alert('Intern added successfully!\nLogin credentials have been sent to the intern’s email.');
+
       setFormData((prev) => ({
         lastname: '',
         firstname: '',
@@ -183,146 +161,163 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl mx-auto my-8 border border-red-900">
-      <h2 className="text-3xl font-bold mb-3 text-gray-900 text-center">Add New Intern</h2>
-
-      <p className="text-gray-600 text-center mb-4 mt-2 italic">
-        Fill in the details below to add a new intern to the system. All fields marked with an asterisk (
-        <span className="text-red-500">*</span>) are required.
-      </p>
-
-      {error && <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">{error}</p>}
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* --- First Row: Name Fields --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Last Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="lastname"
-              value={formData.lastname}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              First Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="firstname"
-              value={formData.firstname}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">M.I.</label>
-            <input
-              type="text"
-              name="mi"
-              value={formData.mi}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-            />
-          </div>
+    <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col">
+      {/* HEADER */}
+      <div className="bg-gradient-to-r from-red-700 to-red-900 px-8 py-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Add New Intern</h2>
+          <p className="text-red-100 text-sm mt-1">Fill in the details below to add a new intern to the system</p>
         </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-white hover:bg-red-600 rounded-full p-2 transition-colors flex-shrink-0"
+          aria-label="Close"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
-        {/* --- Second Row: ID, Program, Email --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Student ID No. <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="id"
-              value={formData.id}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
-            />
+      {/* CONTENT */}
+      <div className="overflow-y-auto flex-1 px-8 py-6">
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">{error}</p>
+              </div>
+            </div>
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Program (Inherited from Adviser) <span className="text-red-500">*</span>
-            </label>
-            <div className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-700 sm:text-sm font-semibold">
-              {formData.program}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* NAME ROW */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Last Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="lastname"
+                value={formData.lastname}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                First Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="firstname"
+                value={formData.firstname}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">M.I.</label>
+              <input
+                type="text"
+                name="mi"
+                value={formData.mi}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border rounded-md"
+              />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
-              required
-            />
-          </div>
-        </div>
+          {/* DETAILS ROW */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Student ID No. <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="id"
+                value={formData.id}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border rounded-md"
+                required
+              />
+            </div>
 
-        {/* --- Password Field --- */}
-        <div>
-          <label className="block text-sm font-medium text-black mb-1">
-            Initial Password <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="initialPassword"
-              value={formData.initialPassword}
-              readOnly
-              className="mt-1 block w-full pr-20 px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 sm:text-sm"
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium mb-1">Program (Inherited from Adviser)</label>
+              <div className="mt-1 block w-full px-4 py-2 border rounded-md bg-gray-100 font-semibold">
+                {formData.program}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border rounded-md"
+                required
+              />
+            </div>
+          </div>
+
+          {/* PASSWORD PREVIEW (UI PRESERVED) */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Initial Password (Auto-generated)</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={formData.initialPassword}
+                readOnly
+                className="mt-1 block w-full pr-20 px-4 py-2 border rounded-md bg-gray-100"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute inset-y-0 right-0 px-3 text-sm"
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          </div>
+
+          {/* ACTIONS */}
+          <div className="flex justify-end space-x-3 pt-4">
+            <button type="button" onClick={onCancel} disabled={submitting} className="px-5 py-2 border rounded-md">
+              Cancel
+            </button>
 
             <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-sm text-gray-600"
+              type="submit"
+              disabled={submitting}
+              className="px-6 py-3 rounded-lg text-white font-medium bg-gradient-to-r from-red-700 to-red-900 hover:from-red-800 hover:to-red-950 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
             >
-              {showPassword ? 'Hide' : 'Show'}
+              {submitting ? 'Adding…' : 'Add Intern'}
             </button>
           </div>
-        </div>
-
-        {/* --- Action Buttons --- */}
-        <div className="flex justify-end space-x-3 pt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-5 py-2 border border-gray-500 rounded-md bg-white"
-            disabled={submitting}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className={`px-5 py-2 rounded-md text-white bg-red-700 hover:bg-red-900 ${
-              submitting ? 'opacity-60 cursor-not-allowed' : ''
-            }`}
-            disabled={submitting}
-          >
-            {submitting ? 'Adding…' : 'Add Intern'}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

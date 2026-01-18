@@ -4,20 +4,19 @@ const { Intern, Company, User } = require('../models');
 
 /* =========================
    GET PROGRAM FILTERS
-   (FROM ADVISERS)
 ========================= */
 exports.getAdviserPrograms = async (req, res, next) => {
   try {
     const advisers = await User.findAll({
-      where: { role: 'Adviser' },
+      where: { role: 'adviser' }, // ✅ FIXED casing
       attributes: ['program'],
       raw: true,
     });
 
-    const programs = advisers.map((a) => a.program).filter(Boolean);
-
+    const programs = [...new Set(advisers.map((a) => a.program).filter(Boolean))];
     res.json(programs);
   } catch (err) {
+    console.error('❌ getAdviserPrograms:', err);
     next(err);
   }
 };
@@ -28,7 +27,7 @@ exports.getAdviserPrograms = async (req, res, next) => {
 exports.getPrograms = async (req, res, next) => {
   try {
     const advisers = await User.findAll({
-      where: { role: 'Adviser' },
+      where: { role: 'adviser' }, // ✅ FIXED casing
       attributes: ['program'],
       raw: true,
     });
@@ -36,15 +35,12 @@ exports.getPrograms = async (req, res, next) => {
     const adviserPrograms = advisers.map((a) => a.program).filter(Boolean);
 
     let whereCondition = {
-      status: ['Pending', 'Approved', 'Declined'],
+      status: { [Op.in]: ['Pending', 'Approved', 'Declined'] }, // ✅ FIXED
       program: { [Op.in]: adviserPrograms },
     };
 
-    // Adviser restriction
     if (req.user.role === 'adviser') {
-      if (!req.user.program) {
-        return res.json([]);
-      }
+      if (!req.user.program) return res.json([]);
       whereCondition.program = req.user.program;
     }
 
@@ -63,6 +59,7 @@ exports.getPrograms = async (req, res, next) => {
       })),
     );
   } catch (err) {
+    console.error('❌ getPrograms:', err);
     next(err);
   }
 };
@@ -73,14 +70,11 @@ exports.getPrograms = async (req, res, next) => {
 exports.getCompanies = async (req, res, next) => {
   try {
     let whereCondition = {
-      status: ['Pending', 'Approved', 'Declined'],
+      status: { [Op.in]: ['Pending', 'Approved', 'Declined'] }, // ✅ FIXED
     };
 
-    // Adviser restriction
     if (req.user.role === 'adviser') {
-      if (!req.user.program) {
-        return res.json([]);
-      }
+      if (!req.user.program) return res.json([]);
       whereCondition.program = req.user.program;
     }
 
@@ -89,73 +83,63 @@ exports.getCompanies = async (req, res, next) => {
       include: [
         {
           model: Company,
-          as: 'company', // ✅ FIXED: Added correct alias
+          as: 'company', // ✅ correct alias
           attributes: ['name'],
         },
       ],
       where: whereCondition,
-      group: ['company_id', 'company.id'], // ✅ FIXED: Changed Company.id to company.id
+      group: ['company_id', 'company.id'],
       order: [[literal('count'), 'DESC']],
       raw: true,
     });
 
     res.json(
       results.map((r) => ({
-        company: r['company.name'] || 'Unassigned', // ✅ FIXED: Changed Company.name to company.name
+        company: r['company.name'] || 'Unassigned',
         count: Number(r.count),
       })),
     );
   } catch (err) {
+    console.error('❌ getCompanies:', err);
     next(err);
   }
 };
 
 /* =========================
    KPI COUNTS
-   (Coordinator + Adviser)
 ========================= */
 exports.getKpis = async (req, res, next) => {
   try {
     let internWhere = {
-      status: ['Pending', 'Approved', 'Declined'],
+      status: { [Op.in]: ['Pending', 'Approved', 'Declined'] }, // ✅ FIXED
     };
 
-    // Adviser restriction
     if (req.user.role === 'adviser' && req.user.program) {
       internWhere.program = req.user.program;
     }
 
     const [activeInterns, activePrograms, partnerHTE] = await Promise.all([
-      // Active interns
       Intern.count({ where: internWhere }),
-
-      // DISTINCT programs
       User.count({
         where: {
-          role: 'Adviser',
+          role: 'adviser',
           program: { [Op.ne]: null },
         },
         distinct: true,
         col: 'program',
       }),
-
-      // Partner HTE
       Company.count(),
     ]);
 
-    res.json({
-      activeInterns,
-      activePrograms,
-      partnerHTE,
-    });
+    res.json({ activeInterns, activePrograms, partnerHTE });
   } catch (err) {
+    console.error('❌ getKpis:', err);
     next(err);
   }
 };
 
 /* =========================
-   ADVISER-SPECIFIC KPI
-   (DashboardA)
+   ADVISER KPI
 ========================= */
 exports.getAdviserKpis = async (req, res, next) => {
   try {
@@ -174,7 +158,7 @@ exports.getAdviserKpis = async (req, res, next) => {
     const activeInterns = await Intern.count({
       where: {
         program: req.user.program,
-        status: ['Pending', 'Approved', 'Declined'],
+        status: { [Op.in]: ['Pending', 'Approved', 'Declined'] }, // ✅ FIXED
       },
     });
 
@@ -186,6 +170,7 @@ exports.getAdviserKpis = async (req, res, next) => {
       partnerHTE,
     });
   } catch (err) {
+    console.error('❌ getAdviserKpis:', err);
     next(err);
   }
 };

@@ -1,6 +1,8 @@
-const Intern = require('../models/interns');
-const User = require('../models/user');
-const Company = require('../models/company');
+const db = require('../models');
+
+const Intern = db.Intern;
+const User = db.User;
+const Company = db.Company;
 const generateAgreementPDF = require('../utils/generateNotarizedAgreementPDF');
 
 /* =========================
@@ -10,7 +12,10 @@ exports.getAgreementData = async (req, res) => {
   try {
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },
-      include: [{ model: User }, { model: Company }],
+      include: [
+        { model: User, as: 'User', attributes: ['firstName', 'lastName', 'guardian', 'program'] },
+        { model: Company, as: 'company', attributes: ['name', 'address', 'supervisorName'] },
+      ],
     });
 
     if (!intern) {
@@ -20,11 +25,12 @@ exports.getAgreementData = async (req, res) => {
     res.json({
       studentName: `${intern.User.firstName} ${intern.User.lastName}`,
       guardian: intern.User.guardian,
-      program: intern.program, // ✅ FIXED
+      program: intern.User.program,
       startDate: intern.start_date,
-      hteName: intern.Company?.name || '',
-      hteAddress: intern.Company?.address || '',
-      authorizedRep: intern.Company?.supervisorName || '', // ✅ FIXED
+      hteName: intern.company?.name || '',
+      hteAddress: intern.company?.address || '',
+      authorizedRep: intern.company?.supervisorName || '',
+      hours: intern.required_hours || '',
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -40,7 +46,10 @@ exports.saveAgreement = async (req, res) => {
 
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },
-      include: [{ model: User }, { model: Company }],
+      include: [
+        { model: User, as: 'User' },
+        { model: Company, as: 'company' },
+      ],
     });
 
     if (!intern) {
@@ -57,13 +66,13 @@ exports.saveAgreement = async (req, res) => {
     const fileUrl = await generateAgreementPDF({
       studentName: `${intern.User.firstName} ${intern.User.lastName}`,
       guardian: guardianName,
-      program: intern.program, // ✅ FIXED
+      program: intern.User.program,
       startDate: intern.start_date,
       endDate,
       hours,
-      hteName: intern.Company?.name || '',
-      hteAddress: intern.Company?.address || '',
-      authorizedRep: intern.Company?.supervisorName || '', // ✅ FIXED
+      hteName: intern.company?.name || '',
+      hteAddress: intern.company?.address || '',
+      authorizedRep: intern.company?.supervisorName || '',
     });
 
     res.json({ fileUrl });

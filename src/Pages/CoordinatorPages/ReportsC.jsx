@@ -6,16 +6,18 @@ const GenerateReports = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [programs, setPrograms] = useState([]);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(null);
 
   useEffect(() => {
     if (!selectedReport) return;
 
     setLoadingPrograms(true);
 
-    const token = localStorage.getItem('token'); // 👈 IMPORTANT
+    const token = localStorage.getItem('token');
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     axios
-      .get('http://localhost:5000/api/adviser/my-programs', {
+      .get(`${API_BASE}/api/dashboard/adviser-programs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,8 +82,10 @@ const GenerateReports = () => {
   };
 
   const handleProgramSelect = async (program) => {
+    setGeneratingReport(selectedReport);
     try {
       const token = localStorage.getItem('token');
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       let endpoint = '';
 
       switch (selectedReport) {
@@ -109,7 +113,7 @@ const GenerateReports = () => {
       }
 
       const response = await axios.post(
-        `http://localhost:5000${endpoint}`,
+        `${API_BASE}${endpoint}`,
         { program },
         {
           headers: {
@@ -124,12 +128,16 @@ const GenerateReports = () => {
       setSelectedReport(null);
     } catch (error) {
       console.error('PDF generation failed:', error);
+    } finally {
+      setGeneratingReport(null);
     }
   };
 
   const generateGeneralReport = async (reportTitle) => {
+    setGeneratingReport(reportTitle);
     try {
       const token = localStorage.getItem('token');
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       let endpoint = '';
 
       switch (reportTitle) {
@@ -145,7 +153,7 @@ const GenerateReports = () => {
           throw new Error('Unknown general report');
       }
 
-      const response = await axios.get(`http://localhost:5000${endpoint}`, {
+      const response = await axios.get(`${API_BASE}${endpoint}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -159,6 +167,8 @@ const GenerateReports = () => {
       window.open(URL.createObjectURL(blob));
     } catch (err) {
       console.error('General report failed:', err);
+    } finally {
+      setGeneratingReport(null);
     }
   };
 
@@ -176,7 +186,20 @@ const GenerateReports = () => {
               <div style={styles.iconContainer}>{card.icon}</div>
               <h3 style={styles.cardTitle}>{card.title}</h3>
               <p style={styles.cardDescription}>{card.description}</p>
-              <button style={styles.button}>{card.requiresProgram ? 'Select Program' : 'Generate PDF'}</button>
+              <button
+                style={{
+                  ...styles.button,
+                  opacity: generatingReport !== null ? 0.7 : 1,
+                  cursor: generatingReport !== null ? 'not-allowed' : 'pointer',
+                }}
+                disabled={generatingReport !== null}
+              >
+                {generatingReport === card.title
+                  ? 'Generating...'
+                  : card.requiresProgram
+                    ? 'Select Program'
+                    : 'Generate PDF'}
+              </button>
             </div>
           ))}
         </div>

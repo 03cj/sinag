@@ -5,6 +5,7 @@ import UploadReport from './UploadReport';
 
 const Journal = () => {
   const [showUpload, setShowUpload] = useState(false);
+  const [editingReport, setEditingReport] = useState(null);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -70,7 +71,30 @@ const Journal = () => {
   ========================= */
   const handleUploadSuccess = () => {
     setShowUpload(false);
+    setEditingReport(null);
     fetchLogs(); // Refresh the table
+  };
+
+  /* =========================
+     ACTION HANDLERS
+  ========================= */
+  const handleDownload = (report) => {
+    // TODO: Implement download functionality
+    console.log('Download:', report);
+    alert('Download functionality coming soon');
+  };
+
+  const handleEdit = (report) => {
+    setEditingReport(report);
+    setShowUpload(true);
+  };
+
+  const handleDelete = (report) => {
+    // TODO: Implement delete functionality
+    if (window.confirm(`Are you sure you want to delete Day ${report.dayNo}?`)) {
+      console.log('Delete:', report);
+      alert('Delete functionality coming soon');
+    }
   };
 
   return (
@@ -86,8 +110,14 @@ const Journal = () => {
         </button>
       </div>
 
-      <Modal isOpen={showUpload} onClose={() => setShowUpload(false)}>
-        <UploadReport onUploadSuccess={handleUploadSuccess} />
+      <Modal
+        isOpen={showUpload}
+        onClose={() => {
+          setShowUpload(false);
+          setEditingReport(null);
+        }}
+      >
+        <UploadReport onUploadSuccess={handleUploadSuccess} editingReport={editingReport} />
       </Modal>
 
       {/* TABLE CONTAINER */}
@@ -147,13 +177,25 @@ const Journal = () => {
                   </td>
                   <td className="py-5 px-6 text-center">
                     <div className="flex items-center justify-center gap-4 text-slate-400">
-                      <button className="hover:text-[#800000] transition-colors">
+                      <button
+                        onClick={() => handleDownload(report)}
+                        className="hover:text-[#800000] transition-colors cursor-pointer"
+                        title="Download log"
+                      >
                         <Download size={18} />
                       </button>
-                      <button className="hover:text-[#800000] transition-colors">
+                      <button
+                        onClick={() => handleEdit(report)}
+                        className="hover:text-[#800000] transition-colors cursor-pointer"
+                        title="Edit log"
+                      >
                         <Edit3 size={18} />
                       </button>
-                      <button className="hover:text-red-600 transition-colors">
+                      <button
+                        onClick={() => handleDelete(report)}
+                        className="hover:text-red-600 transition-colors cursor-pointer"
+                        title="Delete log"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>

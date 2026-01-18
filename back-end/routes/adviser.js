@@ -2,15 +2,16 @@ const express = require('express');
 const router = express.Router();
 
 const authMiddleware = require('../middleware/authMiddleware');
-const {
-  getAdviserForStudent,
-  getProgramsForAdviser, // ✅ ADD THIS
-} = require('../controllers/adviserController');
+const adviserController = require('../controllers/adviserController');
 
-// Existing
-router.get('/my-adviser', authMiddleware(), getAdviserForStudent);
+/* =========================
+   ROUTES
+========================= */
 
-// ✅ NEW: Programs handled by logged-in adviser
-router.get('/my-programs', authMiddleware(), getProgramsForAdviser);
+// INTERN – get assigned adviser
+router.get('/my-adviser', authMiddleware(['intern']), adviserController.getAdviserForStudent);
+
+// ADVISER – get handled programs
+router.get('/my-programs', authMiddleware(['adviser']), adviserController.getProgramsForAdviser);
 
 module.exports = router;

@@ -17,13 +17,13 @@ exports.generateInternSubmittedDocuments = async (req, res) => {
       include: [
         {
           model: User,
-          as: 'student',
+          as: 'User',
           required: true,
           attributes: ['firstName', 'lastName'],
         },
         {
           model: InternDocuments,
-          as: 'documents',
+          as: 'InternDocuments',
           required: false,
         },
         {
@@ -37,7 +37,7 @@ exports.generateInternSubmittedDocuments = async (req, res) => {
     });
 
     const adviser = await User.findOne({
-      where: { role: 'Adviser', program },
+      where: { role: 'adviser', program },
     });
 
     const adviserName = adviser ? `${adviser.firstName} ${adviser.lastName}`.toUpperCase() : 'N/A';
@@ -134,8 +134,8 @@ exports.generateInternSubmittedDocuments = async (req, res) => {
       }
 
       const internData = intern.get({ plain: true });
-      const docs = internData.documents || {};
-      const user = internData.student;
+      const docs = internData.InternDocuments || {};
+      const user = internData.User;
       const company = internData.company;
 
       if (!user) return;

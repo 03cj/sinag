@@ -1,99 +1,131 @@
 /* eslint-env node */
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+module.exports = (sequelize, DataTypes) => {
+  const { Model } = require('sequelize');
 
-const User = sequelize.define(
-  'User',
-  {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED, // ✅ FIXED
-      autoIncrement: true,
-      primaryKey: true,
-    },
+  class User extends Model {}
 
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+  User.init(
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
 
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+      email: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+        unique: true,
+        validate: { isEmail: true },
+      },
 
-    mi: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+      password: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
 
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+      firstName: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: 'firstName', // ✅ Exact column name in DB
+      },
 
-    passwordHash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+      lastName: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: 'lastName', // ✅ Exact column name in DB
+      },
 
-    role: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+      mi: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        unique: true,
+      },
 
-    studentId: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+      studentId: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: 'studentId', // ✅ Exact column name in DB
+      },
 
-    program: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    guardian: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+      role: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
 
-    resetCode: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+      program: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
 
-    resetCodeExpires: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    /* FORCE PASSWORD CHANGE */
-    forcePasswordChange: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-  },
-  {
-    tableName: 'users',
-    timestamps: true,
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt',
-  },
-);
-User.associate = (models) => {
-  // User ↔ Intern (Student account)
-  User.hasOne(models.Intern, {
-    foreignKey: 'user_id',
-    as: 'internProfile',
-  });
+      guardian: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
 
-  // User ↔ Intern (Adviser supervises interns)
-  User.hasMany(models.Intern, {
-    foreignKey: 'adviser_id',
-    as: 'advisees',
-  });
+      resetCode: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: 'resetCode', // ✅ Exact column name in DB
+      },
 
-  // User ↔ SupervisorEvaluation (Supervisor role)
-  User.hasMany(models.SupervisorEvaluation, {
-    foreignKey: 'supervisor_id',
-  });
+      resetCodeExpires: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'resetCodeExpires', // ✅ Exact column name in DB
+      },
+
+      forcePasswordChange: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        field: 'forcePasswordChange', // ✅ Exact column name in DB
+      },
+    },
+    {
+      sequelize,
+      modelName: 'User',
+      tableName: 'users',
+      timestamps: true,
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt',
+      underscored: false, // ✅ Database uses camelCase
+    },
+  );
+
+  // ✅ ASSOCIATIONS
+  User.associate = (models) => {
+    if (models.Intern) {
+      User.hasOne(models.Intern, {
+        foreignKey: 'user_id',
+        as: 'Intern',
+        onDelete: 'CASCADE',
+      });
+    }
+
+    if (models.InternEvaluation) {
+      User.hasMany(models.InternEvaluation, {
+        foreignKey: 'user_id',
+        as: 'InternEvaluations',
+        onDelete: 'CASCADE',
+      });
+    }
+
+    if (models.HTEEvaluation) {
+      User.hasMany(models.HTEEvaluation, {
+        foreignKey: 'user_id',
+        as: 'HTEEvaluations',
+        onDelete: 'CASCADE',
+      });
+    }
+
+    if (models.SupervisorEvaluation) {
+      User.hasMany(models.SupervisorEvaluation, {
+        foreignKey: 'user_id',
+        as: 'SupervisorEvaluations',
+        onDelete: 'CASCADE',
+      });
+    }
+  };
+
+  return User;
 };
-
-module.exports = User;

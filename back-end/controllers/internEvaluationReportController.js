@@ -21,18 +21,33 @@ exports.generateInternEvaluationReport = async (req, res) => {
       include: [
         {
           model: User,
-          as: 'student', // ✅ FIXED: Correct alias is 'student'
+          as: 'User',
           required: true,
         },
         {
           model: Company,
-          as: 'company', // ✅ FIXED: Added correct alias
+          as: 'company',
           required: false,
         },
         {
           model: InternEvaluation,
-          as: 'evaluation', // ✅ MUST MATCH MODEL
+          as: 'Evaluations',
           required: false,
+          attributes: [
+            'id',
+            'intern_id',
+            'internName',
+            'section',
+            'hteName',
+            'jobDescription',
+            'totalScore',
+            'technicalDetails',
+            'recommendations',
+            'evaluator',
+            'designation',
+            'date',
+            'conforme',
+          ],
           include: [
             {
               model: InternEvaluationItem,
@@ -42,7 +57,7 @@ exports.generateInternEvaluationReport = async (req, res) => {
           ],
         },
       ],
-      order: [[{ model: User, as: 'student' }, 'lastName', 'ASC']], // ✅ FIXED: Correct alias is 'student'
+      order: [[{ model: User, as: 'User' }, 'lastName', 'ASC']],
     });
 
     /* =============================
@@ -150,7 +165,7 @@ exports.generateInternEvaluationReport = async (req, res) => {
         doc.fillColor('black').font('Helvetica').fontSize(9);
       }
 
-      const evaluation = intern.evaluation;
+      const evaluation = intern.Evaluations?.[0];
       const items = evaluation?.items || [];
 
       const categoryScores = {
@@ -187,9 +202,8 @@ exports.generateInternEvaluationReport = async (req, res) => {
       // Row Data
       doc.text(index + 1, cols.no.x, y + 6, { width: cols.no.w, align: 'center' });
 
-      // ✅ FIXED: Changed to intern.student (correct alias)
       doc.text(
-        `${intern.student.lastName.toUpperCase()}, ${intern.student.firstName.toUpperCase()}`,
+        `${intern.User.lastName.toUpperCase()}, ${intern.User.firstName.toUpperCase()}`,
         cols.name.x + 10,
         y + 6,
         { width: cols.name.w - 10, ellipsis: true },

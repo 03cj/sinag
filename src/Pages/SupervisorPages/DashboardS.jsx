@@ -1,6 +1,7 @@
-import { ClipboardList, FileText, X } from 'lucide-react';
+import { ClipboardList, FileText, Notebook, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SupervisorReportModal from '../../Components/SupervisorReportModal';
 
 /* =========================
    SIMPLE MODAL (UNCHANGED)
@@ -57,12 +58,25 @@ const CompanyDashboard = () => {
     message: '',
   });
 
+  const [reportModal, setReportModal] = useState({
+    isVisible: false,
+    intern: null,
+  });
+
   const showMessage = (title, message) => {
     setModal({ isVisible: true, title, message });
   };
 
   const closeModal = () => {
     setModal({ isVisible: false, title: '', message: '' });
+  };
+
+  const handleViewDailyLogs = (intern) => {
+    setReportModal({ isVisible: true, intern });
+  };
+
+  const closeReportModal = () => {
+    setReportModal({ isVisible: false, intern: null });
   };
 
   /* =========================
@@ -143,6 +157,7 @@ const CompanyDashboard = () => {
   return (
     <div className="min-h-screen bg-red-50 p-4 sm:p-6 lg:p-8">
       <SimpleModal isVisible={modal.isVisible} title={modal.title} message={modal.message} onClose={closeModal} />
+      <SupervisorReportModal isOpen={reportModal.isVisible} onClose={closeReportModal} intern={reportModal.intern} />
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* HEADER */}
@@ -200,7 +215,7 @@ const CompanyDashboard = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-red-800 text-white">
                 <tr>
-                  {['STUD. NO.', 'LASTNAME', 'FIRSTNAME', 'MI.', 'EMAIL', 'EVALUATION'].map((h) => (
+                  {['STUD. NO.', 'LASTNAME', 'FIRSTNAME', 'MI.', 'EMAIL', 'DAILY LOGS', 'EVALUATION'].map((h) => (
                     <th key={h} className="px-6 py-3 text-left text-xs font-bold uppercase">
                       {h}
                     </th>
@@ -217,6 +232,15 @@ const CompanyDashboard = () => {
                     <td className="px-6 py-4">{intern.mi}</td>
                     <td className="px-6 py-4 text-blue-600 hover:underline">
                       <a href={`mailto:${intern.email}`}>{intern.email}</a>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => handleViewDailyLogs(intern)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="View Daily Logs"
+                      >
+                        <Notebook className="h-6 w-6 mx-auto" />
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button onClick={() => handleViewEvaluation(intern)} className="text-red-600 hover:text-red-900">

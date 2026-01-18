@@ -28,8 +28,8 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
       [name]: upperCaseFields.includes(name)
         ? value.toUpperCase().replace(/^\s+/, '')
         : name === 'email'
-        ? value.toLowerCase().replace(/\s+/g, '')
-        : value,
+          ? value.toLowerCase().replace(/\s+/g, '')
+          : value,
     }));
   };
 
@@ -83,107 +83,139 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md border border-red-900">
-      <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Edit Adviser</h2>
-
-      {error && (
-        <p className="text-red-600 bg-red-100 border border-red-200 p-3 rounded-md mb-4">
-          {error}
-        </p>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* LAST NAME */}
+    <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
+      {/* HEADER */}
+      <div className="bg-gradient-to-r from-red-700 to-red-900 px-8 py-6 flex items-center justify-between">
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Last Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:ring-red-500 focus:border-red-500"
-            required
-          />
+          <h2 className="text-2xl font-bold text-white">Edit Adviser</h2>
+          <p className="text-red-100 text-sm mt-1">Update adviser information</p>
         </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-white hover:bg-red-600 rounded-full p-2 transition-colors flex-shrink-0"
+          aria-label="Close"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
-        {/* FIRST NAME */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            First Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:ring-red-500 focus:border-red-500"
-            required
-          />
-        </div>
+      {/* CONTENT */}
+      <div className="overflow-y-auto flex-1 px-8 py-6">
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* MI */}
-        <div>
-          <label className="block text-sm font-medium mb-1">M.I.</label>
-          <input
-            type="text"
-            name="mi"
-            value={formData.mi}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* NAME ROW */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Last Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
 
-        {/* EMAIL */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Email <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:ring-red-500 focus:border-red-500"
-            required
-          />
-        </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                First Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
+          </div>
 
-        {/* PROGRAM */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Program / Department</label>
-          <input
-            type="text"
-            name="program"
-            value={formData.program}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md"
-          />
-        </div>
+          {/* MI & EMAIL */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">M.I.</label>
+              <input
+                type="text"
+                name="mi"
+                value={formData.mi}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+              />
+            </div>
 
-        {/* ACTIONS */}
-        <div className="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border rounded-md"
-            disabled={submitting}
-          >
-            Cancel
-          </button>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
+          </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`px-4 py-2 bg-red-700 text-white rounded-md ${
-              submitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-red-900'
-            }`}
-          >
-            {submitting ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
+          {/* PROGRAM */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Program / Department</label>
+            <input
+              type="text"
+              name="program"
+              value={formData.program}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            />
+          </div>
+
+          {/* ACTIONS */}
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={submitting}
+              className="px-6 py-3 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-6 py-3 rounded-lg text-white font-medium bg-gradient-to-r from-red-700 to-red-900 hover:from-red-800 hover:to-red-950 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            >
+              {submitting ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

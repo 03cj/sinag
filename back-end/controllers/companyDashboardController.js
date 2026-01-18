@@ -2,17 +2,15 @@
 const path = require('path');
 const fs = require('fs');
 
-const Company = require('../models/company');
-const Intern = require('../models/interns');
-const User = require('../models/user');
+const { Company, Intern, User } = require('../models');
 
 /* =========================
    GET COMPANY PROFILE
 ========================= */
 exports.getMyCompany = async (req, res) => {
   try {
-    const company = await Company.findOne({
-      where: { email: req.user.email },
+    const company = await Company.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] },
     });
 
     if (!company) {
@@ -31,16 +29,8 @@ exports.getMyCompany = async (req, res) => {
 ========================= */
 exports.getCompanyInterns = async (req, res) => {
   try {
-    const company = await Company.findOne({
-      where: { email: req.user.email },
-    });
-
-    if (!company) {
-      return res.status(404).json({ message: 'Company not found' });
-    }
-
     const interns = await Intern.findAll({
-      where: { company_id: company.id },
+      where: { company_id: req.user.id },
       attributes: ['id', 'user_id', 'status', 'program'],
     });
 

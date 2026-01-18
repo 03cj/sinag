@@ -136,9 +136,6 @@ const HomeI = () => {
                 <p>
                   <span className="font-medium">Start Date:</span> {internData.companyDetails.startDate}
                 </p>
-                <p>
-                  <span className="font-medium">End Date:</span> {internData.companyDetails.endDate}
-                </p>
               </div>
             ) : (
               <p className="italic text-gray-500">No company assigned yet</p>

@@ -1,14 +1,19 @@
 'use strict';
 
-const { Intern, User, Company } = require('../models');
+// ✅ LAZY LOAD - Require models inside functions to avoid circular dependency
+function getModels() {
+  return require('../models');
+}
 
 exports.getInterns = async (req, res, next) => {
   try {
+    const { Intern, User, Company } = getModels();
+
     const interns = await Intern.findAll({
       include: [
         {
           model: User,
-          as: 'student',
+          as: 'User',
           attributes: ['id', 'firstName', 'lastName', 'mi', 'email', 'studentId', 'program'],
         },
         {

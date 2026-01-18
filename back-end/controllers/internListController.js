@@ -21,13 +21,13 @@ exports.generateInternList = async (req, res) => {
     ============================== */
     const interns = await Intern.findAll({
       where: { program },
-      include: [{ model: User, as: 'student', required: true }],
+      include: [{ model: User, as: 'User', required: true }],
 
       order: [['id', 'ASC']],
     });
 
     const adviser = await User.findOne({
-      where: { role: 'Adviser', program },
+      where: { role: 'adviser', program },
     });
 
     const adviserName = adviser ? `${adviser.firstName} ${adviser.lastName}`.toUpperCase() : 'N/A';
@@ -128,9 +128,9 @@ exports.generateInternList = async (req, res) => {
     doc.fillColor('black').font('Helvetica');
 
     interns.forEach((intern, index) => {
-      const u = intern.student || {};
+      const u = intern.User || {};
 
-      const fullName = `${u.lastName || ''}, ${u.firstName || ''} ${u.middleInitial || ''}`.trim().toUpperCase();
+      const fullName = `${u.lastName || ''}, ${u.firstName || ''} ${u.mi || ''}`.trim().toUpperCase();
 
       doc.rect(startX, currentY, 515, 18).stroke();
       doc.fontSize(8.5);

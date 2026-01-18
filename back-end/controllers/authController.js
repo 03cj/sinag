@@ -46,7 +46,7 @@ exports.signup = async (req, res, next) => {
       lastName,
       mi: '',
       email: email.toLowerCase(),
-      passwordHash,
+      password: passwordHash, // ✅ FIXED: Use 'password' not 'passwordHash'
       role: 'Coordinator',
     });
 
@@ -72,13 +72,24 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    console.log('🔍 Login attempt:', { email });
+
     const user = await User.findOne({
       where: { email: email.toLowerCase() },
     });
 
     if (user) {
-      const match = await bcrypt.compare(password, user.passwordHash);
-      if (!match) return res.status(401).json({ message: 'Invalid credentials' });
+      console.log('✅ User found:', { id: user.id, email: user.email });
+
+      // ✅ FIXED: Use 'password' not 'passwordHash'
+      const match = await bcrypt.compare(password, user.password);
+
+      if (!match) {
+        console.error('❌ Password mismatch');
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      console.log('✅ Password matched');
 
       const token = signToken({
         id: user.id,
@@ -92,24 +103,39 @@ exports.login = async (req, res, next) => {
       return res.json({ token });
     }
 
+    console.log('🔍 User not found, checking Company...');
+
+    // ✅ Check Company (HTE/Supervisor) login
     const company = await Company.findOne({
       where: { email: email.toLowerCase() },
     });
 
-    if (!company) return res.status(401).json({ message: 'Invalid credentials' });
+    if (company) {
+      console.log('✅ Company found:', { id: company.id, name: company.name });
 
-    const match = await bcrypt.compare(password, company.password);
-    if (!match) return res.status(401).json({ message: 'Invalid credentials' });
+      const match = await bcrypt.compare(password, company.password);
 
-    const token = signToken({
-      id: company.id,
-      email: company.email,
-      role: 'supervisor',
-      type: 'company',
-    });
+      if (!match) {
+        console.error('❌ Password mismatch for company');
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
 
-    res.json({ token });
+      console.log('✅ Company password matched');
+
+      const token = signToken({
+        id: company.id,
+        email: company.email,
+        role: 'Supervisor',
+        name: company.name,
+      });
+
+      return res.json({ token });
+    }
+
+    console.error('❌ Email not found in users or companies');
+    return res.status(401).json({ message: 'Invalid credentials' });
   } catch (err) {
+    console.error('❌ Login error:', err);
     next(err);
   }
 };
@@ -138,7 +164,7 @@ exports.addCoordinator = async (req, res, next) => {
       lastName,
       mi: mi || '',
       email: email.toLowerCase(),
-      passwordHash,
+      password: passwordHash, // ✅ FIXED: Use 'password' not 'passwordHash'
       role: 'Coordinator',
     });
 
@@ -208,7 +234,7 @@ exports.addAdviser = async (req, res, next) => {
       lastName,
       mi: mi || '',
       email: email.toLowerCase(),
-      passwordHash,
+      password: passwordHash, // ✅ FIXED: Use 'password' not 'passwordHash'
       role: 'Adviser',
       program,
       forcePasswordChange: true,
@@ -290,7 +316,7 @@ exports.addIntern = async (req, res, next) => {
       lastName,
       mi: mi || '',
       email: email.toLowerCase(),
-      passwordHash,
+      password: passwordHash, // ✅ FIXED: Use 'password' not 'passwordHash'
       role: 'Intern',
       studentId,
       program,
@@ -327,15 +353,15 @@ exports.updateIntern = async (req, res, next) => {
     const intern = await Intern.findByPk(req.params.id, {
       include: {
         model: User,
-        as: 'student', // ✅ FIXED: Added alias
+        as: 'User',
       },
     });
     if (!intern) return res.status(404).json({ message: 'Intern not found' });
 
     const { firstName, lastName, mi, email, studentId, program } = req.body;
 
-    // ✅ Update USER fields (using correct alias)
-    await intern.student.update({
+    // ✅ Update USER fields
+    await intern.User.update({
       firstName,
       lastName,
       mi,
@@ -361,7 +387,6 @@ exports.deleteIntern = async (req, res, next) => {
     const intern = await Intern.findByPk(req.params.id);
     if (!intern) return res.status(404).json({ message: 'Intern not found' });
 
-    // ✅ FIX: use intern.id (NOT user_id)
     await InternDocuments.destroy({
       where: { intern_id: intern.id },
     });
@@ -381,29 +406,33 @@ exports.getInterns = async (req, res) => {
       include: [
         {
           model: User,
-          as: 'student', // ✅ FIXED: Added correct alias
-          attributes: ['studentId', 'firstName', 'lastName', 'mi', 'email', 'program'],
+          as: 'User',
+          attributes: { exclude: ['password'] },
         },
         {
           model: InternDocuments,
-          as: 'documents', // ✅ FIXED: Added correct alias
+          as: 'InternDocuments',
           required: false,
         },
         {
           model: Company,
-          as: 'company', // ✅ FIXED: Added correct alias
+          as: 'company',
           required: false,
+          attributes: { exclude: ['password'] }, // ✅ Same as HTE endpoint
         },
       ],
-      order: [['created_at', 'DESC']],
     });
 
-    // ✅ ALWAYS ARRAY
+    console.log('✅ Fetched interns:', interns.length);
+    if (interns.length > 0) {
+      console.log('📦 Sample company data:', JSON.stringify(interns[0].company, null, 2));
+    }
     return res.status(200).json(interns);
   } catch (err) {
     console.error('❌ getInterns ERROR:', err);
     return res.status(500).json({
       message: 'Failed to fetch interns',
+      error: err.message,
     });
   }
 };
@@ -422,7 +451,6 @@ exports.updateInternStatus = async (req, res, next) => {
       return res.status(404).json({ message: 'Intern not found' });
     }
 
-    // 🔒 DO NOT TOUCH STATUS IF NOT PROVIDED
     if (typeof status !== 'undefined') {
       if (!allowedStatus.includes(status)) {
         return res.status(400).json({ message: 'Invalid status value' });
@@ -430,7 +458,6 @@ exports.updateInternStatus = async (req, res, next) => {
       intern.status = status;
     }
 
-    // 🔒 remarks can be updated independently
     if (typeof remarks !== 'undefined') {
       intern.remarks = remarks;
     }
@@ -447,6 +474,7 @@ exports.updateInternStatus = async (req, res, next) => {
     next(err);
   }
 };
+
 /* =========================
    ASSIGN HTE TO INTERN
 ========================= */
@@ -602,7 +630,7 @@ exports.me = async (req, res, next) => {
        NORMAL USER
     ========================= */
     const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['passwordHash'] },
+      attributes: { exclude: ['password'] }, // ✅ FIXED: Use 'password' not 'passwordHash'
     });
 
     if (!user) {
@@ -645,11 +673,14 @@ exports.changePassword = async (req, res, next) => {
     const { currentPassword, newPassword } = req.body;
 
     const user = await User.findByPk(req.user.id);
-    const match = await bcrypt.compare(currentPassword, user.passwordHash);
+
+    // ✅ FIXED: Use 'password' not 'passwordHash'
+    const match = await bcrypt.compare(currentPassword, user.password);
 
     if (!match) return res.status(401).json({ message: 'Wrong current password' });
 
-    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    // ✅ FIXED: Use 'password' not 'passwordHash'
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     res.json({ message: 'Password changed successfully' });

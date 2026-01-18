@@ -3,10 +3,13 @@ const express = require('express');
 const router = express.Router();
 
 const authController = require('../controllers/authController');
+const internController = require('../controllers/internController'); // ✅ USED
 const internDocsController = require('../controllers/internDocsController');
+const consentController = require('../controllers/consentController');
+const companyDashboardController = require('../controllers/companyDashboardController');
+
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
-const companyDashboardController = require('../controllers/companyDashboardController');
 
 console.log('✅ Auth routes loaded');
 
@@ -53,7 +56,12 @@ router.delete('/advisers/:id', authMiddleware(['coordinator']), authController.d
 ========================= */
 router.post('/addIntern', authMiddleware(['adviser']), authController.addIntern);
 
-router.get('/interns', authController.getInterns);
+/**
+ * ✅ ADVISER / COORDINATOR
+ * ✅ USED BY INTERN DOCUMENTS TABLE
+ * (FIXES EMPTY TABLE ISSUE)
+ */
+router.get('/interns', authMiddleware(['adviser', 'coordinator']), internController.getInternsForAdviser);
 
 router.put('/interns/:id', authMiddleware(['adviser', 'coordinator']), authController.updateIntern);
 
@@ -62,11 +70,10 @@ router.put('/interns/:id/status', authMiddleware(['adviser', 'coordinator']), au
 router.put('/interns/:id/assign-hte', authMiddleware(['adviser', 'coordinator']), authController.assignHTE);
 
 router.delete('/interns/:id', authMiddleware(['coordinator']), authController.deleteIntern);
+
 /* =========================
    CONSENT DATA
 ========================= */
-const consentController = require('../controllers/consentController');
-
 router.get('/consent-data', authMiddleware(['intern']), consentController.getConsentData);
 
 router.post('/consent-save', authMiddleware(['intern']), consentController.saveConsent);
@@ -75,18 +82,18 @@ router.post('/consent-save', authMiddleware(['intern']), consentController.saveC
    INTERN DOCUMENTS
 ========================= */
 
-// ✅ UPLOAD / UPDATE DOCUMENT
+// INTERN – upload / update document
 router.post(
   '/intern-docs/upload',
-  authMiddleware(['intern']), // must exist
-  upload.single('file'), // must match frontend
+  authMiddleware(['intern']),
+  upload.single('file'),
   internDocsController.uploadInternDoc,
 );
 
-// ✅ GET INTERN DOCUMENTS (CHECKLIST)
+// INTERN – view own checklist
 router.get('/intern-docs/me', authMiddleware(['intern']), internDocsController.getInternDocuments);
 
-// ✅ DELETE DOCUMENT
+// INTERN – delete document
 router.delete('/intern-docs/:column', authMiddleware(['intern']), internDocsController.deleteInternDoc);
 
 /* =========================
@@ -99,19 +106,21 @@ router.get('/HTE', authController.getHTE);
 router.put('/HTE/:id', authMiddleware(['coordinator']), upload.single('moaFile'), authController.updateCompany);
 
 router.delete('/HTE/:id', authMiddleware(['coordinator']), authController.deleteHTE);
+
 /* =========================
    COMPANY DASHBOARD (COMPANY ROLE)
 ========================= */
 
-// 🔹 Get logged-in company profile
+// Company profile
 router.get('/company/me', authMiddleware(['company']), companyDashboardController.getMyCompany);
 
-// 🔹 Get interns assigned to this company
+// Company interns
 router.get('/company/interns', authMiddleware(['company']), companyDashboardController.getCompanyInterns);
 
-// 🔹 Upload / update MOA file
+// Upload / update MOA
 router.put('/company/moa', authMiddleware(['company']), upload.single('moaFile'), companyDashboardController.uploadMoa);
-// 🔹 View / download MOA (Intern or Company)
+
+// View / download MOA (Intern or Company)
 router.get('/company/moa', authMiddleware(['intern', 'company']), companyDashboardController.getMoa);
 
 module.exports = router;

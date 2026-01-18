@@ -2,10 +2,18 @@ module.exports = (sequelize, DataTypes) => {
   const InternEvaluation = sequelize.define(
     'InternEvaluation',
     {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+
       intern_id: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
-        unique: true, // 🔒 PREVENTS DUPLICATES
+        references: { model: 'interns', key: 'id' },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       },
 
       internName: {
@@ -66,10 +74,11 @@ module.exports = (sequelize, DataTypes) => {
     {
       tableName: 'intern_evaluations',
       timestamps: true,
+      indexes: [],
     },
   );
 
-  // 🔗 Associations
+  // 🔗 Associations (CONSOLIDATED - only one associate function)
   InternEvaluation.associate = (models) => {
     InternEvaluation.belongsTo(models.Intern, {
       foreignKey: 'intern_id',
@@ -80,16 +89,6 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'evaluationId',
       as: 'items',
       onDelete: 'CASCADE',
-    });
-  };
-  InternEvaluation.associate = (models) => {
-    InternEvaluation.belongsTo(models.Intern, {
-      foreignKey: 'intern_id',
-    });
-
-    InternEvaluation.hasMany(models.InternEvaluationItem, {
-      foreignKey: 'evaluationId',
-      as: 'items',
     });
   };
 
