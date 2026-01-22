@@ -58,6 +58,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    sessionStorage.removeItem('moaWarningShown'); // Clear MOA warning flag on logout
+    sessionStorage.removeItem('passwordReminderShown'); // Clear password reminder flag on logout
     setUser(null);
   };
 

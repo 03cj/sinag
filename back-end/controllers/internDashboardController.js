@@ -31,7 +31,7 @@ exports.getInternDashboard = async (req, res) => {
           model: Company,
           as: 'company',
           required: false,
-          attributes: ['name', 'supervisorName', 'moaStart', 'moaEnd'],
+          attributes: ['name', 'supervisorName', 'moaStart', 'moaEnd', 'moaFile'],
         },
         {
           model: InternDocuments,
@@ -64,7 +64,8 @@ exports.getInternDashboard = async (req, res) => {
       documents: [
         { name: 'Consent Form', uploaded: !!docs.consent_form, file: docs.consent_form ?? null },
         { name: 'Notarized Agreement', uploaded: !!docs.notarized_agreement, file: docs.notarized_agreement ?? null },
-        { name: 'Portfolio', uploaded: !!docs.portfolio, file: docs.portfolio ?? null },
+        { name: 'MOA', uploaded: !!intern.company?.moaFile, file: intern.company?.moaFile ?? null },
+        { name: 'Resume', uploaded: !!docs.resume, file: docs.resume ?? null },
         { name: 'COR', uploaded: !!docs.cor, file: docs.cor ?? null },
         { name: 'Insurance', uploaded: !!docs.insurance, file: docs.insurance ?? null },
         { name: 'Medical Certificate', uploaded: !!docs.medical_cert, file: docs.medical_cert ?? null },

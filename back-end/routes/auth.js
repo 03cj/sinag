@@ -114,6 +114,9 @@ router.delete('/HTE/:id', authMiddleware(['coordinator']), authController.delete
 // Company profile
 router.get('/company/me', authMiddleware(['company']), companyDashboardController.getMyCompany);
 
+// Update company profile
+router.put('/company/profile', authMiddleware(['company']), companyDashboardController.updateMyCompany);
+
 // Company interns
 router.get('/company/interns', authMiddleware(['company']), companyDashboardController.getCompanyInterns);
 

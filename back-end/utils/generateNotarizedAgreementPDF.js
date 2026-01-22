@@ -6,6 +6,30 @@ module.exports = async (data) => {
   const fileName = `PUP_NOTARIZED_INTERNSHIP_AGREEMENT_${Date.now()}.pdf`;
   const filePath = path.join(__dirname, '../uploads', fileName);
 
+  // Format dates to "MONTH YEAR" format
+  const formatMonthYear = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const monthNames = [
+      'JANUARY',
+      'FEBRUARY',
+      'MARCH',
+      'APRIL',
+      'MAY',
+      'JUNE',
+      'JULY',
+      'AUGUST',
+      'SEPTEMBER',
+      'OCTOBER',
+      'NOVEMBER',
+      'DECEMBER',
+    ];
+    return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  const startDateFormatted = formatMonthYear(data.startDate);
+  const endDateFormatted = formatMonthYear(data.endDate);
+
   const doc = new PDFDocument({
     size: 'Legal',
     margins: { top: 50, left: 50, right: 50, bottom: 50 },
@@ -32,7 +56,7 @@ module.exports = async (data) => {
         `“UNIVERSITY”, as part of the school curriculum or academic requirement voluntarily agrees ` +
         `to undergo On-the-Job Training (OJT)/Internship Program at the ${data.hteName} with office ` +
         `address at ${data.hteAddress}, hereinafter referred to as “HTE”. The On-the-Job Training ` +
-        `(OJT)/Internship Program shall start on ${data.startDate} and ends on ${data.endDate} ` +
+        `(OJT)/Internship Program shall start on ${startDateFormatted} and ends on ${endDateFormatted} ` +
         `and is covered by the following terms and conditions:`,
       { align: 'justify', lineGap: 3 },
     );
@@ -115,7 +139,7 @@ module.exports = async (data) => {
       lineGap: 3,
     });
   });
-  doc.moveDown(7);
+  doc.moveDown(0.5);
 
   doc.font('Times-Roman').fontSize(9).text('Page 1 of 3', { align: 'right' });
 

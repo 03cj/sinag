@@ -1,8 +1,12 @@
-import { Building, FileText, GraduationCap, LayoutDashboard, LogOut, Presentation, User } from 'lucide-react';
+import { useAuth } from '@/Context/AuthContext';
+import { Building, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, Presentation, User, X } from 'lucide-react';
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 const CoordinatorLayout = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { name: 'Dashboard', path: 'dashboard', icon: <LayoutDashboard size={20} /> },
@@ -13,64 +17,151 @@ const CoordinatorLayout = () => {
   ];
 
   const handleLogout = () => {
-    console.log('Logging out...');
+    if (window.confirm('Are you sure you want to logout?')) {
+      console.log('Logging out...');
+      logout();
+      navigate('/pup-sinag');
+    }
+  };
 
-    navigate('/pup-sinag');
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <div>
-      <nav className="bg-red-900 text-white py-2 px-4 md:py-3 md:px-6 shadow-md flex flex-wrap justify-between items-center">
-        <div className="flex flex-wrap gap-x-2 gap-y-1 md:gap-6 items-center mb-2 md:mb-0">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              className={({ isActive }) =>
-                // Define base classes, transition, and default text color (e.g., white)
-                `flex items-center gap-2 px-2 py-1 md:px-3 md:py-1 rounded-md transition-colors duration-200 
-     ${
-       isActive
-         ? // Active State: Yellow background (bg-yellow-300) and Dark Text (text-gray-900)
-           ' text-yellow-300 font-bold'
-         : // Inactive State: Default Text (text-white) and Yellow Hover Background
-           'text-white hover:text-yellow-300'
-     }`
-              }
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden w-full">
+      {/* Enhanced Navigation Bar */}
+      <nav className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white shadow-xl sticky top-0 z-50 border-b-4 border-yellow-400 w-full">
+        <div className="px-3 lg:px-6">
+          <div className="flex justify-between items-center h-16 lg:h-20">
+            {/* Logo/Brand Section */}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
+                <GraduationCap className="w-6 h-6 lg:w-8 lg:h-8 text-yellow-300" />
+              </div>
+              <div className="hidden md:block">
+                <h1 className="text-lg lg:text-xl font-bold text-white">PUP SINAG</h1>
+                <p className="text-xs text-yellow-200">Coordinator Portal</p>
+              </div>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-2">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-medium group relative overflow-hidden
+                    ${
+                      isActive
+                        ? 'bg-yellow-400 text-red-900 shadow-lg'
+                        : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                    }`
+                  }
+                >
+                  <span className="relative z-10">{item.icon}</span>
+                  <span className="relative z-10">{item.name}</span>
+                  {/* Hover effect background */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/10 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </NavLink>
+              ))}
+            </div>
+
+            {/* Desktop Profile & Logout */}
+            <div className="hidden lg:flex items-center gap-2">
+              <NavLink
+                to="profile"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-medium
+                  ${
+                    isActive
+                      ? 'bg-white text-red-900 shadow-lg'
+                      : 'bg-white/10 text-white hover:bg-white/20 hover:text-yellow-300'
+                  }`
+                }
+              >
+                <User size={18} />
+                <span>Profile</span>
+              </NavLink>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white transition-all duration-300 shadow-md hover:shadow-lg font-medium"
+              >
+                <LogOut size={18} />
+                <span>Logout</span>
+              </button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
             >
-              {item.icon}
-              <span className="text-sm md:text-base">{item.name}</span>
-            </NavLink>
-          ))}
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 mt-2 md:mt-0">
-          <NavLink
-            to="profile"
-            className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-1 rounded-lg transition text-sm font-medium
-     ${
-       isActive
-         ? 'text-yellow-400 font-bold' // <-- Active state: Set color to yellow-400 and bold the text
-         : 'text-white hover:text-yellow-400' // <-- Inactive state: Default to white, hover changes to yellow-400
-     }`
-            }
-          >
-            <User size={20} />
-            {/*Profile*/}
-          </NavLink>
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden bg-red-800 border-t border-red-700 animate-slideDown">
+            <div className="px-4 py-4 space-y-2">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium
+                    ${
+                      isActive
+                        ? 'bg-yellow-400 text-red-900 shadow-md'
+                        : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                    }`
+                  }
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                </NavLink>
+              ))}
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-white hover:text-yellow-300 transition bg-transparent border-none cursor-pointer p-0"
-          >
-            <LogOut size={20} />
-            <span className="text-sm md:text-base">{/*Logout*/}</span>
-          </button>
-        </div>
+              <div className="border-t border-red-700 my-3 pt-3 space-y-2">
+                <NavLink
+                  to="profile"
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium
+                    ${
+                      isActive
+                        ? 'bg-white text-red-900 shadow-md'
+                        : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                    }`
+                  }
+                >
+                  <User size={20} />
+                  <span>Profile</span>
+                </NavLink>
+
+                <button
+                  onClick={() => {
+                    closeMobileMenu();
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-700 hover:bg-red-600 text-white transition-all duration-200 font-medium"
+                >
+                  <LogOut size={20} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
-      <div className="p-4">
+      {/* Main Content Area with Enhanced Styling */}
+      <div className="p-3 lg:p-6">
         <Outlet />
       </div>
     </div>

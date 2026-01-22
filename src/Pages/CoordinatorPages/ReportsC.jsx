@@ -1,5 +1,15 @@
 import axios from 'axios';
-import { Building2, ChevronRight, ClipboardCheck, FileCheck, GraduationCap, UserCheck, Users, X } from 'lucide-react';
+import {
+  Building2,
+  ChevronRight,
+  ClipboardCheck,
+  FileCheck,
+  FileText,
+  GraduationCap,
+  UserCheck,
+  Users,
+  X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const GenerateReports = () => {
@@ -173,216 +183,119 @@ const GenerateReports = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>GENERATE REPORTS</h1>
-        <div style={styles.underline}></div>
-      </header>
-
-      <div style={styles.horizontalWrapper}>
-        <div style={styles.flexContainer}>
-          {reportCards.map((card, index) => (
-            <div key={index} style={styles.card} className="report-card" onClick={() => handleCardClick(card)}>
-              <div style={styles.iconContainer}>{card.icon}</div>
-              <h3 style={styles.cardTitle}>{card.title}</h3>
-              <p style={styles.cardDescription}>{card.description}</p>
-              <button
-                style={{
-                  ...styles.button,
-                  opacity: generatingReport !== null ? 0.7 : 1,
-                  cursor: generatingReport !== null ? 'not-allowed' : 'pointer',
-                }}
-                disabled={generatingReport !== null}
-              >
-                {generatingReport === card.title
-                  ? 'Generating...'
-                  : card.requiresProgram
-                    ? 'Select Program'
-                    : 'Generate PDF'}
-              </button>
-            </div>
-          ))}
+    <div className="min-h-screen overflow-x-hidden w-full">
+      {/* Enhanced Header Card */}
+      <div className="bg-gradient-to-r from-white to-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-5 lg:p-6 mb-6 border border-gray-200 w-full">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-br from-red-800 to-red-700 p-3 rounded-lg shadow-md">
+            <FileText className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-800">Generate Reports</h1>
+            <p className="text-sm text-gray-600">Create and download various internship reports</p>
+          </div>
         </div>
       </div>
 
-      {/* Program Selection Modal */}
+      {/* Enhanced Report Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {reportCards.map((card, index) => (
+          <div
+            key={index}
+            onClick={() => handleCardClick(card)}
+            className="group bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 border-2 border-gray-200 hover:border-yellow-400 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2"
+          >
+            {/* Icon Container */}
+            <div className="bg-gradient-to-br from-red-800 to-red-700 text-white w-16 h-16 rounded-full flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              {card.icon}
+            </div>
+
+            {/* Card Content */}
+            <h3 className="text-base font-bold text-gray-800 mb-3 uppercase tracking-wide min-h-[48px] flex items-center">
+              {card.title}
+            </h3>
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed">{card.description}</p>
+
+            {/* Button */}
+            <button
+              className={`w-full py-3 rounded-lg font-bold text-sm uppercase tracking-wide transition-all duration-300 ${
+                generatingReport === card.title
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-gradient-to-r from-red-800 to-red-700 text-white hover:from-red-700 hover:to-red-600 shadow-md hover:shadow-lg'
+              }`}
+              disabled={generatingReport !== null}
+            >
+              {generatingReport === card.title ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Generating...
+                </span>
+              ) : card.requiresProgram ? (
+                'Select Program'
+              ) : (
+                'Generate PDF'
+              )}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Enhanced Program Selection Modal */}
       {selectedReport && (
-        <div style={styles.modalOverlay} onClick={() => setSelectedReport(null)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>Select Program</h2>
-              <button onClick={() => setSelectedReport(null)} style={styles.closeBtn}>
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedReport(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-red-800 to-red-700 px-6 py-5 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-white">Select Program</h2>
+                <p className="text-sm text-yellow-200 mt-1">{selectedReport}</p>
+              </div>
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="text-white hover:text-yellow-300 transition-colors p-2 hover:bg-white/10 rounded-lg"
+              >
                 <X size={24} />
               </button>
             </div>
-            <p style={styles.modalSubtitle}>
-              Generating report for: <strong>{selectedReport}</strong>
-            </p>
 
-            <div style={styles.programListContainer} className="custom-scrollbar">
-              {loadingPrograms && <p>Loading programs...</p>}
+            {/* Program List */}
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {loadingPrograms && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-4 border-red-800 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="ml-3 text-gray-600">Loading programs...</span>
+                </div>
+              )}
 
-              {!loadingPrograms && programs.length === 0 && <p>No programs assigned to you.</p>}
+              {!loadingPrograms && programs.length === 0 && (
+                <p className="text-center text-gray-500 py-12">No programs available.</p>
+              )}
 
               {!loadingPrograms &&
                 programs.map((program) => (
                   <button
                     key={program}
-                    style={styles.programListItem}
-                    className="program-list-btn"
                     onClick={() => handleProgramSelect(program)}
+                    className="w-full flex items-center justify-between px-5 py-4 mb-3 bg-gray-50 hover:bg-red-50 border-2 border-gray-200 hover:border-red-300 rounded-xl transition-all duration-200 text-left group"
                   >
-                    <span>{program}</span>
-                    <ChevronRight size={18} opacity={0.5} />
+                    <span className="font-semibold text-gray-800 group-hover:text-red-800 transition-colors">
+                      {program}
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
                   </button>
                 ))}
             </div>
           </div>
         </div>
       )}
-
-      <style>
-        {`
-          .report-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            min-width: 175px;
-          }
-          .report-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(128, 0, 0, 0.15) !important;
-            border-color: #FFD700 !important;
-          }
-          .report-card:hover button { background-color: #a00000; }
-
-          .program-list-btn {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            padding: 16px 20px;
-            margin-bottom: 8px;
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            color: #333;
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-align: left;
-            transition: all 0.2s ease;
-            cursor: pointer;
-          }
-
-          .program-list-btn:hover {
-            background-color: #fff8f8;
-            border-color: #800000;
-            color: #800000;
-            padding-left: 25px; /* Slight slide effect */
-          }
-
-          .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-          .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; borderRadius: 10px; }
-          .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; borderRadius: 10px; }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #800000; }
-        `}
-      </style>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    padding: '60px 20px',
-    backgroundColor: '#fcfcfc',
-    minHeight: '100vh',
-    fontFamily: "'Inter', sans-serif",
-  },
-  header: { textAlign: 'center', marginBottom: '50px' },
-  title: { color: '#800000', fontSize: '2.2rem', fontWeight: '900', letterSpacing: '1px', margin: '0' },
-  underline: { width: '50px', height: '5px', backgroundColor: '#FFD700', margin: '12px auto', borderRadius: '10px' },
-  horizontalWrapper: { width: '100%', maxWidth: '1600px', margin: '0 auto', overflowX: 'auto', paddingBottom: '20px' },
-  flexContainer: { display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '15px', padding: '10px' },
-  card: {
-    flex: '1',
-    backgroundColor: '#fff',
-    border: '1px solid #f0f0f0',
-    borderRadius: '16px',
-    padding: '30px 15px',
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.03)',
-  },
-  iconContainer: {
-    color: '#800000',
-    marginBottom: '15px',
-    backgroundColor: '#fff1f1',
-    width: '55px',
-    height: '55px',
-    borderRadius: '50%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardTitle: {
-    color: '#111',
-    fontSize: '0.75rem',
-    fontWeight: '800',
-    marginBottom: '12px',
-    minHeight: '40px',
-    display: 'flex',
-    alignItems: 'center',
-    textTransform: 'uppercase',
-  },
-  cardDescription: { color: '#777', fontSize: '0.7rem', lineHeight: '1.5', marginBottom: '25px', flexGrow: 1 },
-  button: {
-    width: '100%',
-    backgroundColor: '#800000',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 0',
-    borderRadius: '8px',
-    fontWeight: '700',
-    fontSize: '0.7rem',
-    cursor: 'pointer',
-    textTransform: 'uppercase',
-  },
-
-  // List-Style Modal
-  modalOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-    backdropFilter: 'blur(4px)',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: '35px',
-    borderRadius: '20px',
-    width: '95%',
-    maxWidth: '600px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.2)',
-    position: 'relative',
-  },
-  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
-  modalTitle: { color: '#800000', margin: 0, fontSize: '1.6rem', fontWeight: '900' },
-  modalSubtitle: {
-    color: '#666',
-    fontSize: '0.95rem',
-    marginBottom: '20px',
-    borderBottom: '1px solid #eee',
-    paddingBottom: '15px',
-  },
-  closeBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#ccc' },
-  programListContainer: { maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }, // The scrollable list
 };
 
 export default GenerateReports;

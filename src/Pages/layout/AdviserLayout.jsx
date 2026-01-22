@@ -1,12 +1,13 @@
+import { useAuth } from '@/Context/AuthContext';
 import { Building, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 const AdviserLayout = () => {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for mobile menu visibility
+  const { logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Define the navigation items for the adviser
   const navItems = [
     { name: 'Dashboard', path: 'dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Interns', path: 'interns', icon: <GraduationCap size={20} /> },
@@ -14,122 +15,135 @@ const AdviserLayout = () => {
     { name: 'Reports', path: 'reports', icon: <FileText size={20} /> },
   ];
 
-  // Handler for logout functionality
   const handleLogout = () => {
-    console.log('Logging out adviser...');
-    // In a real app, you would clear the user's session here.
-    navigate('/pup-sinag'); // Redirect to the login route
+    if (window.confirm('Are you sure you want to logout?')) {
+      console.log('Logging out adviser...');
+      logout();
+      navigate('/pup-sinag');
+    }
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation Bar: Full width, dark background */}
-      <nav className="bg-red-900 text-white py-3 px-4 shadow-xl flex flex-col md:flex-row justify-between items-center z-10 ">
-        <div className="w-full flex flex-col md:flex-row justify-between items-center">
-          {/* START LEFT GROUP: Logo + Main Nav Items */}
-          <div className="w-full flex flex-col md:flex-row md:items-center md:gap-8">
-            {/* 1. Logo and Mobile Toggle (Always visible on the top row) */}
-            <div className="flex justify-between w-full md:w-auto items-center">
-              {/* Mobile Menu Button (Only Visible on Mobile) */}
-              <button
-                className="md:hidden p-2 rounded-md hover:bg-red-700 transition"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label="Toggle navigation menu"
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden w-full">
+      {/* Enhanced Navigation Bar */}
+      <nav className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white shadow-xl sticky top-0 z-50 border-b-4 border-yellow-400 w-full">
+        <div className="px-3 lg:px-6">
+          <div className="flex justify-between items-center h-16 lg:h-20">
+            {/* Logo/Brand Section */}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
+                <GraduationCap className="w-6 h-6 lg:w-8 lg:h-8 text-yellow-300" />
+              </div>
+              <div className="hidden md:block">
+                <h1 className="text-lg lg:text-xl font-bold text-white">PUP SINAG</h1>
+                <p className="text-xs text-yellow-200">Adviser Portal</p>
+              </div>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-2">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-medium group relative overflow-hidden
+                    ${
+                      isActive
+                        ? 'bg-yellow-400 text-red-900 shadow-lg'
+                        : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                    }`
+                  }
+                >
+                  <span className="relative z-10">{item.icon}</span>
+                  <span className="relative z-10">{item.name}</span>
+                  {/* Hover effect background */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/10 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </NavLink>
+              ))}
+            </div>
+
+            {/* Desktop Profile & Logout */}
+            <div className="hidden lg:flex items-center gap-2">
+              <NavLink
+                to="profile"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-medium
+                  ${
+                    isActive
+                      ? 'bg-white text-red-900 shadow-lg'
+                      : 'bg-white/10 text-white hover:bg-white/20 hover:text-yellow-300'
+                  }`
+                }
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                <User size={18} />
+                <span>Profile</span>
+              </NavLink>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white transition-all duration-300 shadow-md hover:shadow-lg font-medium"
+              >
+                <LogOut size={18} />
+                <span>Logout</span>
               </button>
             </div>
 
-            {/* 2. Main Nav Items (Desktop: Left-aligned, next to logo) */}
-            <div className="hidden md:flex flex-row gap-4 items-center">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.path}
-                  // Apply the transition class to the element
-                  // and ensure the hover state only changes the colors
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-300 ease-in-out
-
-         ${
-           isActive
-             ? ' text-yellow-300 font-bold shadow-inner' // Active state: Use the desired active colors
-             : 'text-white hover:text-yellow-300 ' // Inactive state: Hover changes text and background colors
-         }`
-                  }
-                >
-                  {item.icon}
-                  <span>{item.name}</span>
-                </NavLink>
-              ))}
-            </div>
-          </div>
-          {/* END LEFT GROUP */}
-
-          {/* 3. Desktop Profile & Logout (Far Right) */}
-          <div className="hidden md:flex items-center gap-4">
-            <NavLink
-              to="profile"
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-1 rounded-lg transition text-sm font-medium
-     ${
-       isActive
-         ? 'text-yellow-400 font-bold' // <-- Active state: Set color to yellow-400 and bold the text
-         : 'text-white hover:text-yellow-400' // <-- Inactive state: Default to white, hover changes to yellow-400
-     }`
-              }
-            >
-              <User size={20} />
-              {/*Profile*/}
-            </NavLink>
+            {/* Mobile Menu Button */}
             <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-white hover:text-yellow-300 transition bg-transparent border-none cursor-pointer px-3 py-1 rounded-lg text-sm font-medium"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
             >
-              <LogOut size={20} />
-              {/*Logout*/}
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
+        </div>
 
-          {/* 4. Collapsible Mobile Menu (Full Width when open on mobile) */}
-          <div
-            className={`w-full transition-all duration-300 ease-in-out flex-col items-start space-y-1 mt-3 pt-3 border-t border-red-700
-              ${isMenuOpen ? 'flex md:hidden' : 'hidden'}`}
-          >
-            {/* Main Nav Items (Mobile) */}
-            <div className="w-full">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 rounded-lg transition w-full text-base font-medium
-                    ${isActive ? 'bg-yellow-600 text-red-900 font-bold shadow-inner' : 'hover:bg-red-700 text-white'}`
-                  }
-                >
-                  {item.icon}
-                  <span>{item.name}</span>
-                </NavLink>
-              ))}
-            </div>
+        {/* Mobile Menu */}
+        <div
+          className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+            isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="px-4 pb-4 space-y-1 border-t border-red-700">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-yellow-400 text-red-900 font-bold shadow-md'
+                      : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                  }`
+                }
+              >
+                {item.icon}
+                <span>{item.name}</span>
+              </NavLink>
+            ))}
 
-            {/* Mobile Profile & Logout */}
-            <div className="flex flex-col items-start space-y-1 w-full pt-2 border-t border-red-700">
+            <div className="border-t border-red-700 pt-2 mt-2 space-y-1">
               <NavLink
                 to="profile"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-red-700 transition w-full text-white text-base font-medium"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 hover:text-yellow-300 transition-all duration-200"
               >
                 <User size={20} />
                 <span>Profile</span>
               </NavLink>
+
               <button
                 onClick={() => {
                   handleLogout();
-                  setIsMenuOpen(false);
+                  closeMobileMenu();
                 }}
-                className="flex items-center gap-2 text-white hover:bg-red-700 transition bg-transparent border-none cursor-pointer px-4 py-2 rounded-lg w-full text-left text-base font-medium"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-white/10 hover:text-yellow-300 transition-all duration-200 w-full text-left"
               >
                 <LogOut size={20} />
                 <span>Logout</span>
@@ -139,10 +153,10 @@ const AdviserLayout = () => {
         </div>
       </nav>
 
-      {/* Main content area remains constrained for better readability */}
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto">
+      {/* Main Content Area with Enhanced Styling */}
+      <div className="p-3 lg:p-6">
         <Outlet />
-      </main>
+      </div>
     </div>
   );
 };

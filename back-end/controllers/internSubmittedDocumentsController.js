@@ -33,7 +33,7 @@ exports.generateInternSubmittedDocuments = async (req, res) => {
           attributes: ['moaFile'],
         },
       ],
-      order: [['id', 'ASC']],
+      order: [[{ model: User, as: 'User' }, 'lastName', 'ASC']],
     });
 
     const adviser = await User.findOne({

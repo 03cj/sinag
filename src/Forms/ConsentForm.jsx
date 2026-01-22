@@ -1,3 +1,4 @@
+import { FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const ConsentForm = ({ onClose, onUploaded }) => {
@@ -50,19 +51,75 @@ const ConsentForm = ({ onClose, onUploaded }) => {
           console.warn('⚠️ Consent data error (status ' + res.status + '):', err.message);
         }
 
-        // Fallback if HTE not assigned: get basic user data
+        // Fallback: get basic user data and intern/company info separately
         console.log('🔄 Fallback: Fetching from /api/auth/me...');
         const me = await fetch('http://localhost:5000/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (me.ok) {
           const user = await me.json();
-          console.log('✅ User data loaded (no HTE yet):', user);
+          console.log('✅ User data loaded:', user);
+
           setForm((prev) => ({
             ...prev,
             studentName: `${user.firstName || user.firstname || ''} ${user.lastName || user.lastname || ''}`.trim(),
+            guardianName: user.guardian || '',
             course: user.program || '',
           }));
+        }
+
+        // Also try to fetch complete intern/company data
+        console.log('🔄 Fetching intern data with company details...');
+        const internRes = await fetch('http://localhost:5000/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (internRes.ok) {
+          const userData = await internRes.json();
+
+          // Now fetch intern record with company
+          const internDataRes = await fetch(`http://localhost:5000/api/intern/${userData.user.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).catch(() => null);
+
+          // Try dashboard endpoint as it has some company data
+          const dashRes = await fetch('http://localhost:5000/api/dashboard/intern', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (dashRes.ok) {
+            const dashData = await dashRes.json();
+            console.log('✅ Dashboard data loaded:', dashData);
+
+            if (dashData.companyDetails) {
+              // Get full company data from notarized endpoint (it has address)
+              const notarizedRes = await fetch('http://localhost:5000/api/documents/notarized-agreement-data', {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+
+              if (notarizedRes.ok) {
+                const notarizedData = await notarizedRes.json();
+                console.log('✅ Notarized data with company address:', notarizedData);
+
+                setForm((prev) => ({
+                  ...prev,
+                  hteName: notarizedData.hteName || dashData.companyDetails.companyName || '',
+                  hteAddress: notarizedData.hteAddress || '',
+                  supervisorName: notarizedData.authorizedRep || dashData.companyDetails.supervisor || '',
+                  startDate: notarizedData.startDate || dashData.companyDetails.startDate || prev.startDate,
+                  hours: notarizedData.hours || prev.hours,
+                }));
+              } else {
+                // Fallback to just dashboard data
+                setForm((prev) => ({
+                  ...prev,
+                  hteName: dashData.companyDetails.companyName || '',
+                  supervisorName: dashData.companyDetails.supervisor || '',
+                  startDate: dashData.companyDetails.startDate || prev.startDate,
+                }));
+              }
+            }
+          }
         }
       } catch (err) {
         console.error('❌ Failed to fetch consent data:', err);
@@ -101,13 +158,17 @@ const ConsentForm = ({ onClose, onUploaded }) => {
     setForm((prev) => {
       const updated = { ...prev, [name]: value };
 
-      if (name === 'hours') {
-        updated.endDate = calculateEndDate(prev.startDate, value);
+      // Recalculate end date when hours OR start date changes
+      if (name === 'hours' || name === 'startDate') {
+        const startDate = name === 'startDate' ? value : prev.startDate;
+        const hours = name === 'hours' ? value : prev.hours;
+        updated.endDate = calculateEndDate(startDate, hours);
       }
 
       return updated;
     });
   };
+
   const handleSave = async () => {
     if (!form.guardianName || !form.hours) {
       alert('Please fill guardian name and required hours');
@@ -146,112 +207,146 @@ const ConsentForm = ({ onClose, onUploaded }) => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white p-6 rounded shadow space-y-4">
-      <h2 className="text-2xl font-bold">Consent Form Details</h2>
-
-      {/* STUDENT NAME */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Student Name</label>
-        <input name="studentName" value={form.studentName} readOnly className="w-full border p-2 rounded bg-gray-100" />
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+      {/* Enhanced Header */}
+      <div className="bg-gradient-to-r from-red-800 to-red-900 px-6 py-5">
+        <div className="flex items-center gap-3">
+          <FileText className="text-white" size={28} />
+          <h2 className="text-2xl font-bold text-white">Consent Form Details</h2>
+        </div>
       </div>
 
-      {/* GUARDIAN */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Parent / Guardian Name *</label>
-        <input
-          name="guardianName"
-          value={form.guardianName}
-          onChange={handleChange}
-          placeholder="Parent / Guardian Name"
-          className="w-full border p-2 rounded"
-        />
-      </div>
+      {/* Form Content */}
+      <div className="p-6 space-y-4">
+        {/* Student Name */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Student Name</label>
+          <input
+            name="studentName"
+            value={form.studentName}
+            readOnly
+            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+          />
+        </div>
 
-      {/* REQUIRED HOURS */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Required Hours</label>
-        <input
-          name="hours"
-          value={form.hours}
-          onChange={handleChange}
-          placeholder="Required Hours"
-          className="w-full border p-2 rounded bg-gray-100"
-          readOnly
-        />
-      </div>
+        {/* Guardian Name */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Parent / Guardian Name <span className="text-red-600">*</span>
+          </label>
+          <input
+            name="guardianName"
+            value={form.guardianName}
+            onChange={handleChange}
+            placeholder="Enter parent or guardian name"
+            className="w-full px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+          />
+        </div>
 
-      {/* DATES */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Start Date</label>
-        <input
-          type="date"
-          name="startDate"
-          value={form.startDate}
-          readOnly
-          className="w-full border p-2 rounded bg-gray-100"
-        />
-        <p className="text-sm text-gray-500 mt-1">Start date is set by the adviser.</p>
-      </div>
+        {/* Course */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Course / Program</label>
+          <input
+            value={form.course}
+            readOnly
+            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">End Date</label>
-        <input
-          type="date"
-          name="endDate"
-          value={form.endDate}
-          readOnly
-          className="w-full border p-2 rounded bg-gray-100"
-        />
-      </div>
+        {/* Company Name */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Company / HTE Name</label>
+          <input
+            value={form.hteName}
+            readOnly
+            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+            placeholder="Company Name"
+          />
+        </div>
 
-      {/* HTE NAME (READ-ONLY) */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Company / HTE Name</label>
-        <input
-          value={form.hteName}
-          readOnly
-          className="w-full border p-2 rounded bg-gray-100"
-          placeholder="Company Name"
-        />
-      </div>
+        {/* Company Address */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Company Address</label>
+          <input
+            value={form.hteAddress}
+            readOnly
+            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+            placeholder="Company Address"
+          />
+        </div>
 
-      {/* SUPERVISOR NAME (READ-ONLY) */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Supervisor / HR Name</label>
-        <input
-          value={form.supervisorName}
-          readOnly
-          className="w-full border p-2 rounded bg-gray-100"
-          placeholder="Supervisor Name"
-        />
-      </div>
+        {/* Supervisor Name */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Supervisor / HR Name</label>
+          <input
+            value={form.supervisorName}
+            readOnly
+            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+            placeholder="Supervisor Name"
+          />
+        </div>
 
-      {/* HTE ADDRESS (READ-ONLY) */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Company Address</label>
-        <input
-          value={form.hteAddress}
-          readOnly
-          className="w-full border p-2 rounded bg-gray-100"
-          placeholder="Company Address"
-        />
-      </div>
+        {/* Required Hours */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Required Hours <span className="text-red-600">*</span>
+          </label>
+          <input
+            name="hours"
+            value={form.hours}
+            onChange={handleChange}
+            placeholder="Enter total required hours"
+            className="w-full px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+          />
+        </div>
 
-      {/* COURSE */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Course / Program</label>
-        <input value={form.course} readOnly className="w-full border p-2 rounded bg-gray-100" />
-      </div>
+        {/* Start Date */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Start Date <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="date"
+            name="startDate"
+            value={form.startDate}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+          />
+        </div>
 
-      {/* ACTION BUTTONS */}
-      <div className="flex justify-end gap-3 pt-4">
-        <button type="button" onClick={onClose} className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">
-          Cancel
-        </button>
+        {/* End Date */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            End Date <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="date"
+            name="endDate"
+            value={form.endDate}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+          />
+          <p className="text-xs text-gray-500 mt-1">Auto-calculated based on hours, or select manually</p>
+        </div>
 
-        <button type="button" onClick={handleSave} className="px-4 py-2 rounded bg-red-900 text-white hover:bg-red-500">
-          Save & Preview
-        </button>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2.5 rounded-lg bg-gray-300 hover:bg-gray-400 font-medium transition-all"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-red-800 to-red-900 hover:from-red-900 hover:to-red-800 text-white font-medium transition-all shadow-md hover:shadow-lg"
+          >
+            Save & Preview
+          </button>
+        </div>
       </div>
     </div>
   );

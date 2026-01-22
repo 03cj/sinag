@@ -1,8 +1,9 @@
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
+import { LayoutDashboard } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Pie } from 'react-chartjs-2';
 import KPICard from '../../Components/KPICard';
-
+import MoaWarningModal from '../../Components/MoaWarningModal';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 /* =========================
@@ -48,6 +49,8 @@ const abbreviateProgram = (program) => {
 const DashboardC = () => {
   const [selectedProgram, setSelectedProgram] = useState('All');
   const [programsFilter, setProgramsFilter] = useState(['All']);
+  const [showMoaWarning, setShowMoaWarning] = useState(false);
+  const [moaWarnings, setMoaWarnings] = useState([]);
 
   const [kpiData, setKpiData] = useState({
     activeInterns: 'Loading...',
@@ -69,7 +72,7 @@ const DashboardC = () => {
           fetch(`${API_BASE}/api/dashboard/programs`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`${API_BASE}/api/dashboard/companies`, {
+          fetch(`${API_BASE}/api/dashboard/companies?program=${selectedProgram}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_BASE}/api/dashboard/kpis`, {
@@ -84,6 +87,51 @@ const DashboardC = () => {
         const companyData = await companyRes.json();
         const kpis = await kpiRes.json();
         const adviserPrograms = await adviserProgramRes.json();
+
+        // Check for MOA warnings (separate try-catch so it doesn't break dashboard)
+        try {
+          const htesRes = await fetch(`${API_BASE}/api/auth/HTE`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (htesRes.ok) {
+            const htesData = await htesRes.json();
+
+            if (Array.isArray(htesData)) {
+              const calculateMoaStatus = (moaEnd) => {
+                if (!moaEnd) return 'N/A';
+                const today = new Date();
+                const endDate = new Date(moaEnd);
+                const daysLeft = Math.floor((endDate - today) / (1000 * 60 * 60 * 24));
+                if (daysLeft < 0) return 'Expired';
+                if (daysLeft <= 30) return 'Warning';
+                return 'Active';
+              };
+
+              const warnings = htesData
+                .filter((hte) => {
+                  const status = calculateMoaStatus(hte.moaEnd);
+                  return status === 'Warning' || status === 'Expired';
+                })
+                .map((hte) => ({
+                  name: hte.name,
+                  moaEnd: hte.moaEnd,
+                  status: calculateMoaStatus(hte.moaEnd),
+                }));
+
+              // Only show warning once per login session
+              const hasShownWarning = sessionStorage.getItem('moaWarningShown');
+
+              if (warnings.length > 0 && !hasShownWarning) {
+                setMoaWarnings(warnings);
+                setShowMoaWarning(true);
+                sessionStorage.setItem('moaWarningShown', 'true');
+              }
+            }
+          }
+        } catch (moaError) {
+          console.log('⚠️ MOA warning check failed (non-critical):', moaError);
+        }
 
         /* =========================
    FILTERED PROGRAMS
@@ -194,55 +242,107 @@ const DashboardC = () => {
         labels: {
           boxWidth: 12,
           font: { size: 11 },
+          generateLabels: (chart) => {
+            const data = chart.data;
+            return data.labels.map((label, i) => {
+              const count = data.datasets[0].data[i];
+              const percentage = data.percentages?.[i] || 0;
+              const internText = count === 1 ? 'intern' : 'interns';
+              return {
+                text: `${label}: ${count} ${internText} (${percentage}%)`,
+                fillStyle: data.datasets[0].backgroundColor[i],
+                hidden: false,
+                index: i,
+              };
+            });
+          },
         },
       },
       tooltip: {
         callbacks: {
-          label: (ctx) => `${ctx.label}: ${ctx.parsed} (${ctx.chart.data.percentages?.[ctx.dataIndex]}%)`,
+          label: (ctx) => {
+            const count = ctx.parsed;
+            const percentage = ctx.chart.data.percentages?.[ctx.dataIndex] || 0;
+            const internText = count === 1 ? 'intern' : 'interns';
+            return `${ctx.label}: ${count} ${internText} (${percentage}%)`;
+          },
         },
       },
     },
   };
 
   return (
-    <div className="p-5 md:p-8 min-h-screen">
-      <div className="flex flex-col md:flex-row gap-5">
-        {/* FILTER SIDEBAR */}
-        <aside className="bg-white rounded-lg shadow-md p-5 w-full md:w-52 border">
-          <div className="bg-red-800 text-white font-bold text-center py-2 mb-4 rounded">Filters</div>
+    <div className="min-h-screen overflow-x-hidden w-full">
+      {/* MOA Warning Modal */}
+      <MoaWarningModal
+        isVisible={showMoaWarning && moaWarnings.length > 0}
+        onClose={() => setShowMoaWarning(false)}
+        warnings={moaWarnings}
+        type="coordinator"
+      />
 
-          {programsFilter.map((program) => (
-            <div
-              key={program}
-              onClick={() => setSelectedProgram(program)} // FULL NAME used internally
-              className={`py-2 cursor-pointer ${
-                selectedProgram === program ? 'font-bold text-red-800' : 'text-gray-600'
-              }`}
-            >
-              {abbreviateProgram(program)}
-            </div>
-          ))}
+      {/* Enhanced Header Card */}
+      <div className="bg-gradient-to-r from-white to-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-5 lg:p-6 mb-6 border border-gray-200 w-full">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-br from-red-800 to-red-700 p-3 rounded-lg shadow-md">
+            <LayoutDashboard className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+            <p className="text-sm text-gray-600">Monitor intern statistics and program distribution</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        {/* FILTER SIDEBAR */}
+        <aside className="bg-white rounded-xl shadow-lg p-5 w-full lg:w-64 border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-gradient-to-r from-red-800 to-red-700 text-white font-bold text-center py-3 mb-4 rounded-lg shadow-md">
+            <span className="text-sm lg:text-base uppercase tracking-wide">📊 Filters</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
+            {programsFilter.map((program) => (
+              <button
+                key={program}
+                onClick={() => setSelectedProgram(program)}
+                className={`py-3 px-4 cursor-pointer rounded-lg text-sm lg:text-base transition-all duration-200 font-medium text-left ${
+                  selectedProgram === program
+                    ? 'bg-gradient-to-r from-red-800 to-red-700 text-white shadow-md transform scale-105'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-red-800 border border-transparent hover:border-red-200'
+                }`}
+              >
+                {abbreviateProgram(program)}
+              </button>
+            ))}
+          </div>
         </aside>
 
         {/* MAIN DASHBOARD */}
         <main className="flex-grow">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <KPICard title="Active Intern" value={kpiData.activeInterns} />
             <KPICard title="Active Programs" value={kpiData.activePrograms} />
             <KPICard title="Partner HTE" value={kpiData.partnerHTE} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="bg-white rounded-lg shadow-md p-5 border">
-              <h3 className="text-center font-semibold mb-4">Number of Interns Per Program</h3>
-              <div className="h-64">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+            <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 p-5 lg:p-7 border border-gray-200">
+              <div className="flex items-center justify-center gap-2 mb-5">
+                <div className="w-3 h-3 bg-red-800 rounded-full animate-pulse"></div>
+                <h3 className="text-center font-bold text-base lg:text-lg text-gray-800">Interns Per Program</h3>
+              </div>
+              <div className="h-64 lg:h-80">
                 {programChartData && <Pie data={programChartData} options={chartOptions} plugins={[shadowPlugin]} />}
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-5 border">
-              <h3 className="text-center font-semibold mb-4">Number of Interns Per Company</h3>
-              <div className="h-64">
+            <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 p-5 lg:p-7 border border-gray-200">
+              <div className="flex items-center justify-center gap-2 mb-5">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                <h3 className="text-center font-bold text-base lg:text-lg text-gray-800">Interns Per Company</h3>
+              </div>
+              <div className="h-64 lg:h-80">
                 {companyChartData && <Pie data={companyChartData} options={chartOptions} plugins={[shadowPlugin]} />}
               </div>
             </div>

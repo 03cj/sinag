@@ -1,10 +1,12 @@
-import { CheckSquare, FileText, Home, LogOut, Menu, NotebookText, User, X } from 'lucide-react';
+import { useAuth } from '@/Context/AuthContext';
+import { CheckSquare, FileText, GraduationCap, Home, LogOut, Menu, NotebookText, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 const InternLayout = () => {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for mobile menu visibility
+  const { logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { name: 'Home', path: 'home', icon: <Home size={20} /> },
@@ -13,122 +15,152 @@ const InternLayout = () => {
     { name: 'Evaluation', path: 'evaluation', icon: <CheckSquare size={20} /> },
   ];
 
-  // Handler for logout functionality
   const handleLogout = () => {
-    console.log('Logging out intern...');
-    // In a real app, you would clear the user's session here.
-    navigate('/pup-sinag'); // Redirect to the login route
+    if (window.confirm('Are you sure you want to logout?')) {
+      console.log('Logging out intern...');
+      logout();
+      navigate('/pup-sinag');
+    }
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Full-width container with top margin */}
-      <nav className="bg-red-900 text-white py-3 px-4 shadow-xl flex flex-col md:flex-row justify-between items-center z-10">
-        {/* FIX APPLIED: Removed max-w-7xl and mx-auto from the inner div. 
-            Now the content will spread out across the full width, only constrained by the padding (px-4) 
-        */}
-        <div className="w-full flex flex-col md:flex-row justify-between items-center">
-          {/* START LEFT GROUP: Logo + Main Nav Items (Grouped together on desktop) */}
-          <div className="w-full flex flex-col md:flex-row md:items-center md:gap-10">
-            {/* 1. Logo and Mobile Toggle (Always on top row) */}
-            <div className="flex justify-between w-full md:w-auto items-center">
-              {/* Mobile Menu Button (Only Visible on Mobile) */}
-              <button
-                className="md:hidden p-2 rounded-md hover:bg-red-700 transition"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label="Toggle navigation menu"
-              >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden w-full">
+      {/* Enhanced Navigation Bar */}
+      <nav className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white shadow-xl sticky top-0 z-50 border-b-4 border-yellow-400 w-full">
+        <div className="px-3 lg:px-6">
+          <div className="flex justify-between items-center h-16 lg:h-20">
+            {/* Logo/Brand Section */}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
+                <GraduationCap className="w-6 h-6 lg:w-8 lg:h-8 text-yellow-300" />
+              </div>
+              <div className="hidden md:block">
+                <h1 className="text-lg lg:text-xl font-bold text-white">PUP SINAG</h1>
+                <p className="text-xs text-yellow-200">Intern Portal</p>
+              </div>
             </div>
 
-            {/* 2. Main Nav Items (Desktop: Left-aligned, next to logo) */}
-            <div className="hidden md:flex flex-row gap-4 items-center">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-2">
               {navItems.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-1 rounded-lg transition text-sm font-medium
-                    ${isActive ? ' text-yellow-300 font-bold shadow-inner' : 'hover:text-yellow-300 text-white'}`
+                    `flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-medium group relative overflow-hidden
+                    ${
+                      isActive
+                        ? 'bg-yellow-400 text-red-900 shadow-lg'
+                        : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                    }`
                   }
                 >
-                  {item.icon}
-                  <span>{item.name}</span>
-                </NavLink>
-              ))}
-            </div>
-          </div>
-          {/* END LEFT GROUP */}
-
-          {/* 3. Desktop Profile & Logout (Far Right) */}
-          <div className="hidden md:flex items-center gap-4">
-            <NavLink
-              to="profile"
-              className="flex items-center gap-2 px-3 py-1 rounded-lg text-white-300 transition text-sm font-medium hover:text-yellow-300"
-            >
-              <User size={20} />
-              {/*Profile*/}
-            </NavLink>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-white hover:text-yellow-300 transition bg-transparent border-none cursor-pointer px-3 py-1 rounded-lg text-sm font-medium"
-            >
-              <LogOut size={20} />
-              {/*Logout*/}
-            </button>
-          </div>
-
-          {/* 4. Collapsible Mobile Menu (Full Width when open on mobile) */}
-          <div
-            className={`w-full transition-all duration-300 ease-in-out flex-col items-start space-y-1 mt-3 pt-3 border-t border-red-700
-              ${isMenuOpen ? 'flex md:hidden' : 'hidden'}`}
-          >
-            {/* Main Nav Items (Mobile) */}
-            <div className="w-full">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 rounded-lg transition w-full text-base font-medium
-                    ${isActive ? 'bg-yellow-600 text-red-900 font-bold shadow-inner' : 'hover:bg-red-700 text-white'}`
-                  }
-                >
-                  {item.icon}
-                  <span>{item.name}</span>
+                  <span className="relative z-10">{item.icon}</span>
+                  <span className="relative z-10">{item.name}</span>
+                  {/* Hover effect background */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/10 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </NavLink>
               ))}
             </div>
 
-            {/* Mobile Profile & Logout */}
-            <div className="flex flex-col items-start space-y-1 w-full pt-2 border-t border-red-700">
+            {/* Desktop Profile & Logout */}
+            <div className="hidden lg:flex items-center gap-2">
               <NavLink
                 to="profile"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-red-700 transition w-full text-white text-base font-medium"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-medium
+                  ${
+                    isActive
+                      ? 'bg-white text-red-900 shadow-lg'
+                      : 'bg-white/10 text-white hover:bg-white/20 hover:text-yellow-300'
+                  }`
+                }
               >
-                <User size={20} />
+                <User size={18} />
                 <span>Profile</span>
               </NavLink>
+
               <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center gap-2 text-white hover:bg-red-700 transition bg-transparent border-none cursor-pointer px-4 py-2 rounded-lg w-full text-left text-base font-medium"
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-700 hover:bg-red-600 text-white transition-all duration-300 shadow-md hover:shadow-lg font-medium"
               >
-                <LogOut size={20} />
+                <LogOut size={18} />
                 <span>Logout</span>
               </button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden bg-red-800 border-t border-red-700 animate-slideDown">
+            <div className="px-4 py-4 space-y-2">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.path}
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium
+                    ${
+                      isActive
+                        ? 'bg-yellow-400 text-red-900 shadow-md'
+                        : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                    }`
+                  }
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                </NavLink>
+              ))}
+
+              <div className="border-t border-red-700 my-3 pt-3 space-y-2">
+                <NavLink
+                  to="profile"
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium
+                    ${
+                      isActive
+                        ? 'bg-white text-red-900 shadow-md'
+                        : 'text-white hover:bg-white/10 hover:text-yellow-300'
+                    }`
+                  }
+                >
+                  <User size={20} />
+                  <span>Profile</span>
+                </NavLink>
+
+                <button
+                  onClick={() => {
+                    closeMobileMenu();
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-white hover:bg-white/10 hover:text-yellow-300 w-full text-left"
+                >
+                  <LogOut size={20} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Main content area remains constrained for better readability */}
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto">
+      {/* Main content area */}
+      <main className="flex-1 p-4 md:p-8 w-full">
         <Outlet />
       </main>
     </div>

@@ -191,7 +191,7 @@ const EvaluationS = () => {
   return (
     <div className="min-h-screen bg-zinc-100 pb-12">
       {/* Top Header/Progress */}
-      <div className="bg-red-950 text-white sticky top-0 z-10 shadow-md">
+      <div className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white sticky top-0 z-10 shadow-md">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="flex items-center hover:text-yellow-400 transition-colors">
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -207,10 +207,10 @@ const EvaluationS = () => {
       <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-4 mt-8 space-y-8">
         {/* Main Header Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-red-950 to-red-800 p-8 text-center">
+          <div className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 p-8 text-center">
             <h1 className="text-3xl font-black text-white italic tracking-tight">EVALUATION INSTRUMENT</h1>
             <p className="text-red-100 mt-2 font-bold tracking-wide">Polytechnic University of the Philippines</p>
-            <div className="mt-4 inline-block bg-yellow-400 text-red-950 px-4 py-1 rounded-full text-xs font-black uppercase">
+            <div className="mt-4 inline-block bg-yellow-400 text-red-900 px-4 py-1 rounded-full text-xs font-black uppercase">
               Student-Internship Program
             </div>
           </div>
@@ -218,11 +218,11 @@ const EvaluationS = () => {
           <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white">
             <div className="space-y-4">
               <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
-                <User className="text-red-900 w-5 h-5" />
+                <User className="text-red-800 w-5 h-5" />
                 <input value={formData.internName} disabled className="bg-zinc-50" />
               </div>
               <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
-                <ClipboardCheck className="text-red-900 w-5 h-5" />
+                <ClipboardCheck className="text-red-800 w-5 h-5" />
                 <textarea
                   value={formData.section}
                   disabled
@@ -233,17 +233,17 @@ const EvaluationS = () => {
             </div>
             <div className="space-y-4">
               <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
-                <Building2 className="text-red-900 w-5 h-5" />
+                <Building2 className="text-red-800 w-5 h-5" />
                 <input value={formData.hteName} disabled className="bg-zinc-50" />
               </div>
               <div className="flex items-center space-x-3 border-b-2 border-zinc-100 pb-2">
-                <Star className="text-red-900 w-5 h-5" />
+                <Star className="text-red-800 w-5 h-5" />
                 <input
                   name="jobDescription"
                   value={formData.jobDescription}
                   onChange={handleInputChange}
-                  placeholder="Enter intern’s job description"
-                  className="border-b-2 border-zinc-200 py-2 focus:border-red-900 outline-none font-bold text-black"
+                  placeholder="Enter intern's job description"
+                  className="border-b-2 border-zinc-200 py-2 focus:border-red-800 outline-none font-bold text-black"
                 />
               </div>
             </div>
@@ -254,7 +254,7 @@ const EvaluationS = () => {
         <div className="bg-white rounded-2xl shadow-md border border-zinc-200 overflow-hidden">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-red-950 text-white text-xs uppercase tracking-wider">
+              <tr className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white text-xs uppercase tracking-wider">
                 <th className="px-6 py-5 text-left font-black">Evaluation Criteria</th>
                 <th className="px-6 py-5 text-center font-black w-32">Max %</th>
                 <th className="px-6 py-5 text-center font-black w-32">Rating</th>
@@ -262,7 +262,7 @@ const EvaluationS = () => {
             </thead>
             <tbody>
               <tr className="bg-red-50">
-                <td colSpan="3" className="px-6 py-3 font-black text-red-950 text-sm border-y border-red-100">
+                <td colSpan="3" className="px-6 py-3 font-black text-red-900 text-sm border-y border-red-100">
                   I. CHARACTER (50%)
                 </td>
               </tr>
@@ -271,7 +271,7 @@ const EvaluationS = () => {
               ))}
 
               <tr className="bg-red-50">
-                <td colSpan="3" className="px-6 py-3 font-black text-red-950 text-sm border-y border-red-100">
+                <td colSpan="3" className="px-6 py-3 font-black text-red-900 text-sm border-y border-red-100">
                   II. COMPETENCE (50%)
                 </td>
               </tr>
@@ -280,9 +280,9 @@ const EvaluationS = () => {
               ))}
 
               {/* Summary Row - MAROON BOX */}
-              <tr className="bg-red-950 text-white">
+              <tr className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white">
                 <td className="px-6 py-6 text-right font-black text-lg uppercase">Total Final Rating</td>
-                <td className="px-6 py-6 text-center font-black text-lg bg-red-900">100%</td>
+                <td className="px-6 py-6 text-center font-black text-lg bg-red-800">100%</td>
                 <td className="px-6 py-6 text-center">
                   <span className="text-2xl font-black text-yellow-400">{totalScore.toFixed(1)}%</span>
                 </td>
@@ -303,7 +303,7 @@ const EvaluationS = () => {
             value={formData.recommendations}
             onChange={handleInputChange}
             placeholder="Enter areas for improvement or positive feedback..."
-            className="w-full border-2 border-zinc-100 p-4 rounded-xl focus:border-red-900 outline-none transition-all bg-zinc-50 text-black font-medium"
+            className="w-full border-2 border-zinc-100 p-4 rounded-xl focus:border-red-800 outline-none transition-all bg-zinc-50 text-black font-medium"
           />
         </div>
 
@@ -316,19 +316,13 @@ const EvaluationS = () => {
             { label: 'Conforme', name: 'conforme' },
           ].map((field) => (
             <div key={field.name} className="bg-white p-6 rounded-xl shadow-sm border border-zinc-200">
-              <label className="block text-xs font-black text-red-900 uppercase mb-2">{field.label}</label>
+              <label className="block text-xs font-black text-red-800 uppercase mb-2">{field.label}</label>
               <input
                 type={field.type || 'text'}
                 name={field.name}
                 value={formData[field.name]}
-                onChange={field.name === 'evaluator' || field.name === 'designation' ? undefined : handleInputChange}
-                disabled={field.name === 'evaluator' || field.name === 'designation'}
-                className={`w-full border-b-2 py-2 outline-none font-bold
-    ${
-      field.name === 'evaluator' || field.name === 'designation'
-        ? 'bg-zinc-50 border-zinc-200 text-black'
-        : 'border-zinc-200 focus:border-red-900 text-black'
-    }`}
+                onChange={handleInputChange}
+                className="w-full border-b-2 py-2 outline-none font-bold border-zinc-200 focus:border-red-800 text-black"
               />
             </div>
           ))}
@@ -338,7 +332,7 @@ const EvaluationS = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="group w-full bg-red-950 hover:bg-red-900 disabled:bg-zinc-400 text-white py-6 rounded-2xl font-black text-xl shadow-xl transition-all flex items-center justify-center space-x-3 transform active:scale-95"
+          className="group w-full bg-gradient-to-r from-red-800 to-red-700 hover:from-red-700 hover:to-red-600 disabled:bg-zinc-400 text-white py-6 rounded-2xl font-black text-xl shadow-xl transition-all flex items-center justify-center space-x-3 transform active:scale-95"
         >
           {isSubmitting ? (
             <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-white"></div>

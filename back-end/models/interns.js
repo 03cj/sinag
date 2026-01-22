@@ -55,6 +55,11 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
       },
 
+      position: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+
       program: {
         type: DataTypes.STRING(50),
         allowNull: false,

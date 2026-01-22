@@ -23,7 +23,7 @@ exports.generateInternList = async (req, res) => {
       where: { program },
       include: [{ model: User, as: 'User', required: true }],
 
-      order: [['id', 'ASC']],
+      order: [[{ model: User, as: 'User' }, 'lastName', 'ASC']],
     });
 
     const adviser = await User.findOne({

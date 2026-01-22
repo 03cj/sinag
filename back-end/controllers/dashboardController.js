@@ -73,32 +73,46 @@ exports.getCompanies = async (req, res, next) => {
       status: { [Op.in]: ['Pending', 'Approved', 'Declined'] }, // ✅ FIXED
     };
 
+    // Filter by program from query parameter
+    if (req.query.program && req.query.program !== 'All') {
+      whereCondition.program = req.query.program;
+    }
+
     if (req.user.role === 'adviser') {
       if (!req.user.program) return res.json([]);
       whereCondition.program = req.user.program;
     }
 
-    const results = await Intern.findAll({
-      attributes: ['company_id', [fn('COUNT', col('Intern.id')), 'count']],
-      include: [
-        {
-          model: Company,
-          as: 'company', // ✅ correct alias
-          attributes: ['name'],
-        },
-      ],
-      where: whereCondition,
-      group: ['company_id', 'company.id'],
-      order: [[literal('count'), 'DESC']],
+    // Get all companies
+    const allCompanies = await Company.findAll({
+      attributes: ['id', 'name'],
       raw: true,
     });
 
-    res.json(
-      results.map((r) => ({
-        company: r['company.name'] || 'Unassigned',
-        count: Number(r.count),
-      })),
-    );
+    // Get intern counts per company
+    const internCounts = await Intern.findAll({
+      attributes: ['company_id', [fn('COUNT', col('Intern.id')), 'count']],
+      where: whereCondition,
+      group: ['company_id'],
+      raw: true,
+    });
+
+    // Create a map of company_id to count
+    const countMap = {};
+    internCounts.forEach((item) => {
+      countMap[item.company_id] = Number(item.count);
+    });
+
+    // Combine all companies with their counts (0 if no interns)
+    const results = allCompanies.map((company) => ({
+      company: company.name,
+      count: countMap[company.id] || 0,
+    }));
+
+    // Sort by count descending
+    results.sort((a, b) => b.count - a.count);
+
+    res.json(results);
   } catch (err) {
     console.error('❌ getCompanies:', err);
     next(err);

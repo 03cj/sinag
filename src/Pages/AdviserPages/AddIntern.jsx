@@ -233,21 +233,21 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">M.I.</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">M.I.</label>
               <input
                 type="text"
                 name="mi"
                 value={formData.mi}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border rounded-md"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
               />
             </div>
           </div>
 
           {/* DETAILS ROW */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Student ID No. <span className="text-red-500">*</span>
               </label>
               <input
@@ -255,20 +255,13 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
                 name="id"
                 value={formData.id}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border rounded-md"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Program (Inherited from Adviser)</label>
-              <div className="mt-1 block w-full px-4 py-2 border rounded-md bg-gray-100 font-semibold">
-                {formData.program}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email <span className="text-red-500">*</span>
               </label>
               <input
@@ -276,26 +269,34 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border rounded-md"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 required
               />
             </div>
           </div>
 
+          {/* PROGRAM ROW */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Program (Inherited from Adviser)</label>
+            <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 shadow-sm text-sm">
+              {formData.program}
+            </div>
+          </div>
+
           {/* PASSWORD PREVIEW (UI PRESERVED) */}
           <div>
-            <label className="block text-sm font-medium mb-1">Initial Password (Auto-generated)</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Initial Password (Auto-generated)</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={formData.initialPassword}
                 readOnly
-                className="mt-1 block w-full pr-20 px-4 py-2 border rounded-md bg-gray-100"
+                className="w-full px-4 py-3 pr-24 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 font-medium shadow-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                className="absolute inset-y-0 right-0 px-3 text-sm"
+                className="absolute inset-y-0 right-0 px-4 text-sm text-red-700 hover:text-red-800 font-medium transition-colors"
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>
@@ -304,7 +305,12 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
 
           {/* ACTIONS */}
           <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onCancel} disabled={submitting} className="px-5 py-2 border rounded-md">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={submitting}
+              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+            >
               Cancel
             </button>
 

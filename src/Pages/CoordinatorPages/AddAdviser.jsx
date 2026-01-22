@@ -115,7 +115,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
       {/* HEADER */}
       <div className="bg-gradient-to-r from-red-700 to-red-900 px-8 py-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Add New Adviser</h2>
+          <h2 className="text-2xl font-bold text-white">Register New Adviser</h2>
           <p className="text-red-100 text-sm mt-1">Fill in the details below to add a new adviser to the system</p>
         </div>
         <button
@@ -155,7 +155,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
           {/* NAME ROW */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-1">
                 Last Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -163,7 +163,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
                 name="lastname"
                 value={formData.lastname}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2 border rounded-md"
                 required
               />
             </div>

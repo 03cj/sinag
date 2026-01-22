@@ -1,7 +1,7 @@
-import { Award, Calendar, Camera, Clock, Send, Target, X } from 'lucide-react';
+import { Award, Calendar, Camera, Clock, FileText, Send, Target, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-const UploadReport = () => {
+const UploadReport = ({ onClose, onUploadSuccess, editingReport }) => {
   const fileInputRef = useRef(null);
 
   /* =========================
@@ -21,6 +21,28 @@ const UploadReport = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null); // ✅ Track selected file
   const [filePreview, setFilePreview] = useState(null); // ✅ Show preview
+
+  /* =========================
+     PREFILL FORM WHEN EDITING
+  ========================= */
+  useEffect(() => {
+    if (editingReport) {
+      setForm({
+        day: editingReport.dayNo || '',
+        date: editingReport.logDate || '',
+        timeIn: editingReport.timeIn || '',
+        timeOut: editingReport.timeOut || '',
+        tasks: editingReport.tasksAccomplished || '',
+        skills: editingReport.skillsEnhanced || '',
+        learning: editingReport.learningApplied || '',
+      });
+
+      // If there's an existing photo, show it
+      if (editingReport.photoUrl) {
+        setFilePreview(`http://localhost:5000/${editingReport.photoUrl}`);
+      }
+    }
+  }, [editingReport]);
 
   /* =========================
      AUTO CALCULATE TOTAL HOURS
@@ -119,8 +141,13 @@ const UploadReport = () => {
         formData.append('photo', selectedFile);
       }
 
-      const response = await fetch('/api/daily-log', {
-        method: 'POST',
+      // ✅ Determine if creating or updating
+      const isEditing = editingReport && editingReport.id;
+      const url = isEditing ? `/api/daily-logs/${editingReport.id}` : '/api/daily-log';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         credentials: 'include',
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -138,7 +165,7 @@ const UploadReport = () => {
       }
 
       // Success!
-      alert('Daily log saved successfully!');
+      alert(isEditing ? 'Daily log updated successfully!' : 'Daily log saved successfully!');
       console.log('Saved log:', data);
 
       // Reset form
@@ -154,6 +181,11 @@ const UploadReport = () => {
       setTotalHours('');
       clearFile();
       setIsSubmitting(false);
+
+      // Call callback if provided
+      if (onUploadSuccess) {
+        onUploadSuccess();
+      }
     } catch (err) {
       alert('Network error: ' + err.message);
       console.error('Fetch error:', err);
@@ -162,164 +194,208 @@ const UploadReport = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 bg-gray-50 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-      {/* LEFT SIDE */}
-      <div className="lg:col-span-4 bg-gradient-to-b from-slate-100 to-slate-200/50 p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col justify-between">
-        <div className="space-y-8">
-          <div>
-            <h2 className="text-[#800000] text-2xl font-black tracking-tight mb-1">Daily Log</h2>
-            <p className="text-slate-700 text-sm font-medium">Document your progress and growth.</p>
-          </div>
+    <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      {/* Enhanced Header */}
+      <div className="bg-gradient-to-r from-red-800 to-red-900 px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <FileText className="text-white" size={24} />
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+            {editingReport ? 'Edit Activity Report' : 'Daily Activity Report'}
+          </h2>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="text-white hover:bg-white/10 p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0"
+            title="Close"
+          >
+            <X size={20} className="sm:w-6 sm:h-6" />
+          </button>
+        )}
+      </div>
 
-          <div className="space-y-6">
-            {/* DAY + DATE */}
-            <div className="grid grid-cols-2 gap-4">
+      {/* Form Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 bg-white overflow-y-auto flex-1">
+        {/* LEFT SIDE */}
+        <div className="lg:col-span-4 bg-gradient-to-b from-red-50 to-white p-4 sm:p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col justify-between">
+          <div className="space-y-4 sm:space-y-6">
+            <div>
+              <p className="text-gray-700 text-xs sm:text-sm font-medium">
+                Document your daily progress and activities
+              </p>
+            </div>
+
+            <div className="space-y-4 sm:space-y-5">
+              {/* DAY + DATE */}
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
+                    <Award size={14} className="text-red-800 sm:w-4 sm:h-4" /> Day #
+                  </label>
+                  <input
+                    type="text"
+                    name="day"
+                    value={form.day}
+                    onChange={handleChange}
+                    placeholder="01"
+                    className="w-full px-3 sm:px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-center font-bold text-red-800 text-sm sm:text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
+                    <Calendar size={14} className="text-red-800 sm:w-4 sm:h-4" /> Date{' '}
+                    <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={form.date}
+                    onChange={handleChange}
+                    className="w-full px-3 sm:px-4 py-2 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm sm:text-base"
+                  />
+                </div>
+              </div>
+
+              {/* TIME IN / OUT */}
+              <div className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border-2 border-red-200">
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 text-center">
+                  Time In / Out <span className="text-red-600">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-bold text-gray-600 uppercase mb-1 sm:mb-2">In</span>
+                    <input
+                      type="time"
+                      name="timeIn"
+                      value={form.timeIn}
+                      onChange={handleChange}
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-center font-bold text-red-800 bg-red-50 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-bold text-gray-600 uppercase mb-1 sm:mb-2">Out</span>
+                    <input
+                      type="time"
+                      name="timeOut"
+                      value={form.timeOut}
+                      onChange={handleChange}
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-center font-bold text-red-800 bg-red-50 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* TOTAL HOURS */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center">
-                  <Award size={14} className="mr-2 text-[#800000]" /> Day
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
+                  <Clock size={14} className="text-red-800 sm:w-4 sm:h-4" /> Total Hours
                 </label>
                 <input
                   type="text"
-                  name="day"
-                  value={form.day}
-                  onChange={handleChange}
-                  placeholder="01"
-                  className="w-full bg-white border border-slate-300 rounded-xl p-3 shadow-sm text-lg font-bold text-[#800000]"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center">
-                  <Calendar size={14} className="mr-2 text-[#800000]" /> Date
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={form.date}
-                  onChange={handleChange}
-                  className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm font-bold text-slate-900"
+                  value={totalHours}
+                  readOnly
+                  placeholder="0.00"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-600 font-bold text-center text-base sm:text-lg"
                 />
               </div>
             </div>
+          </div>
 
-            {/* TOTAL HOURS */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center">
-                <Clock size={14} className="mr-2 text-[#800000]" /> Total Hours
-              </label>
-              <input
-                type="text"
-                value={totalHours}
-                readOnly
-                placeholder="0.00"
-                className="w-full bg-white border border-slate-300 rounded-xl p-4 shadow-sm text-base font-bold text-slate-900 text-center"
+          {/* SUBMIT */}
+          <button
+            onClick={handleSubmit}
+            disabled={!form.timeOut || isSubmitting}
+            className="mt-6 sm:mt-8 w-full bg-gradient-to-r from-red-800 to-red-900 hover:from-red-900 hover:to-red-800 text-white py-3 sm:py-4 rounded-lg font-bold uppercase tracking-wide shadow-md hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 sm:gap-3 transition-all text-sm sm:text-base"
+          >
+            <Send size={16} className="sm:w-5 sm:h-5" />{' '}
+            {isSubmitting
+              ? editingReport
+                ? 'Updating...'
+                : 'Submitting...'
+              : editingReport
+                ? 'Update Report'
+                : 'Submit Report'}
+          </button>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="lg:col-span-8 p-6 md:p-8 lg:p-10 space-y-6 bg-white">
+          {/* TASKS */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <Target size={18} className="text-red-800" />
+              Tasks Accomplished <span className="text-red-600">*</span>
+            </label>
+            <textarea
+              name="tasks"
+              value={form.tasks}
+              onChange={handleChange}
+              placeholder="Describe the tasks you completed today..."
+              className="w-full p-4 border-2 border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all min-h-[140px] resize-none"
+            />
+          </div>
+
+          {/* SKILLS + LEARNING */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="space-y-2 sm:space-y-3">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Skills Enhanced</label>
+              <textarea
+                name="skills"
+                value={form.skills}
+                onChange={handleChange}
+                placeholder="What skills did you improve?"
+                className="w-full p-3 sm:p-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all min-h-[100px] sm:min-h-[120px] resize-none text-sm sm:text-base"
               />
             </div>
+            <div className="space-y-2 sm:space-y-3">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">Learning Applied</label>
+              <textarea
+                name="learning"
+                value={form.learning}
+                onChange={handleChange}
+                placeholder="How did you apply your knowledge?"
+                className="w-full p-3 sm:p-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all min-h-[100px] sm:min-h-[120px] resize-none text-sm sm:text-base"
+              />
+            </div>
+          </div>
 
-            {/* TIME IN / OUT */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col items-center">
-                  <span className="text-[10px] font-black text-slate-900 uppercase mb-1">In</span>
-                  <input
-                    type="time"
-                    name="timeIn"
-                    value={form.timeIn}
-                    onChange={handleChange}
-                    className="w-full h-12 text-center text-lg font-black text-[#800000] bg-slate-50 border rounded-xl"
-                  />
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-[10px] font-black text-slate-900 uppercase mb-1">Out</span>
-                  <input
-                    type="time"
-                    name="timeOut"
-                    value={form.timeOut}
-                    onChange={handleChange}
-                    className="w-full h-12 text-center text-lg font-black text-[#800000] bg-slate-50 border rounded-xl"
-                  />
-                </div>
+          {/* PHOTO UPLOAD */}
+          <div className="space-y-2 sm:space-y-3">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1 sm:gap-2">
+              <Camera size={16} className="text-red-800 sm:w-5 sm:h-5" />
+              Photo Attachment <span className="text-gray-500 text-xs font-normal">(Optional)</span>
+            </label>
+            {filePreview ? (
+              <div className="relative">
+                <img
+                  src={filePreview}
+                  alt="Preview"
+                  className="w-full h-48 sm:h-64 object-cover rounded-lg border-2 border-red-300"
+                />
+                <button
+                  onClick={clearFile}
+                  className="absolute top-2 right-2 bg-red-600 text-white p-1.5 sm:p-2 rounded-full hover:bg-red-700 transition-colors shadow-lg"
+                >
+                  <X size={16} className="sm:w-5 sm:h-5" />
+                </button>
+                <p className="text-xs text-gray-600 mt-2 flex items-center gap-2">
+                  📎 {selectedFile?.name}{' '}
+                  <span className="text-gray-400">({(selectedFile?.size / 1024).toFixed(0)} KB)</span>
+                </p>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SUBMIT */}
-        <button
-          onClick={handleSubmit}
-          disabled={!form.timeOut || isSubmitting}
-          className="mt-10 w-full bg-[#800000] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] shadow-lg hover:bg-[#600000] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
-        >
-          <Send size={18} /> {isSubmitting ? 'Submitting...' : 'Submit Report'}
-        </button>
-      </div>
-
-      {/* RIGHT SIDE */}
-      <div className="lg:col-span-8 p-6 md:p-10 lg:p-12 space-y-8 bg-white">
-        {/* TASKS */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 border-b pb-3">
-            <div className="p-2.5 bg-[#800000]/5 rounded-xl text-[#800000]">
-              <Target size={22} />
-            </div>
-            <label className="text-xs font-black uppercase tracking-[0.15em] text-slate-900">Tasks Accomplished</label>
-          </div>
-          <textarea
-            name="tasks"
-            value={form.tasks}
-            onChange={handleChange}
-            className="w-full p-5 bg-slate-50 border rounded-2xl min-h-[140px]"
-          />
-        </div>
-
-        {/* SKILLS + LEARNING */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <textarea
-            name="skills"
-            value={form.skills}
-            onChange={handleChange}
-            className="w-full p-4 bg-slate-50 border rounded-2xl min-h-[120px]"
-            placeholder="Skills Enhanced"
-          />
-          <textarea
-            name="learning"
-            value={form.learning}
-            onChange={handleChange}
-            className="w-full p-4 bg-slate-50 border rounded-2xl min-h-[120px]"
-            placeholder="Learning Applied"
-          />
-        </div>
-
-        {/* ✅ PHOTO UPLOAD - FIXED */}
-        <div className="space-y-4">
-          {filePreview ? (
-            <div className="relative">
-              <img
-                src={filePreview}
-                alt="Preview"
-                className="w-full h-64 object-cover rounded-2xl border-2 border-[#800000]"
-              />
-              <button
-                onClick={clearFile}
-                className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="flex flex-col items-center justify-center p-6 sm:p-8 bg-red-50 rounded-lg border-2 border-dashed border-red-300 cursor-pointer hover:bg-red-100 transition-colors"
               >
-                <X size={18} />
-              </button>
-              <p className="text-xs text-slate-600 mt-2">
-                📎 {selectedFile?.name} ({(selectedFile?.size / 1024).toFixed(0)} KB)
-              </p>
-            </div>
-          ) : (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center p-8 bg-slate-50 rounded-2xl border-2 border-dashed border-[#800000] cursor-pointer hover:bg-slate-100 transition-colors"
-            >
-              <Camera size={32} className="text-[#800000] mb-3" />
-              <span className="text-xs font-black uppercase text-slate-600">Click to upload photo (Optional)</span>
-              <span className="text-[10px] text-slate-500 mt-1">Max 5MB • Images only</span>
-            </div>
-          )}
+                <Camera size={32} className="text-red-800 sm:w-10 sm:h-10 mb-2 sm:mb-3" />
+                <span className="text-xs sm:text-sm font-semibold text-gray-700">Click to upload photo</span>
+                <span className="text-xs text-gray-500 mt-1">Max 5MB • Images only</span>
+              </div>
+            )}
 
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+          </div>
         </div>
       </div>
     </div>

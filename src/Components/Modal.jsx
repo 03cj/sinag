@@ -5,7 +5,7 @@ const Modal = ({ isOpen, onClose, children }) => {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-4 sm:py-8"
       onClick={onClose}
     >
       {/* MODAL CONTENT */}

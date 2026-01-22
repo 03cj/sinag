@@ -12,6 +12,8 @@ const {
   approveLogByAdviser,
   getCompanyInternDailyLogs,
   approveLogBySupervisor,
+  updateDailyLog,
+  deleteDailyLog,
 } = require('../controllers/internDailyLogController');
 
 /* =========================
@@ -109,5 +111,20 @@ router.get('/company/daily-logs/:internId', authMiddleware('company'), getCompan
 
 // SUPERVISOR: Approve daily log by supervisor
 router.put('/daily-logs/:reportId/supervisor-approve', authMiddleware('company'), approveLogBySupervisor);
+
+// INTERN: Update daily log
+router.put(
+  '/daily-logs/:id',
+  authMiddleware('intern'),
+  (req, res, next) => {
+    upload.single('photo')(req, res, (err) => {
+      handleMulterError(err, req, res, next);
+    });
+  },
+  updateDailyLog,
+);
+
+// INTERN: Delete daily log
+router.delete('/daily-logs/:id', authMiddleware('intern'), deleteDailyLog);
 
 module.exports = router;

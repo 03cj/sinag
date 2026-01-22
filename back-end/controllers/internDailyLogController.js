@@ -370,3 +370,118 @@ exports.approveLogBySupervisor = async (req, res) => {
     return res.status(500).json({ message: 'Failed to approve log' });
   }
 };
+
+/* =========================
+   UPDATE DAILY LOG
+========================= */
+exports.updateDailyLog = async (req, res) => {
+  try {
+    const { InternDailyLog, Intern } = getModels();
+    const { id } = req.params;
+    const { log_date, time_in, time_out, tasks_accomplished, skills_enhanced, learning_applied } = req.body;
+
+    console.log('\n=== UPDATE DAILY LOG ===');
+    console.log('📝 Log ID:', id);
+
+    // Find intern
+    const intern = await Intern.findOne({
+      where: { user_id: req.user.id },
+    });
+
+    if (!intern) {
+      return res.status(404).json({ message: 'Intern not found' });
+    }
+
+    // Find log
+    const log = await InternDailyLog.findOne({
+      where: { id, intern_id: intern.id },
+    });
+
+    if (!log) {
+      return res.status(404).json({ message: 'Daily log not found' });
+    }
+
+    // Update fields
+    if (log_date) log.log_date = log_date;
+    if (time_in) log.time_in = time_in;
+    if (time_out) log.time_out = time_out;
+    if (tasks_accomplished) log.tasks_accomplished = tasks_accomplished;
+    if (skills_enhanced) log.skills_enhanced = skills_enhanced;
+    if (learning_applied) log.learning_applied = learning_applied;
+
+    // Handle photo update
+    if (req.file) {
+      // Delete old photo if exists
+      if (log.photo_url) {
+        const oldPhotoPath = path.join(__dirname, '../uploads', log.photo_url);
+        const fs = require('fs');
+        if (fs.existsSync(oldPhotoPath)) {
+          fs.unlinkSync(oldPhotoPath);
+        }
+      }
+      log.photo_url = req.file.filename;
+    }
+
+    await log.save();
+
+    console.log('✅ Log updated successfully');
+    return res.json({
+      message: 'Daily log updated successfully',
+      log,
+    });
+  } catch (err) {
+    console.error('❌ UPDATE DAILY LOG ERROR:', err.message);
+    return res.status(500).json({ message: 'Failed to update daily log' });
+  }
+};
+
+/* =========================
+   DELETE DAILY LOG
+========================= */
+exports.deleteDailyLog = async (req, res) => {
+  try {
+    const { InternDailyLog, Intern } = getModels();
+    const { id } = req.params;
+
+    console.log('\n=== DELETE DAILY LOG ===');
+    console.log('🗑️ Log ID:', id);
+
+    // Find intern
+    const intern = await Intern.findOne({
+      where: { user_id: req.user.id },
+    });
+
+    if (!intern) {
+      return res.status(404).json({ message: 'Intern not found' });
+    }
+
+    // Find log
+    const log = await InternDailyLog.findOne({
+      where: { id, intern_id: intern.id },
+    });
+
+    if (!log) {
+      return res.status(404).json({ message: 'Daily log not found' });
+    }
+
+    // Delete photo file if exists
+    if (log.photo_url) {
+      const photoPath = path.join(__dirname, '../uploads', log.photo_url);
+      const fs = require('fs');
+      if (fs.existsSync(photoPath)) {
+        fs.unlinkSync(photoPath);
+        console.log('🗑️ Deleted photo:', log.photo_url);
+      }
+    }
+
+    await log.destroy();
+
+    console.log('✅ Log deleted successfully');
+    return res.json({
+      message: 'Daily log deleted successfully',
+    });
+  } catch (err) {
+    console.error('❌ DELETE DAILY LOG ERROR:', err.message);
+    return res.status(500).json({ message: 'Failed to delete daily log' });
+  }
+};

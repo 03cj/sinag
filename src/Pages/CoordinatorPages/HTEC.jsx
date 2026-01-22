@@ -1,5 +1,5 @@
 import { differenceInDays } from 'date-fns';
-import { FileText, Pencil, Search, Trash2 } from 'lucide-react';
+import { Building2, FileText, Pencil, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import AddNewCompany from './AddNewCompany';
@@ -118,130 +118,149 @@ const HTEC = () => {
   const filteredHTE = HTE.filter((company) => company.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <>
-      {/* ================= HEADER ================= */}
-      <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Host Training Establishments</h1>
-            <p className="text-gray-600 text-sm">List of HTE with MOA</p>
+    <div className="min-h-screen overflow-x-hidden w-full">
+      {/* Enhanced Header Card */}
+      <div className="bg-gradient-to-r from-white to-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-5 lg:p-6 mb-6 border border-gray-200 w-full">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-red-800 to-red-700 p-3 rounded-lg shadow-md">
+              <Building2 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-800">Partner Companies</h1>
+              <p className="text-sm text-gray-600 mb-0.5">Manage partner companies and MOA status</p>
+              <p className="text-xs text-gray-500">{filteredHTE.length} total companies</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
             <button
               onClick={() => setShowAddNewCompanyForm(true)}
-              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg"
+              className="bg-gradient-to-r from-red-800 to-red-700 hover:from-red-700 hover:to-red-600 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-sm lg:text-base whitespace-nowrap transform hover:-translate-y-0.5"
             >
-              Register new HTE
+              + Add New HTE
             </button>
 
-            <div className="relative">
+            <div className="relative flex-grow sm:flex-grow-0">
               <input
                 type="text"
-                placeholder="Search HTE name"
-                className="pl-4 pr-10 py-2 border rounded-md focus:ring-2 focus:ring-red-500 text-sm"
+                placeholder="Search company name..."
+                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ================= TABLE ================= */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-300 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-red-800">
-            <tr>
-              {['ACTIONS', 'NO.', 'HTE', 'EMAIL', 'SUPERVISOR', 'ADDRESS', 'NATURE', 'MOA VALIDITY', 'MOA'].map(
-                (title, idx) => (
-                  <th
-                    key={idx}
-                    className={`px-6 py-3 text-xs font-bold text-white uppercase ${
-                      idx === 0 ? 'text-center rounded-tl-lg' : idx === 8 ? 'rounded-tr-lg' : ''
-                    }`}
-                  >
-                    {title}
-                  </th>
-                ),
+      {/* Enhanced Table */}
+      <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gradient-to-r from-red-800 to-red-700">
+              <tr>
+                {['ACTIONS', 'NO.', 'HTE', 'EMAIL', 'SUPERVISOR', 'ADDRESS', 'NATURE', 'MOA VALIDITY', 'MOA'].map(
+                  (title, idx) => (
+                    <th
+                      key={idx}
+                      className={`px-6 py-4 text-xs font-bold text-white uppercase tracking-wider ${
+                        idx === 0 ? 'text-center' : ''
+                      }`}
+                    >
+                      {title}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan="9" className="text-center py-6 text-gray-500">
+                    Loading HTE...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="9" className="text-center py-6 text-red-500">
+                    {error}
+                  </td>
+                </tr>
+              ) : filteredHTE.length === 0 ? (
+                <tr>
+                  <td colSpan="9" className="text-center py-6 text-gray-500">
+                    No HTE found.
+                  </td>
+                </tr>
+              ) : (
+                filteredHTE.map((company, index) => {
+                  const { text, color } = computeMoaStatus(company.moaStart, company.moaEnd);
+
+                  return (
+                    <tr key={company.id} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedCompany(company);
+                              setShowUpdateConfirm(true);
+                            }}
+                            className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteClick(company)}
+                            className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-all duration-200"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4 text-sm font-medium text-gray-500">{index + 1}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{company.name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{company.email}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{company.supervisorName}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{company.address}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{company.natureOfBusiness}</td>
+
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${color}`}
+                        >
+                          {text}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4 text-center">
+                        {company.moaFile ? (
+                          <a
+                            href={`http://localhost:5000/uploads/${company.moaFile}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="View MOA"
+                            className="inline-flex items-center justify-center"
+                          >
+                            <FileText size={20} className={color} />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">N/A</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan="9" className="text-center py-6 text-gray-500">
-                  Loading HTE...
-                </td>
-              </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan="9" className="text-center py-6 text-red-500">
-                  {error}
-                </td>
-              </tr>
-            ) : filteredHTE.length === 0 ? (
-              <tr>
-                <td colSpan="9" className="text-center py-6 text-gray-500">
-                  No HTE found.
-                </td>
-              </tr>
-            ) : (
-              filteredHTE.map((company, index) => {
-                const { text, color } = computeMoaStatus(company.moaStart, company.moaEnd);
-
-                return (
-                  <tr key={company.id}>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex justify-center gap-3">
-                        <button
-                          onClick={() => {
-                            setSelectedCompany(company);
-                            setShowUpdateConfirm(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <Pencil size={16} />
-                        </button>
-
-                        <button onClick={() => handleDeleteClick(company)} className="text-red-600 hover:text-red-900">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">{index + 1}</td>
-                    <td className="px-6 py-4">{company.name}</td>
-                    <td className="px-6 py-4">{company.email}</td>
-                    <td className="px-6 py-4">{company.supervisorName}</td>
-                    <td className="px-6 py-4">{company.address}</td>
-                    <td className="px-6 py-4">{company.natureOfBusiness}</td>
-
-                    <td className={`px-6 py-4 font-semibold ${color}`}>{text}</td>
-
-                    <td className="px-6 py-4 text-center">
-                      {company.moaFile ? (
-                        <a
-                          href={`http://localhost:5000/uploads/${company.moaFile}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="View MOA"
-                          className="inline-flex items-center justify-center"
-                        >
-                          <FileText size={20} className={color} />
-                        </a>
-                      ) : (
-                        <span className="text-gray-400">N/A</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* ================= DELETE MODAL ================= */}
@@ -290,7 +309,7 @@ const HTEC = () => {
           />
         </div>
       )}
-    </>
+    </div>
   );
 };
 

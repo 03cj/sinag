@@ -77,7 +77,8 @@ const Documents = () => {
     }
 
     const formData = new FormData();
-    formData.append('file', file); // 🔥 MUST be "file"
+    formData.append('file', file);
+    formData.append('column', documents[index].column); // Send which document type this is
 
     try {
       const res = await fetch('http://localhost:5000/api/auth/intern-docs/upload', {
@@ -166,40 +167,73 @@ const Documents = () => {
      UI
   ========================= */
   if (loading) {
-    return <div className="text-center p-10 text-gray-500">Loading documents...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-800"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* HEADER */}
-      <div className="bg-red-800 text-white p-6 rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold">Document Dashboard</h2>
-        <p className="text-sm opacity-90">Upload and manage your required documents</p>
+    <div className="w-full px-6 sm:px-8 lg:px-12 py-6 space-y-6">
+      {/* Enhanced Header Card */}
+      <div className="bg-gradient-to-r from-red-800 to-red-900 rounded-2xl shadow-xl p-6 sm:p-8">
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center justify-center w-16 h-16 bg-white/10 rounded-full backdrop-blur-sm flex-shrink-0">
+            <FileText className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">Document Dashboard</h1>
+            <p className="text-red-100 text-base sm:text-lg mt-1">Upload and manage your required documents</p>
+          </div>
+        </div>
       </div>
 
-      {/* DOCUMENT LIST */}
-      <div className="bg-white p-6 rounded-xl shadow-lg border">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-5 flex items-center">
-          <FileText className="mr-3 text-gray-600" size={24} />
-          Required Documents
-        </h2>
+      {/* File Upload Guide */}
+      <div className="bg-red-50 border-l-4 border-red-800 rounded-lg p-4 shadow-sm">
+        <div className="flex gap-3">
+          <div className="flex-shrink-0">
+            <svg className="w-6 h-6 text-red-800" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-red-900 mb-1">Important: File Naming</h3>
+            <p className="text-sm text-red-800 font-medium">
+              Name your files based on the document type in CAPSLOCK (e.g., COR.pdf, RESUME.pdf, MEDICAL.pdf)
+            </p>
+          </div>
+        </div>
+      </div>
 
-        <ul className="space-y-4">
+      {/* Enhanced Document List */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+        <div className="bg-gradient-to-r from-red-700 to-red-800 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <FileText className="text-white" size={28} />
+            <h2 className="text-xl font-bold text-white">Required Documents</h2>
+          </div>
+        </div>
+
+        <ul className="p-6 space-y-3">
           {documents.map((doc, index) => (
-            <li key={doc.column} className="p-4 bg-gray-50 rounded-lg border hover:bg-gray-100 transition">
-              <div className="flex items-center justify-between">
+            <li
+              key={doc.column}
+              className="group bg-gray-50 rounded-xl border-2 border-gray-200 hover:border-red-300 hover:bg-white transition-all duration-200"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5">
                 {/* LEFT */}
-                <div className="flex items-center">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   {doc.uploaded ? (
-                    <CheckCircle2 className="text-green-500 mr-3" size={20} />
+                    <CheckCircle2 className="text-green-600 flex-shrink-0" size={24} />
                   ) : (
-                    <XCircle className="text-red-500 mr-3" size={20} />
+                    <XCircle className="text-red-600 flex-shrink-0" size={24} />
                   )}
-                  <span className="text-gray-700 font-medium">{doc.name}</span>
+                  <span className="text-gray-800 font-semibold text-base truncate">{doc.name}</span>
                 </div>
 
                 {/* RIGHT */}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 sm:flex-nowrap">
                   {doc.column !== 'MOA' && (
                     <input
                       type="file"
@@ -216,8 +250,9 @@ const Documents = () => {
                       onClick={() =>
                         doc.column === 'consent_form' ? setShowFillForm(true) : setShowNotarizedForm(true)
                       }
-                      className="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+                      className="flex items-center gap-2 bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white px-4 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
                     >
+                      <FileText size={16} />
                       Fill Form
                     </button>
                   )}
@@ -226,35 +261,31 @@ const Documents = () => {
                   {!doc.uploaded && doc.column !== 'MOA' && (
                     <button
                       onClick={() => triggerFileSelect(index)}
-                      className="flex items-center px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700"
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
                     >
-                      <CloudUpload className="mr-2" size={16} />
+                      <CloudUpload size={16} />
                       Upload
                     </button>
                   )}
 
                   {/* DELETE */}
-                  {/* DELETE */}
-                  {doc.uploaded &&
-                    doc.column !== 'MOA' &&
-                    doc.column !== 'notarized_agreement' &&
-                    doc.column !== 'consent_form' && (
-                      <button
-                        onClick={() => handleDelete(index)}
-                        className="flex items-center px-4 py-2 text-sm text-black bg-yellow-500 rounded-md hover:bg-yellow-600"
-                      >
-                        <XCircle className="mr-2" size={16} />
-                        Delete
-                      </button>
-                    )}
+                  {doc.uploaded && doc.column !== 'MOA' && (
+                    <button
+                      onClick={() => handleDelete(index)}
+                      className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
+                    >
+                      <XCircle size={16} />
+                      Delete
+                    </button>
+                  )}
 
                   {/* VIEW */}
                   {doc.uploaded && (
                     <button
                       onClick={() => handleFileView(doc.file, doc.column === 'MOA')}
-                      className="flex items-center px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-md border"
+                      className="flex items-center gap-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 px-4 py-2.5 rounded-lg font-medium transition-all"
                     >
-                      <Eye className="mr-2" size={16} />
+                      <Eye size={16} />
                       View
                     </button>
                   )}

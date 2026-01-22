@@ -194,8 +194,8 @@ const EditIntern = ({ intern, onUpdate, onCancel }) => {
             </div>
           </div>
 
-          {/* --- Second Row: ID, Program, Email --- */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* --- Second Row: ID and Email --- */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Student ID <span className="text-red-500">*</span>
@@ -211,13 +211,6 @@ const EditIntern = ({ intern, onUpdate, onCancel }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Program</label>
-              <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 sm:text-sm font-medium flex items-center">
-                {formData.program || 'Not assigned'}
-              </div>
-            </div>
-
-            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email <span className="text-red-500">*</span>
               </label>
@@ -229,6 +222,14 @@ const EditIntern = ({ intern, onUpdate, onCancel }) => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all sm:text-sm"
                 required
               />
+            </div>
+          </div>
+
+          {/* --- Third Row: Program (Full Width) --- */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Program</label>
+            <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 shadow-sm text-sm">
+              {formData.program || 'Not assigned'}
             </div>
           </div>
 

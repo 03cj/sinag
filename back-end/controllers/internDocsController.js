@@ -36,22 +36,19 @@ async function uploadInternDoc(req, res) {
     }
 
     /* =========================
-       MAP FILENAME → COLUMN
+       GET COLUMN FROM REQUEST BODY
     ========================= */
-    const filename = file.filename.toLowerCase();
-    let targetColumn = null;
-
-    if (filename.includes('notarized')) targetColumn = 'notarized_agreement';
-    else if (filename.includes('medical')) targetColumn = 'medical_cert';
-    else if (filename.includes('insurance')) targetColumn = 'insurance';
-    else if (filename.includes('resume')) targetColumn = 'resume';
-    else if (filename.includes('cor')) targetColumn = 'cor';
-    else if (filename.includes('consent')) targetColumn = 'consent_form';
+    const targetColumn = req.body.column;
 
     if (!targetColumn) {
       return res.status(400).json({
-        message: 'Filename must include document type (e.g. LASTNAME_COR.pdf)',
+        message: 'Document type not specified',
       });
+    }
+
+    const validColumns = ['notarized_agreement', 'medical_cert', 'insurance', 'resume', 'cor', 'consent_form'];
+    if (!validColumns.includes(targetColumn)) {
+      return res.status(400).json({ message: 'Invalid document type' });
     }
 
     /* =========================

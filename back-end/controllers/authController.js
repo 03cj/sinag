@@ -480,9 +480,9 @@ exports.updateInternStatus = async (req, res, next) => {
 ========================= */
 exports.assignHTE = async (req, res, next) => {
   try {
-    const { companyId, startDate } = req.body;
+    const { companyId, position } = req.body;
 
-    if (!companyId || !startDate) {
+    if (!companyId) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -492,7 +492,9 @@ exports.assignHTE = async (req, res, next) => {
     }
 
     intern.company_id = companyId;
-    intern.start_date = startDate;
+    if (position) {
+      intern.position = position;
+    }
     intern.status = 'Approved';
 
     await intern.save();
@@ -622,6 +624,7 @@ exports.me = async (req, res, next) => {
         moaStart: company.moaStart,
         moaEnd: company.moaEnd,
         moaFile: company.moaFile,
+        forcePasswordChange: company.forcePasswordChange || false,
         company: company,
       });
     }
@@ -647,6 +650,7 @@ exports.me = async (req, res, next) => {
       mi: user.mi || '',
       studentId: user.studentId || '',
       guardian: user.guardian || '',
+      forcePasswordChange: user.forcePasswordChange || false,
     };
 
     return res.json({

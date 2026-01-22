@@ -302,28 +302,34 @@ const InternA = () => {
      UI
   ========================= */
   return (
-    <>
-      {/* HEADER */}
-      <div className="bg-white rounded-lg shadow-md p-5 mb-8 border border-gray-300">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Intern Documents</h1>
-            <p className="text-gray-600 text-sm">Review intern submission documents</p>
+    <div className="min-h-screen overflow-x-hidden w-full">
+      {/* Enhanced Header Card */}
+      <div className="bg-gradient-to-r from-white to-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-5 lg:p-6 mb-6 border border-gray-200 w-full">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-red-800 to-red-700 p-3 rounded-lg shadow-md">
+              <Search className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-800">Intern Documents</h1>
+              <p className="text-sm text-gray-600 mb-0.5">Review intern submission documents</p>
+              <p className="text-xs text-gray-500">{interns.length} total interns</p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
             <button
               onClick={() => setShowAddInternForm(true)}
-              className="bg-red-800 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg"
+              className="bg-gradient-to-r from-red-800 to-red-700 hover:from-red-700 hover:to-red-600 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-sm lg:text-base whitespace-nowrap transform hover:-translate-y-0.5"
             >
-              Add Intern
+              + Add Intern
             </button>
 
-            <div className="relative">
+            <div className="relative flex-grow sm:flex-grow-0">
               <input
                 type="text"
-                placeholder="Search intern name"
-                className="pl-4 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-red-500 text-sm"
+                placeholder="Search intern name..."
+                className="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all duration-300"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -528,7 +534,7 @@ const InternA = () => {
       {internForEndorsement && (
         <Endorsement intern={internForEndorsement} onClose={() => setInternForEndorsement(null)} />
       )}
-    </>
+    </div>
   );
 };
 

@@ -1,4 +1,4 @@
-import { ClipboardCheck, FileCheck, UserCheck } from 'lucide-react';
+import { ClipboardCheck, FileCheck, FileText, UserCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -166,60 +166,49 @@ const GenerateReports = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>GENERATE REPORTS</h1>
-        <div style={styles.underline}></div>
-      </header>
-
-      {error && (
-        <div style={styles.errorContainer}>
-          <p style={styles.errorText}>⚠️ {error}</p>
-        </div>
-      )}
-
-      <div style={styles.horizontalWrapper}>
-        <div style={styles.flexContainer}>
-          {reportCards.map((card, index) => (
-            <div key={index} style={styles.card} className="report-card">
-              <div style={styles.iconContainer}>{card.icon}</div>
-              <h3 style={styles.cardTitle}>{card.title}</h3>
-              <p style={styles.cardDescription}>{card.description}</p>
-              <button
-                onClick={() => handleGenerateReport(card)}
-                disabled={loading !== null}
-                style={{
-                  ...styles.button,
-                  opacity: loading === card.id ? 0.7 : 1,
-                  cursor: loading !== null ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {loading === card.id ? 'Generating...' : 'Generate PDF'}
-              </button>
-            </div>
-          ))}
+    <div className="min-h-screen overflow-x-hidden w-full">
+      {/* Enhanced Header Card */}
+      <div className="bg-gradient-to-r from-white to-gray-50 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-5 lg:p-6 mb-6 border border-gray-200 w-full">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-br from-red-800 to-red-700 p-3 rounded-lg shadow-md">
+            <FileText className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-800">Generate Reports</h1>
+            <p className="text-sm text-gray-600">Download PDF reports for your program's interns</p>
+          </div>
         </div>
       </div>
 
-      <style>
-        {`
-          .report-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            min-width: 280px; 
-            max-width: 350px;
-          }
-          .report-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(128, 0, 0, 0.15) !important;
-            border-color: #FFD700 !important;
-          }
-          .report-card:hover button {
-            background-color: #a00000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-          }
-        `}
-      </style>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
+          <p className="text-red-800 font-medium">⚠️ {error}</p>
+        </div>
+      )}
+
+      {/* Report Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {reportCards.map((card, index) => (
+          <div
+            key={index}
+            className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-200 hover:border-yellow-400 transform hover:-translate-y-2 group"
+          >
+            <div className="bg-gradient-to-br from-red-800 to-red-700 text-white p-4 rounded-lg inline-flex mb-4 group-hover:scale-110 transition-transform duration-300">
+              {card.icon}
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-3">{card.title}</h3>
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">{card.description}</p>
+            <button
+              onClick={() => handleGenerateReport(card)}
+              disabled={loading !== null}
+              className="w-full py-3 px-4 bg-gradient-to-r from-red-800 to-red-700 hover:from-red-700 hover:to-red-600 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+            >
+              {loading === card.id ? 'Generating...' : 'Generate PDF'}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

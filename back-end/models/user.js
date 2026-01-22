@@ -77,7 +77,8 @@ module.exports = (sequelize, DataTypes) => {
 
       forcePasswordChange: {
         type: DataTypes.BOOLEAN,
-        allowNull: true,
+        allowNull: false,
+        defaultValue: true, // Changed from true to ensure new users must change password
         field: 'forcePasswordChange', // ✅ Exact column name in DB
       },
     },

@@ -12,7 +12,6 @@ const Endorsement = ({ intern, onClose }) => {
   const [companyAddress, setCompanyAddress] = useState('');
   const [hrName, setHrName] = useState('');
   const [position, setPosition] = useState('');
-  const [startDate, setStartDate] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   if (!intern) return null;
@@ -73,7 +72,7 @@ const Endorsement = ({ intern, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedCompanyId || !position || !startDate) {
+    if (!selectedCompanyId || !position) {
       setErrorMessage('⚠ Please fill out all required fields.');
       return;
     }
@@ -88,7 +87,6 @@ const Endorsement = ({ intern, onClose }) => {
         body: JSON.stringify({
           companyId: selectedCompanyId,
           position,
-          startDate,
         }),
       });
 
@@ -181,18 +179,6 @@ const Endorsement = ({ intern, onClose }) => {
               <input
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                required
-              />
-            </div>
-
-            {/* DATE */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Internship Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 required
               />

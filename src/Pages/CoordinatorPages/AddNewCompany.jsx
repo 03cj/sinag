@@ -165,7 +165,7 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
           {/* ROW 1 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-1">
                 Name of HTE <span className="text-red-500">*</span>
               </label>
               <input
@@ -173,7 +173,7 @@ const AddNewCompany = ({ onAddSuccess, onCancel }) => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2 border rounded-md"
                 required
               />
             </div>
