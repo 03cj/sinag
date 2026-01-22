@@ -39,7 +39,6 @@ module.exports = (sequelize, DataTypes) => {
       mi: {
         type: DataTypes.STRING(255),
         allowNull: true,
-        unique: true,
       },
 
       studentId: {
