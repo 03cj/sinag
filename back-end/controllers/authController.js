@@ -491,7 +491,7 @@ exports.updateInternStatus = async (req, res, next) => {
 ========================= */
 exports.assignHTE = async (req, res, next) => {
   try {
-    const { companyId, position } = req.body;
+    const { companyId, position, supervisorName } = req.body;
 
     if (!companyId) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -500,6 +500,25 @@ exports.assignHTE = async (req, res, next) => {
     const intern = await Intern.findByPk(req.params.id);
     if (!intern) {
       return res.status(404).json({ message: 'Intern not found' });
+    }
+
+    // Find or create supervisor for this company
+    let supervisor = null;
+    if (supervisorName && supervisorName.trim()) {
+      supervisor = await require('../models').Supervisor.findOne({
+        where: {
+          name: supervisorName.trim(),
+          company_id: companyId,
+        },
+      });
+      if (!supervisor) {
+        supervisor = await require('../models').Supervisor.create({
+          name: supervisorName.trim(),
+          company_id: companyId,
+          email: `${supervisorName.trim().toLowerCase().replace(/\s+/g, '')}${companyId}@placeholder.com`, // placeholder email
+        });
+      }
+      intern.supervisor_id = supervisor.id;
     }
 
     intern.company_id = companyId;
@@ -513,6 +532,7 @@ exports.assignHTE = async (req, res, next) => {
     res.json({
       message: 'HTE assigned successfully',
       intern,
+      supervisor,
     });
   } catch (err) {
     next(err);

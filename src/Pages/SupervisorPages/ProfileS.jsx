@@ -1,24 +1,57 @@
 import { ArrowLeft, Building, CheckCircle, Eye, EyeOff, Lock, Mail, Save, Shield, User, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const PRIMARY_COLOR_BG = 'bg-red-800';
 const BORDER_COLOR = 'border-red-800';
 const INPUT_FOCUS_RING = 'focus:ring-red-500 focus:border-red-500';
 
 const ProfileS = () => {
-  const navigate = useNavigate();
-
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  // Add new supervisor handler
+  const handleAddSupervisor = async (e) => {
+    e.preventDefault();
+    setSupervisorAddError(null);
+    setSupervisorAddSuccess(null);
+    if (!newSupervisorName.trim()) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/auth/company/supervisors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: newSupervisorName }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setSupervisorAddSuccess('Supervisor added!');
+      setNewSupervisorName('');
+    } catch (err) {
+      setSupervisorAddError(err.message || 'Failed to add supervisor');
+    }
+  };
+  // Main profile data state
   const [profileData, setProfileData] = useState({
     supervisorName: '',
     companyName: '',
     natureOfBusiness: '',
     email: '',
   });
+  // ...existing code...
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  // =========================
+  // OTHER SUPERVISORS STATE
+  // =========================
+  const [supervisors, setSupervisors] = useState([]);
+  const [newSupervisorName, setNewSupervisorName] = useState('');
+  const [supervisorAddError, setSupervisorAddError] = useState(null);
+  const [supervisorAddSuccess, setSupervisorAddSuccess] = useState(null);
+
+  // Fetch all supervisors for this company
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -205,6 +238,42 @@ const ProfileS = () => {
             </div>
           )}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
+            {/* Other Supervisors Section */}
+            <div className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden shadow-sm">
+              <div className="bg-red-700 px-3 lg:px-4 py-2 lg:py-3 flex items-center gap-2">
+                <User className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+                <h2 className="text-sm lg:text-base font-bold text-white">Other Supervisors</h2>
+              </div>
+              <div className="p-4 lg:p-5 space-y-3 lg:space-y-4">
+                <form onSubmit={handleAddSupervisor} className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={newSupervisorName}
+                    onChange={(e) => setNewSupervisorName(e.target.value)}
+                    className={`flex-1 px-3 py-2 border-2 ${BORDER_COLOR} rounded-md ${INPUT_FOCUS_RING}`}
+                    placeholder="Add supervisor name"
+                    disabled={loading}
+                  />
+                  <button
+                    type="submit"
+                    className={`px-4 py-2 ${PRIMARY_COLOR_BG} text-white rounded-lg font-semibold`}
+                    disabled={loading}
+                  >
+                    Add
+                  </button>
+                </form>
+                {supervisorAddError && <div className="text-red-600 text-xs">{supervisorAddError}</div>}
+                {supervisorAddSuccess && <div className="text-green-600 text-xs">{supervisorAddSuccess}</div>}
+                <ul className="divide-y divide-gray-200">
+                  {supervisors.length === 0 && <li className="text-gray-500 text-xs">No other supervisors yet.</li>}
+                  {supervisors.map((sup) => (
+                    <li key={sup.id} className="py-1 text-sm">
+                      {sup.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
             {/* Company Information Section */}
             <div className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden shadow-sm">
               <div className="bg-red-700 px-3 lg:px-4 py-2 lg:py-3 flex items-center gap-2">

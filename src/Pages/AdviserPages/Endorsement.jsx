@@ -58,7 +58,7 @@ const Endorsement = ({ intern, onClose }) => {
     setSelectedCompanyId(companyId);
 
     const selected = companies.find((c) => String(c.id) === companyId);
-
+    setHrName(selected.supervisorName || ''); // Initialize hrName
     if (selected) {
       setCompanyName(selected.name || '');
       setCompanyAddress(selected.address || '');

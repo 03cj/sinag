@@ -1,3 +1,9 @@
+// =========================
+// COMPANY SUPERVISORS (COMPANY ROLE)
+// =========================
+const supervisorController = require('../controllers/supervisorController');
+router.get('/company/supervisors', authMiddleware(['company']), supervisorController.getCompanySupervisors);
+router.post('/company/supervisors', authMiddleware(['company']), supervisorController.addCompanySupervisor);
 /* eslint-env node */
 const express = require('express');
 const router = express.Router();
