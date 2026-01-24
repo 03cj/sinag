@@ -1,9 +1,18 @@
 const HTEEvaluation = require('../models/HTEEvaluation');
 const Intern = require('../models/interns');
 const User = require('../models/user');
+const evaluationSettings = require('../services/evaluationSettingsService');
 
 exports.createHTEEvaluation = async (req, res) => {
   try {
+    // 🔐 CHECK IF EVALUATION IS ACTIVE
+    const isActive = evaluationSettings.isEvaluationActive('hte');
+    if (!isActive) {
+      return res.status(403).json({
+        message: 'HTE evaluations are currently not accepting submissions. Please contact the coordinator.',
+      });
+    }
+
     // 1️⃣ Get intern
     const intern = await Intern.findOne({
       where: { user_id: req.user.id },

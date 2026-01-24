@@ -1,7 +1,16 @@
 const { SupervisorEvaluation, SupervisorEvaluationItem } = require('../models');
+const evaluationSettings = require('../services/evaluationSettingsService');
 
 exports.submitEvaluation = async (req, res) => {
   try {
+    // 🔐 CHECK IF EVALUATION IS ACTIVE
+    const isActive = evaluationSettings.isEvaluationActive('supervisor');
+    if (!isActive) {
+      return res.status(403).json({
+        message: 'Supervisor evaluations are currently not accepting submissions. Please contact the coordinator.',
+      });
+    }
+
     const { intern_id, company_id, academic_year, semester, comment, items } = req.body;
 
     console.log('📝 Received supervisor evaluation:', {

@@ -1,7 +1,7 @@
-import { useAuth } from '@/Context/AuthContext';
 import { Building, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 
 const AdviserLayout = () => {
   const navigate = useNavigate();

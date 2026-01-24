@@ -1,4 +1,4 @@
-import { BookOpen, CheckCircle2, Clock, Download, Edit3, MessageSquare, Trash2, Upload } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, Edit3, MessageSquare, Trash2, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Modal from '../../Components/Modal';
 import UploadReport from './UploadReport';
@@ -94,12 +94,6 @@ const Journal = () => {
   /* =========================
      ACTION HANDLERS
   ========================= */
-  const handleDownload = (report) => {
-    // TODO: Implement download functionality
-    console.log('Download:', report);
-    alert('Download functionality coming soon');
-  };
-
   const handleEdit = (report) => {
     setEditingReport(report);
     setShowUpload(true);
@@ -262,13 +256,6 @@ const Journal = () => {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleDownload(report)}
-                          className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-all duration-200"
-                          title="Download log"
-                        >
-                          <Download size={18} />
-                        </button>
                         <button
                           onClick={() => handleEdit(report)}
                           className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-all duration-200"

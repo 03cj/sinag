@@ -1,7 +1,8 @@
-import { useAuth } from '@/Context/AuthContext';
-import axios from '@/services/axios';
 import { ArrowLeft, Send, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import EvaluationStatusBanner from '../../Components/EvaluationStatusBanner';
+import { useAuth } from '../../Context/AuthContext';
+import axios from '../../services/axios';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -133,8 +134,24 @@ const HTE_Evaluation = () => {
       </label>
     ));
 
+  // Determine if EvaluationStatusBanner modal is open by checking for a modal in the DOM
+  // We'll use a state to track if the modal is open
+  const [bannerModalOpen, setBannerModalOpen] = useState(false);
+
+  // Patch EvaluationStatusBanner to accept a callback for modal open state
+  // But for now, use a workaround: hide bg-red-50 when modal is open
+  // We'll use a MutationObserver to detect the modal
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const modal = document.querySelector('.sinag-eval-modal');
+      setBannerModalOpen(!!modal);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-red-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <SimpleModal {...modal} onClose={closeModal} />
 
       <form onSubmit={handleSubmit} className="max-w-7xl mx-auto space-y-6">
@@ -145,6 +162,8 @@ const HTE_Evaluation = () => {
             Back
           </button>
         </div>
+
+        <EvaluationStatusBanner type="hte" />
 
         {/* Title */}
         <div className="bg-red-800 text-white p-6 rounded-lg shadow text-center">

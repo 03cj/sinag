@@ -212,9 +212,9 @@ exports.getAdvisers = async (req, res, next) => {
 
 exports.addAdviser = async (req, res, next) => {
   try {
-    const { firstName, lastName, mi, email, program } = req.body;
+    const { firstName, lastName, mi, email, program, yearSection } = req.body;
 
-    if (!firstName || !lastName || !email || !program) {
+    if (!firstName || !lastName || !email || !program || !yearSection) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -237,6 +237,7 @@ exports.addAdviser = async (req, res, next) => {
       password: passwordHash, // ✅ FIXED: Use 'password' not 'passwordHash'
       role: 'Adviser',
       program,
+      yearSection,
       forcePasswordChange: true,
     });
 
@@ -295,6 +296,14 @@ exports.addIntern = async (req, res, next) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    // Get adviser info to inherit yearSection
+    const adviserId = req.user.id;
+    const adviser = await User.findByPk(adviserId);
+
+    if (!adviser || adviser.role !== 'Adviser') {
+      return res.status(403).json({ message: 'Only advisers can add interns' });
+    }
+
     const existingUser = await User.findOne({
       where: { email: email.toLowerCase() },
     });
@@ -310,7 +319,7 @@ exports.addIntern = async (req, res, next) => {
     // 🔐 HASH PASSWORD
     const passwordHash = await bcrypt.hash(tempPassword, 10);
 
-    // 👤 CREATE USER
+    // 👤 CREATE USER (inherit yearSection from adviser)
     const user = await User.create({
       firstName,
       lastName,
@@ -320,13 +329,15 @@ exports.addIntern = async (req, res, next) => {
       role: 'Intern',
       studentId,
       program,
+      yearSection: adviser.yearSection, // Inherit from adviser
       forcePasswordChange: true,
     });
 
-    // 📄 CREATE INTERN RECORD
+    // 📄 CREATE INTERN RECORD (also store yearSection)
     await Intern.create({
       user_id: user.id,
       program,
+      year_section: adviser.yearSection, // Inherit from adviser
       status: 'Pending',
     });
 

@@ -133,6 +133,9 @@ if (hteEvaluationsRoute) app.use('/api/hte-evaluations', hteEvaluationsRoute);
 const supervisorEvaluationsRoute = loadRoute('./routes/SupervisorEvaluations', 'SupervisorEvaluations');
 if (supervisorEvaluationsRoute) app.use('/api/supervisor-evaluations', supervisorEvaluationsRoute);
 
+const evaluationSettingsRoute = loadRoute('./routes/evaluationSettings', 'evaluationSettings');
+if (evaluationSettingsRoute) app.use('/api/evaluation', evaluationSettingsRoute);
+
 // =========================
 // DAILY LOG ROUTE
 // =========================

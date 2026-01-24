@@ -65,6 +65,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
 
+      year_section: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+      },
+
       start_date: {
         type: DataTypes.DATEONLY,
         allowNull: true,

@@ -7,6 +7,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
     mi: '',
     id: '',
     program: '',
+    yearSection: '',
     email: '',
     initialPassword: '',
   });
@@ -45,6 +46,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
         setFormData((prev) => ({
           ...prev,
           program: user.program,
+          yearSection: user.yearSection || '',
         }));
       } catch (err) {
         console.error(err);
@@ -149,6 +151,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
         mi: '',
         id: '',
         program: prev.program,
+        yearSection: prev.yearSection,
         email: '',
         initialPassword: '',
       }));
@@ -275,11 +278,21 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
             </div>
           </div>
 
-          {/* PROGRAM ROW */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Program (Inherited from Adviser)</label>
-            <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 shadow-sm text-sm">
-              {formData.program}
+          {/* PROGRAM & YEAR-SECTION ROW */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Program</label>
+              <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 shadow-sm text-sm">
+                {formData.program || 'Loading...'}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Year & Section</label>
+              <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 shadow-sm text-sm">
+                {formData.yearSection || 'Not set'}
+              </div>
+              <p className="mt-1 text-xs text-gray-500">Inherited from your adviser account</p>
             </div>
           </div>
 

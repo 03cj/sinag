@@ -6,6 +6,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
     firstname: '',
     mi: '',
     program: '',
+    yearSection: '',
     email: '',
     initialPassword: '',
   });
@@ -21,7 +22,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    const uppercaseFields = ['lastname', 'firstname', 'mi', 'program'];
+    const uppercaseFields = ['lastname', 'firstname', 'mi', 'program', 'yearSection'];
 
     setFormData((prev) => ({
       ...prev,
@@ -57,6 +58,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
       !formData.lastname ||
       !formData.firstname ||
       !formData.program ||
+      !formData.yearSection ||
       !formData.email ||
       !formData.initialPassword
     ) {
@@ -80,6 +82,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
           lastName: formData.lastname,
           mi: formData.mi,
           program: formData.program,
+          yearSection: formData.yearSection,
           email: formData.email,
           password: formData.initialPassword,
         }),
@@ -99,6 +102,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
         firstname: '',
         mi: '',
         program: '',
+        yearSection: '',
         email: '',
         initialPassword: '',
       });
@@ -194,27 +198,44 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
             </div>
           </div>
 
-          {/* DETAILS ROW (ID REMOVED) */}
+          {/* PROGRAM ROW */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Program <span className="text-red-500">*</span>
+            </label>
+
+            <input
+              type="text"
+              name="program"
+              value={formData.program}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-md"
+              required
+            />
+
+            {/* Instruction */}
+            <p className="mt-1 text-sm text-gray-500">
+              Please enter the complete program name (e.g., <em>Bachelor of Science in Information Technology</em>). Do
+              not use abbreviations (e.g., BSIT, IT).
+            </p>
+          </div>
+
+          {/* YEAR-SECTION & EMAIL ROW */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                Program <span className="text-red-500">*</span>
+                Year & Section <span className="text-red-500">*</span>
               </label>
-
               <input
                 type="text"
-                name="program"
-                value={formData.program}
+                name="yearSection"
+                value={formData.yearSection}
                 onChange={handleChange}
+                placeholder="e.g., 4-1, 3-2, 2-A"
                 className="w-full px-4 py-2 border rounded-md"
                 required
               />
-
-              {/* Instruction */}
-              <p className="mt-1 text-sm text-gray-500">
-                Please enter the complete program name (e.g., <em>Bachelor of Science in Information Technology</em>).
-                Do not use abbreviations (e.g., BSIT, IT).
-              </p>
+              <p className="mt-1 text-sm text-gray-500">This will be inherited by all interns added by this adviser.</p>
             </div>
 
             <div>

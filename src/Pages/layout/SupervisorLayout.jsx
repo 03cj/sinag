@@ -1,7 +1,7 @@
-import { useAuth } from '@/Context/AuthContext';
 import { Building, LogOut, Menu, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 
 const SupervisorLayout = () => {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const SupervisorLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden w-full">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 w-full">
       {/* Enhanced Navigation Bar */}
       <nav className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white shadow-xl sticky top-0 z-50 border-b-4 border-yellow-400 w-full">
         <div className="px-3 lg:px-6">

@@ -1,5 +1,6 @@
 const sequelize = require('../config/database');
 const { DataTypes } = require('sequelize');
+const evaluationSettings = require('../services/evaluationSettingsService');
 
 const InternEvaluation = require('../models/InternEvaluation')(sequelize, DataTypes);
 const InternEvaluationItem = require('../models/InternEvaluationItem')(sequelize, DataTypes);
@@ -23,6 +24,15 @@ exports.createEvaluation = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
+    // 🔐 CHECK IF EVALUATION IS ACTIVE
+    const isActive = evaluationSettings.isEvaluationActive('intern');
+    if (!isActive) {
+      await transaction.rollback();
+      return res.status(403).json({
+        message: 'Intern evaluations are currently not accepting submissions. Please contact the coordinator.',
+      });
+    }
+
     const { intern_id, ratings, totalScore, ...evaluationData } = req.body;
 
     if (!intern_id) {

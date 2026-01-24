@@ -1,7 +1,8 @@
-import axios from '@/services/axios';
 import { ArrowLeft, ClipboardList, UserCheck } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import EvaluationStatusBanner from '../../Components/EvaluationStatusBanner';
+import axios from '../../services/axios';
 
 /* ============================
    DATA BASED ON OFFICIAL PDF
@@ -183,14 +184,27 @@ const Supervisor_Evaluation = () => {
     }
   };
 
+  // Track if EvaluationStatusBanner modal is open
+  const [bannerModalOpen, setBannerModalOpen] = useState(false);
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const modal = document.querySelector('.sinag-eval-modal');
+      setBannerModalOpen(!!modal);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-red-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <form onSubmit={handleSubmit} className="max-w-7xl mx-auto space-y-6">
         {/* Navigation */}
         <button type="button" onClick={() => navigate(-1)} className="flex items-center text-red-700 font-semibold">
           <ArrowLeft className="w-5 h-5 mr-1" />
           Back
         </button>
+
+        <EvaluationStatusBanner type="supervisor" />
 
         {/* Header */}
         <div className="bg-red-800 text-white p-6 rounded-lg shadow text-center">

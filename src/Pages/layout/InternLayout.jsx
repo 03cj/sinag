@@ -1,7 +1,7 @@
-import { useAuth } from '@/Context/AuthContext';
 import { CheckSquare, FileText, GraduationCap, Home, LogOut, Menu, NotebookText, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 
 const InternLayout = () => {
   const navigate = useNavigate();
@@ -27,8 +27,23 @@ const InternLayout = () => {
     setIsMobileMenuOpen(false);
   };
 
+  // Track if EvaluationStatusBanner modal is open globally for intern pages
+  const [bannerModalOpen, setBannerModalOpen] = useState(false);
+  // Use MutationObserver to detect modal presence
+  // This will work for all intern pages
+  useState(() => {
+    const observer = new MutationObserver(() => {
+      const modal = document.querySelector('.sinag-eval-modal');
+      setBannerModalOpen(!!modal);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-x-hidden w-full">
+    <div
+      className={`min-h-screen w-full transition-colors duration-200 ${bannerModalOpen ? 'bg-transparent' : 'bg-gradient-to-br from-gray-50 to-gray-100'}`}
+    >
       {/* Enhanced Navigation Bar */}
       <nav className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white shadow-xl sticky top-0 z-50 border-b-4 border-yellow-400 w-full">
         <div className="px-3 lg:px-6">

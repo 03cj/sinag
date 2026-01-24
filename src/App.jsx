@@ -24,6 +24,7 @@ import AddCoordinator from './Pages/AddCoordinator';
 import AddNewCompany from './Pages/CoordinatorPages/AddNewCompany';
 import AdviserC from './Pages/CoordinatorPages/AdviserC';
 import DashboardC from './Pages/CoordinatorPages/DashboardC';
+import EvaluationSettings from './Pages/CoordinatorPages/EvaluationSettings';
 import HTEC from './Pages/CoordinatorPages/HTEC';
 import InternC from './Pages/CoordinatorPages/InternC';
 import ProfileC from './Pages/CoordinatorPages/ProfileC';
@@ -95,6 +96,7 @@ export default function App() {
           <Route path="HTE" element={<HTEC />} />
           <Route path="newcompany" element={<AddNewCompany />} />
           <Route path="reports" element={<ReportsC />} />
+          <Route path="settings" element={<EvaluationSettings />} />
           <Route path="profile" element={<ProfileC />} />
         </Route>
 

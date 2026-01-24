@@ -1,7 +1,18 @@
-import { useAuth } from '@/Context/AuthContext';
-import { Building, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, Presentation, User, X } from 'lucide-react';
+import {
+  Building,
+  FileText,
+  GraduationCap,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Presentation,
+  Settings,
+  User,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 
 const CoordinatorLayout = () => {
   const navigate = useNavigate();
@@ -14,6 +25,7 @@ const CoordinatorLayout = () => {
     { name: 'HTE', path: 'HTE', icon: <Building size={20} /> },
     { name: 'Interns', path: 'interns', icon: <GraduationCap size={20} /> },
     { name: 'Reports', path: 'reports', icon: <FileText size={20} /> },
+    { name: 'Settings', path: 'settings', icon: <Settings size={20} /> },
   ];
 
   const handleLogout = () => {

@@ -57,6 +57,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
 
+      yearSection: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        field: 'yearSection',
+      },
+
       guardian: {
         type: DataTypes.STRING(255),
         allowNull: true,
