@@ -33,6 +33,7 @@ exports.getMyCompany = async (req, res) => {
 ================================================= */
 exports.getInternsForAdviser = async (req, res) => {
   try {
+    const { Supervisor } = require('../models');
     const interns = await Intern.findAll({
       include: [
         {
@@ -43,12 +44,17 @@ exports.getInternsForAdviser = async (req, res) => {
         {
           model: Company,
           as: 'company',
-          attributes: { exclude: ['password'] }, // ✅ Include all fields including supervisorName
+          attributes: { exclude: ['password'] },
           required: false,
         },
         {
           model: InternDocuments,
           as: 'InternDocuments',
+          required: false,
+        },
+        {
+          model: Supervisor,
+          as: 'Supervisor',
           required: false,
         },
       ],

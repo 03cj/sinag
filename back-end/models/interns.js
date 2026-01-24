@@ -65,6 +65,17 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
 
+      supervisor_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Supervisor',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      },
+
       year_section: {
         type: DataTypes.STRING(50),
         allowNull: true,
@@ -98,6 +109,14 @@ module.exports = (sequelize, DataTypes) => {
 
   // ✅ ASSOCIATIONS - ONLY DEFINE ONCE
   Intern.associate = (models) => {
+    // Intern belongs to Supervisor
+    if (models.Supervisor) {
+      Intern.belongsTo(models.Supervisor, {
+        foreignKey: 'supervisor_id',
+        as: 'Supervisor',
+        onDelete: 'SET NULL',
+      });
+    }
     // Intern belongs to User (the intern student)
     if (models.User) {
       Intern.belongsTo(models.User, {

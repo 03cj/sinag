@@ -87,6 +87,7 @@ const Endorsement = ({ intern, onClose }) => {
         body: JSON.stringify({
           companyId: selectedCompanyId,
           position,
+          supervisorName: hrName,
         }),
       });
 
@@ -163,13 +164,14 @@ const Endorsement = ({ intern, onClose }) => {
               />
             </div>
 
-            {/* HR */}
+            {/* HR / Supervisor (Editable) */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">HR / Supervisor</label>
               <input
                 value={hrName}
-                readOnly
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                onChange={(e) => setHrName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                required
               />
             </div>
 
