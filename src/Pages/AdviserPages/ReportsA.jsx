@@ -1,7 +1,7 @@
 import { ClipboardCheck, FileCheck, FileText, UserCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 const GenerateReports = () => {
   const [loading, setLoading] = useState(null);

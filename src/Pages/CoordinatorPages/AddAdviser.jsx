@@ -69,7 +69,7 @@ const AddAdviser = ({ onAddSuccess, onCancel }) => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/auth/addAdviser', {
+      const response = await fetch('http://localhost:5001/api/auth/addAdviser', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

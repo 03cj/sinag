@@ -100,7 +100,7 @@ const CompanyDashboard = () => {
         const token = localStorage.getItem('token');
 
         /* 1️⃣ COMPANY PROFILE */
-        const companyRes = await fetch('http://localhost:5000/api/auth/company/me', {
+        const companyRes = await fetch('http://localhost:5001/api/auth/company/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -160,7 +160,7 @@ const CompanyDashboard = () => {
         }
 
         /* 2️⃣ INTERN LIST */
-        const internRes = await fetch('http://localhost:5000/api/auth/company/interns', {
+        const internRes = await fetch('http://localhost:5001/api/auth/company/interns', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -205,7 +205,7 @@ const CompanyDashboard = () => {
       setDateModal({ ...dateModal, isVisible: false });
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/dashboard/daily-attendance?date=${selectedDate}`, {
+      const response = await fetch(`http://localhost:5001/api/dashboard/daily-attendance?date=${selectedDate}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -241,7 +241,7 @@ const CompanyDashboard = () => {
   const handleGenerateGeneralRecord = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/dashboard/general-record`, {
+      const response = await fetch(`http://localhost:5001/api/dashboard/general-record`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -402,7 +402,7 @@ const CompanyDashboard = () => {
 
               {moaDetails.moaFile ? (
                 <a
-                  href={`http://localhost:5000/uploads/${moaDetails.moaFile}`}
+                  href={`http://localhost:5001/uploads/${moaDetails.moaFile}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-800 to-red-700 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-red-600 transition-all duration-300 shadow-md hover:shadow-lg mt-4"

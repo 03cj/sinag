@@ -39,7 +39,7 @@ const UploadReport = ({ onClose, onUploadSuccess, editingReport }) => {
 
       // If there's an existing photo, show it
       if (editingReport.photoUrl) {
-        setFilePreview(`http://localhost:5000/${editingReport.photoUrl}`);
+        setFilePreview(`http://localhost:5001/${editingReport.photoUrl}`);
       }
     }
   }, [editingReport]);

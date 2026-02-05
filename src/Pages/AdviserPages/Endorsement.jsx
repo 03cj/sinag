@@ -32,7 +32,7 @@ const Endorsement = ({ intern, onClose }) => {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/auth/HTE', {
+        const res = await fetch('http://localhost:5001/api/auth/HTE', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -78,7 +78,7 @@ const Endorsement = ({ intern, onClose }) => {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/interns/${intern.id}/assign-hte`, {
+      const res = await fetch(`http://localhost:5001/api/auth/interns/${intern.id}/assign-hte`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

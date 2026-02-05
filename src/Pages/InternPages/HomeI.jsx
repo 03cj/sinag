@@ -33,7 +33,7 @@ const HomeI = () => {
   useEffect(() => {
     const fetchDocs = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/auth/intern-docs/me', {
+        const res = await fetch('http://localhost:5001/api/auth/intern-docs/me', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -83,10 +83,10 @@ const HomeI = () => {
         const token = localStorage.getItem('token');
 
         const [dashboardRes, userRes] = await Promise.all([
-          fetch('http://localhost:5000/api/dashboard/intern', {
+          fetch('http://localhost:5001/api/dashboard/intern', {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch('http://localhost:5000/api/auth/me', {
+          fetch('http://localhost:5001/api/auth/me', {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -165,7 +165,7 @@ const HomeI = () => {
   };
 
   const handleFileView = (fileName) => {
-    window.open(`http://localhost:5000/uploads/${fileName}`, '_blank');
+    window.open(`http://localhost:5001/uploads/${fileName}`, '_blank');
   };
 
   // =========================

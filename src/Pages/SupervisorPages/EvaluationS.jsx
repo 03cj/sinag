@@ -65,7 +65,7 @@ const EvaluationS = () => {
         const token = localStorage.getItem('token');
 
         // 1️⃣ Get interns of company
-        const internRes = await fetch('http://localhost:5000/api/auth/company/interns', {
+        const internRes = await fetch('http://localhost:5001/api/auth/company/interns', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -79,7 +79,7 @@ const EvaluationS = () => {
         setInternId(intern.id);
 
         // 2️⃣ Get company profile (for HTE + supervisor)
-        const companyRes = await fetch('http://localhost:5000/api/auth/company/me', {
+        const companyRes = await fetch('http://localhost:5001/api/auth/company/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
 

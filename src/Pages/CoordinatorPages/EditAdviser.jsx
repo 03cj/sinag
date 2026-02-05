@@ -58,7 +58,7 @@ const EditAdviser = ({ adviser, onUpdate, onCancel }) => {
         email: formData.email.trim().toLowerCase(),
       };
 
-      const response = await fetch(`http://localhost:5000/api/auth/advisers/${adviser.id}`, {
+      const response = await fetch(`http://localhost:5001/api/auth/advisers/${adviser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

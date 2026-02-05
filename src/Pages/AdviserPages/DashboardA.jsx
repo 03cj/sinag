@@ -11,6 +11,10 @@ import InternA_ from './InternA_in_dashboardA';
 const abbreviateProgram = (program) => {
   if (!program || program === 'All') return program;
 
+  if (normalized === 'BACHELOR OF ELEMENTARY EDUCATION') {
+    return 'BEED';
+  }
+
   const ignoreWords = ['OF', 'IN', 'THE', 'AND', 'FOR'];
 
   return program
@@ -48,7 +52,7 @@ const DashboardA = () => {
     partnerHTE: 'Loading...',
   });
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
   useEffect(() => {
     const fetchDashboardData = async () => {

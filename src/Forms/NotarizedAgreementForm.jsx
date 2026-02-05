@@ -24,7 +24,7 @@ const NotarizedAgreementForm = ({ onClose, onUploaded }) => {
 
       try {
         console.log('🔄 Fetching from /api/documents/notarized-agreement-data...');
-        const res = await fetch('http://localhost:5000/api/documents/notarized-agreement-data', {
+        const res = await fetch('http://localhost:5001/api/documents/notarized-agreement-data', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -51,7 +51,7 @@ const NotarizedAgreementForm = ({ onClose, onUploaded }) => {
 
         // Fallback user info if primary data unavailable
         console.log('🔄 Fallback: Fetching from /api/auth/me...');
-        const me = await fetch('http://localhost:5000/api/auth/me', {
+        const me = await fetch('http://localhost:5001/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (me.ok) {
@@ -119,7 +119,7 @@ const NotarizedAgreementForm = ({ onClose, onUploaded }) => {
 
     const token = localStorage.getItem('token');
 
-    const res = await fetch('http://localhost:5000/api/documents/notarized-agreement-save', {
+    const res = await fetch('http://localhost:5001/api/documents/notarized-agreement-save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ const NotarizedAgreementForm = ({ onClose, onUploaded }) => {
     }
 
     const data = await res.json();
-    window.open(`http://localhost:5000${data.fileUrl}`, '_blank');
+    window.open(`http://localhost:5001${data.fileUrl}`, '_blank');
     if (onUploaded) {
       const filename = data.file || data.filename || data.fileUrl?.split('/').pop();
       onUploaded(filename || null);

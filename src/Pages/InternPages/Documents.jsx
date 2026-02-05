@@ -29,7 +29,7 @@ const Documents = () => {
   useEffect(() => {
     const fetchDocs = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/auth/intern-docs/me', {
+        const res = await fetch('http://localhost:5001/api/auth/intern-docs/me', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -81,7 +81,7 @@ const Documents = () => {
     formData.append('column', documents[index].column); // Send which document type this is
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/intern-docs/upload', {
+      const res = await fetch('http://localhost:5001/api/auth/intern-docs/upload', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -111,7 +111,7 @@ const Documents = () => {
   const handleFileView = async (filename, isMOA = false) => {
     try {
       if (isMOA) {
-        const res = await fetch('http://localhost:5000/api/auth/company/moa', {
+        const res = await fetch('http://localhost:5001/api/auth/company/moa', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -125,7 +125,7 @@ const Documents = () => {
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
       } else {
-        window.open(`http://localhost:5000/uploads/${filename}`, '_blank');
+        window.open(`http://localhost:5001/uploads/${filename}`, '_blank');
       }
     } catch (err) {
       console.error(err);
@@ -139,7 +139,7 @@ const Documents = () => {
     if (!window.confirm(`Delete ${doc.name}?`)) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/intern-docs/${doc.column}`, {
+      const res = await fetch(`http://localhost:5001/api/auth/intern-docs/${doc.column}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,

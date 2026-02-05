@@ -27,7 +27,7 @@ const InternC = () => {
     const fetchAdvisers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/auth/advisers', {
+        const res = await fetch('http://localhost:5001/api/auth/advisers', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -56,7 +56,7 @@ const InternC = () => {
         setError(null);
 
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/auth/interns', {
+        const res = await fetch('http://localhost:5001/api/auth/interns', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -22,7 +22,7 @@ const AdviserReportModal = ({ isOpen, onClose, intern }) => {
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
 
   // ✅ Use environment variable or config for API URL
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'http://localhost:5001';
 
   // Helper function to format time to 12-hour format with AM/PM
   const formatTime = (time24) => {

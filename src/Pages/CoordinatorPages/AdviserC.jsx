@@ -27,7 +27,7 @@ const AdviserC = () => {
       setError(null);
 
       try {
-        const response = await fetch('http://localhost:5000/api/auth/advisers', {
+        const response = await fetch('http://localhost:5001/api/auth/advisers', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -81,7 +81,7 @@ const AdviserC = () => {
     if (!adviserToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/advisers/${adviserToDelete.id}`, {
+      const response = await fetch(`http://localhost:5001/api/auth/advisers/${adviserToDelete.id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,

@@ -66,7 +66,7 @@ Added full update and delete functionality for daily activity logs in the Journa
    - `useEffect` hook watches `editingReport`
    - Populates all form fields from existing data
    - Shows existing photo preview if available
-   - Photo URL: `http://localhost:5000/${editingReport.photoUrl}`
+   - Photo URL: `http://localhost:5001/${editingReport.photoUrl}`
 
 3. **Submit Handler** (Lines 118-172):
    - Detects editing mode via `editingReport.id`

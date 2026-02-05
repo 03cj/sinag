@@ -26,7 +26,7 @@ const HTEC = () => {
       setError(null);
 
       try {
-        const response = await fetch('http://localhost:5000/api/auth/HTE', {
+        const response = await fetch('http://localhost:5001/api/auth/HTE', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -93,7 +93,7 @@ const HTEC = () => {
     if (!companyToDelete) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/HTE/${companyToDelete.id}`, {
+      const res = await fetch(`http://localhost:5001/api/auth/HTE/${companyToDelete.id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -242,7 +242,7 @@ const HTEC = () => {
                       <td className="px-6 py-4 text-center">
                         {company.moaFile ? (
                           <a
-                            href={`http://localhost:5000/uploads/${company.moaFile}`}
+                            href={`http://localhost:5001/uploads/${company.moaFile}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             title="View MOA"

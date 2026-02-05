@@ -72,7 +72,7 @@ const EditIntern = ({ intern, onUpdate, onCancel }) => {
     try {
       const token = localStorage.getItem('token');
 
-      const res = await fetch(`http://localhost:5000/api/auth/interns/${intern.id}`, {
+      const res = await fetch(`http://localhost:5001/api/auth/interns/${intern.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

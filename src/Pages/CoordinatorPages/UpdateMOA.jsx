@@ -56,7 +56,7 @@ const UpdateHTE = ({ company, onCancel, onUpdateSuccess }) => {
         if (value !== null) payload.append(key, value);
       });
 
-      const res = await fetch(`http://localhost:5000/api/auth/HTE/${company.id}`, {
+      const res = await fetch(`http://localhost:5001/api/auth/HTE/${company.id}`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,

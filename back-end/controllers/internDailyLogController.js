@@ -91,7 +91,7 @@ exports.createDailyLog = async (req, res) => {
       console.log('   Filename:', req.file.filename);
       console.log('   Size:', (req.file.size / 1024).toFixed(2), 'KB');
       console.log('   File path on disk:', path.join('uploads', req.file.filename));
-      console.log('   URL to access:', `http://localhost:5000/uploads/${photo_path}`);
+      console.log('   URL to access:', `http://localhost:5001/uploads/${photo_path}`);
     } else {
       console.log('ℹ️ No photo attached (optional field)');
     }

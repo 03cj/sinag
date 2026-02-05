@@ -25,7 +25,7 @@ const ConsentForm = ({ onClose, onUploaded }) => {
       try {
         // Try to get full consent data (requires HTE assignment)
         console.log('🔄 Fetching from /api/auth/consent-data...');
-        const res = await fetch('http://localhost:5000/api/auth/consent-data', {
+        const res = await fetch('http://localhost:5001/api/auth/consent-data', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -53,7 +53,7 @@ const ConsentForm = ({ onClose, onUploaded }) => {
 
         // Fallback: get basic user data and intern/company info separately
         console.log('🔄 Fallback: Fetching from /api/auth/me...');
-        const me = await fetch('http://localhost:5000/api/auth/me', {
+        const me = await fetch('http://localhost:5001/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (me.ok) {
@@ -70,7 +70,7 @@ const ConsentForm = ({ onClose, onUploaded }) => {
 
         // Also try to fetch complete intern/company data
         console.log('🔄 Fetching intern data with company details...');
-        const internRes = await fetch('http://localhost:5000/api/auth/me', {
+        const internRes = await fetch('http://localhost:5001/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -78,12 +78,12 @@ const ConsentForm = ({ onClose, onUploaded }) => {
           const userData = await internRes.json();
 
           // Now fetch intern record with company
-          const internDataRes = await fetch(`http://localhost:5000/api/intern/${userData.user.id}`, {
+          const internDataRes = await fetch(`http://localhost:5001/api/intern/${userData.user.id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }).catch(() => null);
 
           // Try dashboard endpoint as it has some company data
-          const dashRes = await fetch('http://localhost:5000/api/dashboard/intern', {
+          const dashRes = await fetch('http://localhost:5001/api/dashboard/intern', {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -93,7 +93,7 @@ const ConsentForm = ({ onClose, onUploaded }) => {
 
             if (dashData.companyDetails) {
               // Get full company data from notarized endpoint (it has address)
-              const notarizedRes = await fetch('http://localhost:5000/api/documents/notarized-agreement-data', {
+              const notarizedRes = await fetch('http://localhost:5001/api/documents/notarized-agreement-data', {
                 headers: { Authorization: `Bearer ${token}` },
               });
 
@@ -177,7 +177,7 @@ const ConsentForm = ({ onClose, onUploaded }) => {
 
     const token = localStorage.getItem('token');
 
-    const res = await fetch('http://localhost:5000/api/auth/consent-save', {
+    const res = await fetch('http://localhost:5001/api/auth/consent-save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -197,7 +197,7 @@ const ConsentForm = ({ onClose, onUploaded }) => {
 
     const data = await res.json();
 
-    window.open(`http://localhost:5000${data.fileUrl}`, '_blank');
+    window.open(`http://localhost:5001${data.fileUrl}`, '_blank');
     // Update parent list if provided
     if (onUploaded) {
       const filename = data.file || data.filename || data.fileUrl?.split('/').pop();

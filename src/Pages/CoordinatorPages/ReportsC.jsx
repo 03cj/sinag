@@ -24,7 +24,7 @@ const GenerateReports = () => {
     setLoadingPrograms(true);
 
     const token = localStorage.getItem('token');
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
     axios
       .get(`${API_BASE}/api/dashboard/adviser-programs`, {
@@ -95,7 +95,7 @@ const GenerateReports = () => {
     setGeneratingReport(selectedReport);
     try {
       const token = localStorage.getItem('token');
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       let endpoint = '';
 
       switch (selectedReport) {
@@ -147,7 +147,7 @@ const GenerateReports = () => {
     setGeneratingReport(reportTitle);
     try {
       const token = localStorage.getItem('token');
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       let endpoint = '';
 
       switch (reportTitle) {

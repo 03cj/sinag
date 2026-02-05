@@ -45,7 +45,7 @@ const ProfileS = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const response = await fetch('http://localhost:5000/api/auth/company/me', {
+        const response = await fetch('http://localhost:5001/api/auth/company/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -79,7 +79,7 @@ const ProfileS = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/auth/company/profile', {
+      const response = await fetch('http://localhost:5001/api/auth/company/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ const ProfileS = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+      const response = await fetch('http://localhost:5001/api/auth/change-password', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

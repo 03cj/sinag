@@ -48,7 +48,7 @@ Four primary roles (normalized to lowercase in JWT):
 
 ### Running the Application
 
-**Backend** (port 5000):
+**Backend** (port 5001):
 
 ```powershell
 cd back-end
@@ -65,7 +65,7 @@ npm run dev
 ```
 
 - Vite dev server with HMR
-- Proxies `/api` to `http://localhost:5000` (see [vite.config.js](vite.config.js#L19-L25))
+- Proxies `/api` to `http://localhost:5001` (see [vite.config.js](vite.config.js#L19-L25))
 
 ### Environment Setup
 
@@ -82,7 +82,7 @@ EMAIL_USER=your-email@domain.com
 EMAIL_PASS=your-app-password
 ```
 
-Frontend uses `VITE_API_URL` (optional, defaults to `http://localhost:5000`).
+Frontend uses `VITE_API_URL` (optional, defaults to `http://localhost:5001`).
 
 ## Critical Patterns
 
@@ -96,12 +96,12 @@ const response = await api.get('/intern-evaluations');
 ```
 
 - Automatically attaches JWT from `localStorage.getItem('token')`
-- Base URL: `VITE_API_URL/api` or `http://localhost:5000/api`
+- Base URL: `VITE_API_URL/api` or `http://localhost:5001/api`
 
 **Direct fetch** still used in many components (inconsistent pattern):
 
 ```javascript
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 fetch(`${API_BASE}/api/auth/login`, {
   headers: { Authorization: `Bearer ${token}` },
 });
@@ -121,7 +121,7 @@ fetch(`${API_BASE}/api/auth/login`, {
 
 - Files saved to `back-end/uploads/` with naming: `{LASTNAME}_{ORIGINAL_NAME}.ext`
 - MOA files: `{COMPANY_FIRST_WORD}_MOA.ext`
-- Served statically at `http://localhost:5000/uploads/{filename}`
+- Served statically at `http://localhost:5001/uploads/{filename}`
 - CORS explicitly enabled for uploads (see [app.js](back-end/app.js#L43-L72))
 
 Example route:

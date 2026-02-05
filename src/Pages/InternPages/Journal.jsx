@@ -112,7 +112,7 @@ const Journal = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/daily-logs/${report.id}`, {
+      const response = await fetch(`http://localhost:5001/api/daily-logs/${report.id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

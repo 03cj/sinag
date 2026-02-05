@@ -22,7 +22,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
     const fetchAdviserProgram = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/auth/me', {
+        const res = await fetch('http://localhost:5001/api/auth/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -116,7 +116,7 @@ const AddIntern = ({ onAddSuccess, onCancel }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/auth/addIntern', {
+      const response = await fetch('http://localhost:5001/api/auth/addIntern', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

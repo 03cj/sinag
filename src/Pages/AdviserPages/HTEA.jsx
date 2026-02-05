@@ -17,7 +17,7 @@ const HTEA = () => {
       setError(null);
 
       try {
-        let apiUrl = 'http://localhost:5000/api/auth/HTE';
+        let apiUrl = 'http://localhost:5001/api/auth/HTE';
         if (searchTerm) {
           apiUrl += `?q=${encodeURIComponent(searchTerm)}`;
         }
@@ -172,7 +172,7 @@ const HTEA = () => {
                       <td className="px-6 py-4 text-center">
                         {company.moaFile ? (
                           <a
-                            href={`http://localhost:5000/uploads/${company.moaFile}`}
+                            href={`http://localhost:5001/uploads/${company.moaFile}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             title="View MOA"
